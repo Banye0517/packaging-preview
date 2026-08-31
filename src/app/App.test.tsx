@@ -188,4 +188,20 @@ describe('App', () => {
     await user.click(screen.getByRole('tab', { name: '工艺' }))
     expect(screen.getByText('内包装2暂不支持表面工艺。')).toBeInTheDocument()
   })
+
+  it('switches to hanging tissue with four face uploads and a pulled-sheet switch', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('tab', { name: '盒型' }))
+    await user.click(screen.getByRole('radio', { name: '悬挂抽纸' }))
+    expect(screen.getByTestId('packaging-scene')).toHaveAttribute('data-type', 'hanging-tissue')
+    expect(screen.getByRole('checkbox', { name: '显示抽纸' })).toBeChecked()
+
+    await user.click(screen.getByRole('tab', { name: '贴图' }))
+    expect(screen.getByRole('heading', { name: '悬挂抽纸印刷贴图' })).toBeInTheDocument()
+    expect(screen.getAllByLabelText(/^上传.+印刷图$/)).toHaveLength(4)
+    expect(screen.queryByLabelText('上传顶部印刷图')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('上传底部印刷图')).not.toBeInTheDocument()
+  })
 })

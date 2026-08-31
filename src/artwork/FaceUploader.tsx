@@ -1,22 +1,22 @@
-import type { ArtworkAsset, BoxFace } from '../app/types'
+import type { ArtworkAsset } from '../app/types'
 
-interface FaceUploaderProps {
-  face: BoxFace
+interface FaceUploaderProps<Face extends string> {
+  face: Face
   label: string
   asset: ArtworkAsset | null
   error?: string
-  onUpload: (face: BoxFace, file: File) => void
-  onRemove: (face: BoxFace) => void
+  onUpload: (face: Face, file: File) => void
+  onRemove: (face: Face) => void
 }
 
-export function FaceUploader({
+export function FaceUploader<Face extends string>({
   face,
   label,
   asset,
   error,
   onUpload,
   onRemove,
-}: FaceUploaderProps) {
+}: FaceUploaderProps<Face>) {
   const inputId = `face-upload-${face}`
 
   return (
