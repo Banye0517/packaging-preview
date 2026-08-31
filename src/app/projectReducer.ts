@@ -3,6 +3,7 @@ import {
   type ArtworkAsset,
   type ArtworkTransform,
   type BoxFace,
+  type HangingTissueFace,
   type PackagingType,
   type InnerPackagingModelRotation,
   type PouchClosure,
@@ -76,6 +77,14 @@ export type ProjectAction =
       key: 'width' | 'height'
       value: number
     }
+  | { type: 'hanging-tissue/face-set'; face: HangingTissueFace; asset: ArtworkAsset }
+  | { type: 'hanging-tissue/face-remove'; face: HangingTissueFace }
+  | { type: 'hanging-tissue/select-face'; face: HangingTissueFace }
+  | { type: 'hanging-tissue/transform-set'; face: HangingTissueFace; key: keyof ArtworkTransform; value: number }
+  | { type: 'hanging-tissue/transform-reset'; face: HangingTissueFace }
+  | { type: 'hanging-tissue/rotation-set'; value: InnerPackagingModelRotation | number }
+  | { type: 'hanging-tissue/set'; key: 'width' | 'height'; value: number }
+  | { type: 'hanging-tissue/set-pulled-sheet'; value: boolean }
   | { type: 'camera/autoRotate'; value: boolean }
   | { type: 'box-finish/select-kind'; kind: FinishKind }
   | { type: 'box-finish/select-face'; face: BoxFace }
@@ -125,9 +134,26 @@ export function createDefaultInnerPackaging2(): ProjectState['innerPackaging2'] 
   }
 }
 
+export function createDefaultHangingTissue(): ProjectState['hangingTissue'] {
+  return {
+    faces: { front: null, back: null, left: null, right: null },
+    transforms: {
+      front: { ...DEFAULT_ARTWORK_TRANSFORM },
+      back: { ...DEFAULT_ARTWORK_TRANSFORM },
+      left: { ...DEFAULT_ARTWORK_TRANSFORM },
+      right: { ...DEFAULT_ARTWORK_TRANSFORM },
+    },
+    selectedFace: 'front',
+    width: 160,
+    height: 205,
+    modelRotation: 0,
+    showPulledSheet: true,
+  }
+}
+
 export function createInitialProject(): ProjectState {
   return {
-    version: 11,
+    version: 12,
     name: '未命名包装',
     activeTab: 'artwork',
     packagingType: 'box',
@@ -155,6 +181,7 @@ export function createInitialProject(): ProjectState {
       modelRotation: 0,
     },
     innerPackaging2: createDefaultInnerPackaging2(),
+    hangingTissue: createDefaultHangingTissue(),
     boxFinish: createDefaultBoxFinish(),
     pouchFinish: createDefaultPouchFinish(),
     camera: { autoRotate: false },
@@ -339,6 +366,64 @@ export function projectReducer(
           [action.key]: action.value,
         },
       }
+    case 'hanging-tissue/face-set':
+      return {
+        ...state,
+        hangingTissue: {
+          ...state.hangingTissue,
+          faces: { ...state.hangingTissue.faces, [action.face]: action.asset },
+          selectedFace: action.face,
+        },
+      }
+    case 'hanging-tissue/face-remove':
+      return {
+        ...state,
+        hangingTissue: {
+          ...state.hangingTissue,
+          faces: { ...state.hangingTissue.faces, [action.face]: null },
+        },
+      }
+    case 'hanging-tissue/select-face':
+      return { ...state, hangingTissue: { ...state.hangingTissue, selectedFace: action.face } }
+    case 'hanging-tissue/transform-set': {
+      const isScale = ['scale', 'stretchX', 'stretchY'].includes(action.key)
+      const isRotation = action.key === 'rotation'
+      const min = isScale ? 50 : isRotation ? -180 : -100
+      const max = isScale ? 300 : isRotation ? 180 : 100
+      if (!Number.isFinite(action.value) || action.value < min || action.value > max) return state
+      return {
+        ...state,
+        hangingTissue: {
+          ...state.hangingTissue,
+          transforms: {
+            ...state.hangingTissue.transforms,
+            [action.face]: { ...state.hangingTissue.transforms[action.face], [action.key]: action.value },
+          },
+        },
+      }
+    }
+    case 'hanging-tissue/transform-reset':
+      return {
+        ...state,
+        hangingTissue: {
+          ...state.hangingTissue,
+          transforms: { ...state.hangingTissue.transforms, [action.face]: { ...DEFAULT_ARTWORK_TRANSFORM } },
+        },
+      }
+    case 'hanging-tissue/rotation-set':
+      if (![0, 90, 180].includes(action.value)) return state
+      return {
+        ...state,
+        hangingTissue: {
+          ...state.hangingTissue,
+          modelRotation: action.value as InnerPackagingModelRotation,
+        },
+      }
+    case 'hanging-tissue/set':
+      if (!Number.isFinite(action.value) || action.value <= 0) return state
+      return { ...state, hangingTissue: { ...state.hangingTissue, [action.key]: action.value } }
+    case 'hanging-tissue/set-pulled-sheet':
+      return { ...state, hangingTissue: { ...state.hangingTissue, showPulledSheet: action.value } }
     case 'camera/autoRotate':
       return { ...state, camera: { ...state.camera, autoRotate: action.value } }
     case 'box-finish/select-kind':

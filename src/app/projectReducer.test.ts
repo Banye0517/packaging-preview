@@ -4,10 +4,54 @@ import { createInitialProject, projectReducer } from './projectReducer'
 import type { ArtworkAsset } from './types'
 
 describe('projectReducer', () => {
+  it('initializes hanging tissue with four independent faces and a visible pulled sheet', () => {
+    const initial = createInitialProject()
+
+    expect(initial.version).toBe(12)
+    expect(initial.hangingTissue).toEqual({
+      faces: { front: null, back: null, left: null, right: null },
+      transforms: {
+        front: { scale: 100, offsetX: 0, offsetY: 0, rotation: 0, stretchX: 100, stretchY: 100 },
+        back: { scale: 100, offsetX: 0, offsetY: 0, rotation: 0, stretchX: 100, stretchY: 100 },
+        left: { scale: 100, offsetX: 0, offsetY: 0, rotation: 0, stretchX: 100, stretchY: 100 },
+        right: { scale: 100, offsetX: 0, offsetY: 0, rotation: 0, stretchX: 100, stretchY: 100 },
+      },
+      selectedFace: 'front',
+      width: 160,
+      height: 205,
+      modelRotation: 0,
+      showPulledSheet: true,
+    })
+  })
+
+  it('updates one hanging tissue face and toggles only the pulled sheet', () => {
+    const initial = createInitialProject()
+    const asset: ArtworkAsset = {
+      id: 'left-artwork',
+      name: 'left.png',
+      mimeType: 'image/png',
+      width: 1000,
+      height: 1400,
+      previewUrl: 'data:image/png;base64,AAAA',
+    }
+
+    const uploaded = projectReducer(initial, {
+      type: 'hanging-tissue/face-set', face: 'left', asset,
+    })
+    const hidden = projectReducer(uploaded, {
+      type: 'hanging-tissue/set-pulled-sheet', value: false,
+    })
+
+    expect(uploaded.hangingTissue.faces.left).toEqual(asset)
+    expect(uploaded.hangingTissue.faces.front).toBeNull()
+    expect(hidden.hangingTissue.showPulledSheet).toBe(false)
+    expect(hidden.innerPackaging2).toEqual(initial.innerPackaging2)
+  })
+
   it('initializes inner packaging 2 with independent front and back transforms', () => {
     const initial = createInitialProject()
 
-    expect(initial.version).toBe(11)
+    expect(initial.version).toBe(12)
     expect(initial.innerPackaging2).toEqual({
       faces: { front: null, back: null },
       transforms: {
