@@ -39,7 +39,7 @@ export function FaceUploader({
       </label>
       <input
         id={inputId}
-        className="sr-only"
+        hidden
         type="file"
         accept="image/png,image/jpeg,image/webp"
         aria-label={`上传${label}印刷图`}

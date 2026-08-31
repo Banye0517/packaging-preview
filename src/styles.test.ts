@@ -5,6 +5,10 @@ import { describe, expect, it } from 'vitest'
 const css = readFileSync(new URL('./styles.css', import.meta.url), 'utf8')
 
 describe('desktop fixed preview layout', () => {
+  it('does not draw a decorative oval shadow below the 3D preview', () => {
+    expect(css).not.toMatch(/\.preview-stage::after\s*\{/)
+  })
+
   it('locks the desktop page and scrolls only the settings panel', () => {
     expect(css).toContain('height: 100dvh')
     expect(css).toMatch(/html,\s*body,\s*#root\s*\{[^}]*min-height:\s*0/s)

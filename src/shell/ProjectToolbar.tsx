@@ -1,5 +1,7 @@
 import { useState } from 'react'
 
+import { PNG_EXPORT_OPTIONS, type PngExportSelection } from '../export/transparentPng'
+
 interface ProjectToolbarProps {
   name: string
   onNameChange: (name: string) => void
@@ -11,7 +13,7 @@ interface ProjectToolbarProps {
   onOpen: () => void
   onSave: () => void
   onHelp: () => void
-  onExport: () => void
+  onExport: (selection: PngExportSelection) => void
 }
 
 export function ProjectToolbar({
@@ -28,6 +30,7 @@ export function ProjectToolbar({
   onExport,
 }: ProjectToolbarProps) {
   const [moreOpen, setMoreOpen] = useState(false)
+  const [exportOpen, setExportOpen] = useState(false)
   const runMobileAction = (action: () => void) => {
     setMoreOpen(false)
     action()
@@ -80,7 +83,34 @@ export function ProjectToolbar({
           </div>
         ) : null}
         <button type="button" onClick={onHelp}>帮助</button>
-        <button type="button" className="export-button" onClick={onExport}>导出</button>
+        <div className="export-menu-wrap">
+          <button
+            type="button"
+            className="export-button"
+            aria-expanded={exportOpen}
+            aria-controls="png-export-menu"
+            onClick={() => setExportOpen((open) => !open)}
+          >
+            导出
+          </button>
+          {exportOpen ? (
+            <div id="png-export-menu" className="export-menu" role="menu" aria-label="PNG 导出选项">
+              {PNG_EXPORT_OPTIONS.map((option) => (
+                <button
+                  key={option.label}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setExportOpen(false)
+                    onExport({ size: option.size, includeShadow: option.includeShadow })
+                  }}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
       </nav>
     </header>
   )

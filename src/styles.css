@@ -116,6 +116,40 @@ input:focus-visible {
   gap: 6px;
 }
 
+.export-menu-wrap {
+  position: relative;
+}
+
+.export-menu {
+  position: absolute;
+  z-index: 8;
+  top: calc(100% + 8px);
+  right: 0;
+  display: grid;
+  width: max-content;
+  min-width: 172px;
+  padding: 6px;
+  border: 1px solid #d6e0ec;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 14px 32px rgb(30 53 82 / 16%);
+}
+
+.export-menu button {
+  min-height: 34px;
+  padding: 0 10px;
+  text-align: left;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.export-menu button:hover,
+.export-menu button:focus-visible {
+  background: #edf5ff;
+}
+
 .toolbar-actions button,
 .preview-controls button {
   min-height: 34px;
@@ -163,17 +197,6 @@ input:focus-visible {
   background:
     radial-gradient(circle at 50% 44%, rgb(255 255 255 / 95%) 0 18%, transparent 47%),
     linear-gradient(145deg, #f8fbff, #e8eef6);
-}
-
-.preview-stage::after {
-  content: "";
-  position: absolute;
-  bottom: 13%;
-  width: min(52%, 520px);
-  height: 12%;
-  border-radius: 50%;
-  background: rgb(72 95 127 / 11%);
-  filter: blur(18px);
 }
 
 .box-canvas {

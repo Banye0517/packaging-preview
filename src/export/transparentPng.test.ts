@@ -1,13 +1,16 @@
-import { Color, PerspectiveCamera, Scene, Vector2, type WebGLRenderer } from 'three'
+import { Color, Group, PerspectiveCamera, Scene, Vector2, type WebGLRenderer } from 'three'
 import { describe, expect, it, vi } from 'vitest'
 
-import { dataUrlToBlob, EXPORT_SIZE, renderTransparentPng } from './transparentPng'
+import { dataUrlToBlob, renderTransparentPng } from './transparentPng'
 
 describe('renderTransparentPng', () => {
-  it('renders a 2000 by 2000 transparent PNG and restores the renderer', () => {
+  it('renders an 800 by 800 transparent PNG without a contact shadow and restores state', () => {
     const camera = new PerspectiveCamera(38, 1.6)
     const scene = new Scene()
     scene.background = new Color('#ffffff')
+    const shadowGroup = new Group()
+    const shadowVisibilityDuringRender: boolean[] = []
+    scene.add(shadowGroup)
     const canvas = {
       toDataURL: vi.fn(() => 'data:image/png;base64,exported'),
     }
@@ -20,18 +23,51 @@ describe('renderTransparentPng', () => {
       setPixelRatio: vi.fn(),
       setSize: vi.fn(),
       setClearColor: vi.fn(),
-      render: vi.fn(),
+      render: vi.fn(() => shadowVisibilityDuringRender.push(shadowGroup.visible)),
     } as unknown as WebGLRenderer
 
-    const result = renderTransparentPng(renderer, scene, camera)
+    const result = renderTransparentPng(renderer, scene, camera, {
+      size: 800,
+      includeShadow: false,
+      shadowGroup,
+    })
 
-    expect(EXPORT_SIZE).toBe(2000)
-    expect(renderer.setSize).toHaveBeenNthCalledWith(1, 2000, 2000, false)
+    expect(renderer.setSize).toHaveBeenNthCalledWith(1, 800, 800, false)
     expect(renderer.setClearColor).toHaveBeenNthCalledWith(1, 0x000000, 0)
     expect(canvas.toDataURL).toHaveBeenCalledWith('image/png')
     expect(result).toBe('data:image/png;base64,exported')
     expect(renderer.setSize).toHaveBeenLastCalledWith(1200, 800, false)
     expect(scene.background).toBeInstanceOf(Color)
+    expect(shadowGroup.visible).toBe(true)
+    expect(shadowVisibilityDuringRender).toEqual([false, true])
+  })
+
+  it('renders a 3000 by 3000 transparent PNG with the contact shadow visible', () => {
+    const camera = new PerspectiveCamera(38, 1.6)
+    const scene = new Scene()
+    const shadowGroup = new Group()
+    const shadowVisibilityDuringRender: boolean[] = []
+    const renderer = {
+      domElement: { toDataURL: vi.fn(() => 'data:image/png;base64,exported') },
+      getSize: vi.fn((target: Vector2) => target.set(1200, 800)),
+      getPixelRatio: vi.fn(() => 2),
+      getClearColor: vi.fn((target: Color) => target.set('#eef3f9')),
+      getClearAlpha: vi.fn(() => 1),
+      setPixelRatio: vi.fn(),
+      setSize: vi.fn(),
+      setClearColor: vi.fn(),
+      render: vi.fn(() => shadowVisibilityDuringRender.push(shadowGroup.visible)),
+    } as unknown as WebGLRenderer
+
+    renderTransparentPng(renderer, scene, camera, {
+      size: 3000,
+      includeShadow: true,
+      shadowGroup,
+    })
+
+    expect(renderer.setSize).toHaveBeenNthCalledWith(1, 3000, 3000, false)
+    expect(shadowGroup.visible).toBe(true)
+    expect(shadowVisibilityDuringRender).toEqual([true, true])
   })
 
   it('converts the PNG data URL into a downloadable Blob', async () => {

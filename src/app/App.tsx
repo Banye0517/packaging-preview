@@ -17,7 +17,7 @@ import {
   type SettingsTabId,
 } from '../shell/SettingsPanel'
 import { decodeProject, encodeProject } from '../project/codec'
-import { dataUrlToBlob } from '../export/transparentPng'
+import { dataUrlToBlob, type PngExportSelection } from '../export/transparentPng'
 import { InnerPackagingArtworkUploader } from '../innerPackaging/InnerPackagingArtworkUploader'
 import { InnerPackaging1Panel } from '../innerPackaging/InnerPackaging1Panel'
 import { InnerPackaging2ArtworkUploader } from '../innerPackaging/InnerPackaging2ArtworkUploader'
@@ -300,12 +300,12 @@ export function App() {
     }
   }
 
-  function handleExport() {
-    const png = boxSceneRef.current?.exportTransparentPng()
+  function handleExport(selection: PngExportSelection) {
+    const png = boxSceneRef.current?.exportTransparentPng(selection)
     if (!png) return
     downloadFile(
       dataUrlToBlob(png),
-      `${name || '未命名包装'}-2000x2000-透明.png`,
+      `${name || '未命名包装'}-${selection.size}x${selection.size}-${selection.includeShadow ? '带投影' : '无投影'}.png`,
     )
   }
 

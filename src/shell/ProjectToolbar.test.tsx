@@ -33,11 +33,24 @@ describe('ProjectToolbar', () => {
       ['打开', handlers.onOpen],
       ['保存', handlers.onSave],
       ['帮助', handlers.onHelp],
-      ['导出', handlers.onExport],
     ] as const) {
       await user.click(screen.getByRole('button', { name: label }))
       expect(handler).toHaveBeenCalledOnce()
     }
+
+    await user.click(screen.getByRole('button', { name: '导出' }))
+    for (const label of [
+      '普通 PNG（无投影）',
+      '普通 PNG（有投影）',
+      '高清 PNG（无投影）',
+      '高清 PNG（有投影）',
+    ]) {
+      expect(screen.getByRole('menuitem', { name: label })).toBeInTheDocument()
+    }
+
+    await user.click(screen.getByRole('menuitem', { name: '普通 PNG（有投影）' }))
+    expect(handlers.onExport).toHaveBeenCalledWith({ size: 800, includeShadow: true })
+    expect(screen.queryByRole('menu', { name: 'PNG 导出选项' })).not.toBeInTheDocument()
   })
 
   it('exposes the hidden project actions from the mobile more menu', async () => {

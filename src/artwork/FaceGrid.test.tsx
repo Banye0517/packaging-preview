@@ -25,7 +25,9 @@ describe('FaceGrid', () => {
       />,
     )
 
-    expect(screen.getAllByLabelText(/^上传.+印刷图$/)).toHaveLength(6)
+    const uploadInputs = screen.getAllByLabelText(/^上传.+印刷图$/) as HTMLInputElement[]
+    expect(uploadInputs).toHaveLength(6)
+    expect(uploadInputs.every((input) => input.hidden)).toBe(true)
     expect(screen.getByLabelText('上传正面印刷图')).toBeInTheDocument()
     expect(screen.getByLabelText('上传背面印刷图')).toBeInTheDocument()
   })

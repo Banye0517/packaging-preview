@@ -5,7 +5,7 @@ import type { PerspectiveCamera } from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 
 import type { ProjectState } from '../app/types'
-import { renderTransparentPng } from '../export/transparentPng'
+import { renderTransparentPng, type PngExportSize } from '../export/transparentPng'
 import { PrintedInnerPackaging1 } from '../innerPackaging/PrintedInnerPackaging1'
 import { PrintedInnerPackaging2 } from '../innerPackaging/PrintedInnerPackaging2'
 import { PrintedPouch } from '../pouch/PrintedPouch'
@@ -25,7 +25,12 @@ interface BoxSceneProps {
 }
 
 export interface BoxSceneHandle {
-  exportTransparentPng: () => string | null
+  exportTransparentPng: (options?: PngExportRequest) => string | null
+}
+
+export interface PngExportRequest {
+  size: PngExportSize
+  includeShadow: boolean
 }
 
 export const BoxScene = forwardRef<BoxSceneHandle, BoxSceneProps>(function BoxScene(
@@ -60,13 +65,15 @@ export const BoxScene = forwardRef<BoxSceneHandle, BoxSceneProps>(function BoxSc
           <PrintedInnerPackaging2 value={project.innerPackaging2} />
         )}
       </group>
-      <ContactShadows
-        position={[0, -1.67, 0]}
-        opacity={0.26}
-        scale={8}
-        blur={2.4}
-        far={4}
-      />
+      <group name="product-contact-shadow">
+        <ContactShadows
+          position={[0, -1.67, 0]}
+          opacity={0.26}
+          scale={8}
+          blur={2.4}
+          far={4}
+        />
+      </group>
       <CameraControls autoRotate={project.camera.autoRotate} command={command} />
       <ExportController ref={ref} />
     </Canvas>
@@ -79,9 +86,12 @@ const ExportController = forwardRef<BoxSceneHandle>(function ExportController(_,
   const camera = useThree((state) => state.camera)
 
   useImperativeHandle(ref, () => ({
-    exportTransparentPng: () => {
+    exportTransparentPng: (options = { size: 3000, includeShadow: false }) => {
       if (!('isPerspectiveCamera' in camera)) return null
-      return renderTransparentPng(renderer, scene, camera as PerspectiveCamera)
+      return renderTransparentPng(renderer, scene, camera as PerspectiveCamera, {
+        ...options,
+        shadowGroup: scene.getObjectByName('product-contact-shadow'),
+      })
     },
   }), [camera, renderer, scene])
 
