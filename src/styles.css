@@ -604,6 +604,31 @@ input:focus-visible {
   background: #f8fbff;
 }
 
+.texture-transform-disclosure {
+  margin-top: 22px;
+}
+
+.texture-transform-disclosure > summary {
+  padding: 11px 13px;
+  color: #326fd6;
+  font-size: 13px;
+  font-weight: 650;
+  border: 1px solid #d7e2f1;
+  border-radius: 10px;
+  background: #f8fbff;
+  cursor: pointer;
+}
+
+.texture-transform-disclosure[open] > summary {
+  border-radius: 10px 10px 0 0;
+}
+
+.texture-transform-disclosure .texture-transform-controls {
+  margin-top: 0;
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+}
+
 .texture-transform-heading,
 .texture-slider {
   display: grid;

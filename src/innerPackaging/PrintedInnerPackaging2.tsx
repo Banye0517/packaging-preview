@@ -12,7 +12,11 @@ import {
 import type { InnerPackaging2State } from '../app/types'
 import { fitPouchGeometry } from '../pouch/pouchModelGeometry'
 import { applyTextureMap } from '../scene/textureMaterial'
-import { drawInnerPackaging2Atlas } from './innerPackaging2Texture'
+import {
+  drawInnerPackaging2Atlas,
+  extractInnerPackaging2UvRegions,
+  type InnerPackaging2UvRegions,
+} from './innerPackaging2Texture'
 
 export const INNER_PACKAGING_2_MODEL_URL = '/models/inner-packaging-2.gltf'
 const FILM_COLOR = '#f8fafc'
@@ -68,19 +72,29 @@ export function PrintedInnerPackaging2({ value }: { value: InnerPackaging2State 
     }),
     [height, sourceGeometry, width],
   )
+  const uvRegions = useMemo(
+    () => extractInnerPackaging2UvRegions(sourceGeometry),
+    [sourceGeometry],
+  )
   useEffect(() => () => sourceGeometry.dispose(), [sourceGeometry])
   useEffect(() => () => fittedGeometry.dispose(), [fittedGeometry])
 
   return (
     <group rotation={[0, 0, value.modelRotation * Math.PI / 180]}>
       <mesh geometry={fittedGeometry} castShadow receiveShadow>
-        <InnerPackaging2Material value={value} />
+        <InnerPackaging2Material value={value} uvRegions={uvRegions} />
       </mesh>
     </group>
   )
 }
 
-function InnerPackaging2Material({ value }: { value: InnerPackaging2State }) {
+function InnerPackaging2Material({
+  value,
+  uvRegions,
+}: {
+  value: InnerPackaging2State
+  uvRegions: InnerPackaging2UvRegions
+}) {
   const frontImage = useLoadedImage(value.faces.front?.previewUrl)
   const backImage = useLoadedImage(value.faces.back?.previewUrl)
   const materialRef = useRef<MeshStandardMaterial>(null)
@@ -95,12 +109,12 @@ function InnerPackaging2Material({ value }: { value: InnerPackaging2State }) {
     drawInnerPackaging2Atlas(context, size, {
       ...(frontImage ? { front: { image: frontImage, transform: value.transforms.front } } : {}),
       ...(backImage ? { back: { image: backImage, transform: value.transforms.back } } : {}),
-    })
+    }, uvRegions)
     const next = new CanvasTexture(canvas)
     next.colorSpace = SRGBColorSpace
     next.flipY = false
     return next
-  }, [backImage, frontImage, value.transforms.back, value.transforms.front])
+  }, [backImage, frontImage, uvRegions, value.transforms.back, value.transforms.front])
 
   useEffect(() => () => texture?.dispose(), [texture])
   useEffect(() => {

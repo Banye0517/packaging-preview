@@ -182,7 +182,8 @@ describe('App', () => {
     await user.click(screen.getByRole('tab', { name: '贴图' }))
     expect(screen.getByRole('heading', { name: '内包装2印刷贴图' })).toBeInTheDocument()
     expect(screen.getAllByLabelText(/^上传(正面|背面)印刷图$/)).toHaveLength(2)
-    expect(screen.queryByRole('slider', { name: '水平拉伸' })).not.toBeInTheDocument()
+    expect(screen.getByText('高级调整').closest('details')).not.toHaveAttribute('open')
+    expect(screen.getByRole('slider', { name: '水平拉伸' })).toBeInTheDocument()
 
     await user.click(screen.getByRole('tab', { name: '工艺' }))
     expect(screen.getByText('内包装2暂不支持表面工艺。')).toBeInTheDocument()

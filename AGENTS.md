@@ -22,7 +22,7 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - “内包装1” full-UV artwork supports 50%–300% scale, horizontal/vertical -100%–100% offsets, and reset. Exposed texture areas are white; never tile or edge-stretch the artwork.
 - “内包装1” full-UV artwork also supports -180°–180° rotation and independent 50%–300% horizontal/vertical stretch. Reset restores 0° rotation and 100% stretch.
 - “内包装2” uses `public/models/inner-packaging-2.gltf` from the supplied `翅中.gltf` and preserves its single mesh, native shape, depth, rounded corners, bulge, and authored UVs.
-- “内包装2” has exactly two artwork uploads. The PSD left UV island is the front and the right UV island is the back. Each face independently supports 50%–300% proportional scale, -100%–100% horizontal/vertical offsets, and -180°–180° rotation; never expose non-proportional stretch, tiling, or edge stretching.
+- “内包装2” has exactly two artwork uploads. The PSD left UV island is the front and the right UV island is the back. Default uploads must be calibrated from the model's real front/back UV bounds, fill the target region, and apply the model's fixed orientation correction without changing user transform values. Advanced adjustments are collapsed by default; each face independently supports 50%–300% proportional scale, -100%–100% horizontal/vertical offsets, -180°–180° rotation, and 50%–300% horizontal/vertical stretch. Never tile or edge-stretch artwork.
 - “内包装2” reuses inner-packaging-1 width, height, and 0°/90°/180° model direction controls. It does not support surface finishes.
 
 ## Box Finish Rules

@@ -29,6 +29,8 @@ const CONTROLS = [
   { key: 'offsetX', label: '水平位置', min: -100, max: 100, suffix: '%' },
   { key: 'offsetY', label: '垂直位置', min: -100, max: 100, suffix: '%' },
   { key: 'rotation', label: '贴图旋转', min: -180, max: 180, suffix: '°' },
+  { key: 'stretchX', label: '水平拉伸', min: 50, max: 300, suffix: '%' },
+  { key: 'stretchY', label: '垂直拉伸', min: 50, max: 300, suffix: '%' },
 ] as const
 
 export function InnerPackaging2ArtworkUploader({
@@ -64,42 +66,45 @@ export function InnerPackaging2ArtworkUploader({
           </div>
         ))}
       </div>
-      <section className="texture-transform-controls" aria-label={`${label}贴图变换`}>
-        <div className="texture-transform-heading">
-          <strong>{label}贴图调整</strong>
-          <button type="button" aria-label={`重置${label}贴图`} onClick={() => onTransformReset(face)}>
-            重置贴图
-          </button>
-        </div>
-        {CONTROLS.map(({ key, label: controlLabel, min, max, suffix }) => (
-          <label className="texture-slider" key={key}>
-            <span>{controlLabel}</span>
-            <input
-              type="range"
-              min={min}
-              max={max}
-              value={transform[key]}
-              aria-label={controlLabel}
-              onChange={(event) =>
-                onTransformChange(face, key, event.currentTarget.valueAsNumber)
-              }
-            />
-            <span className="texture-number">
+      <details className="texture-transform-disclosure">
+        <summary>高级调整</summary>
+        <section className="texture-transform-controls" aria-label={`${label}贴图变换`}>
+          <div className="texture-transform-heading">
+            <strong>{label}贴图调整</strong>
+            <button type="button" aria-label={`重置${label}贴图`} onClick={() => onTransformReset(face)}>
+              重置贴图
+            </button>
+          </div>
+          {CONTROLS.map(({ key, label: controlLabel, min, max, suffix }) => (
+            <label className="texture-slider" key={key}>
+              <span>{controlLabel}</span>
               <input
-                type="number"
+                type="range"
                 min={min}
                 max={max}
                 value={transform[key]}
-                aria-label={`${controlLabel}数值`}
+                aria-label={controlLabel}
                 onChange={(event) =>
                   onTransformChange(face, key, event.currentTarget.valueAsNumber)
                 }
               />
-              <span aria-hidden="true">{suffix}</span>
-            </span>
-          </label>
-        ))}
-      </section>
+              <span className="texture-number">
+                <input
+                  type="number"
+                  min={min}
+                  max={max}
+                  value={transform[key]}
+                  aria-label={`${controlLabel}数值`}
+                  onChange={(event) =>
+                    onTransformChange(face, key, event.currentTarget.valueAsNumber)
+                  }
+                />
+                <span aria-hidden="true">{suffix}</span>
+              </span>
+            </label>
+          ))}
+        </section>
+      </details>
     </>
   )
 }

@@ -107,6 +107,8 @@ const DEFAULT_ARTWORK_TRANSFORM: ArtworkTransform = {
   offsetX: 0,
   offsetY: 0,
   rotation: 0,
+  stretchX: 100,
+  stretchY: 100,
 }
 
 export function createDefaultInnerPackaging2(): ProjectState['innerPackaging2'] {
@@ -125,7 +127,7 @@ export function createDefaultInnerPackaging2(): ProjectState['innerPackaging2'] 
 
 export function createInitialProject(): ProjectState {
   return {
-    version: 10,
+    version: 11,
     name: '未命名包装',
     activeTab: 'artwork',
     packagingType: 'box',
@@ -287,7 +289,7 @@ export function projectReducer(
         innerPackaging2: { ...state.innerPackaging2, selectedFace: action.face },
       }
     case 'inner-packaging-2/transform-set': {
-      const isScale = action.key === 'scale'
+      const isScale = ['scale', 'stretchX', 'stretchY'].includes(action.key)
       const isRotation = action.key === 'rotation'
       const min = isScale ? 50 : isRotation ? -180 : -100
       const max = isScale ? 300 : isRotation ? 180 : 100

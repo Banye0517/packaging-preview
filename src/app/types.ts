@@ -51,6 +51,8 @@ export interface ArtworkTransform {
   offsetX: number
   offsetY: number
   rotation: number
+  stretchX: number
+  stretchY: number
 }
 
 export interface InnerPackaging2State {
@@ -63,7 +65,7 @@ export interface InnerPackaging2State {
 }
 
 export interface ProjectState {
-  version: 10
+  version: 11
   name: string
   activeTab: 'artwork' | 'finish' | 'box' | 'camera'
   packagingType: PackagingType

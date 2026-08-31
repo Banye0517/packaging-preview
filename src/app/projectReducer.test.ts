@@ -7,12 +7,12 @@ describe('projectReducer', () => {
   it('initializes inner packaging 2 with independent front and back transforms', () => {
     const initial = createInitialProject()
 
-    expect(initial.version).toBe(10)
+    expect(initial.version).toBe(11)
     expect(initial.innerPackaging2).toEqual({
       faces: { front: null, back: null },
       transforms: {
-        front: { scale: 100, offsetX: 0, offsetY: 0, rotation: 0 },
-        back: { scale: 100, offsetX: 0, offsetY: 0, rotation: 0 },
+        front: { scale: 100, offsetX: 0, offsetY: 0, rotation: 0, stretchX: 100, stretchY: 100 },
+        back: { scale: 100, offsetX: 0, offsetY: 0, rotation: 0, stretchX: 100, stretchY: 100 },
       },
       selectedFace: 'front',
       width: 160,
@@ -56,6 +56,8 @@ describe('projectReducer', () => {
       offsetX: 0,
       offsetY: 0,
       rotation: 0,
+      stretchX: 100,
+      stretchY: 100,
     })
   })
 
@@ -70,6 +72,12 @@ describe('projectReducer', () => {
     })).toBe(initial)
     expect(projectReducer(initial, {
       type: 'inner-packaging-2/transform-set', face: 'back', key: 'offsetX', value: -101,
+    })).toBe(initial)
+    expect(projectReducer(initial, {
+      type: 'inner-packaging-2/transform-set', face: 'front', key: 'stretchX', value: 50,
+    }).innerPackaging2.transforms.front.stretchX).toBe(50)
+    expect(projectReducer(initial, {
+      type: 'inner-packaging-2/transform-set', face: 'front', key: 'stretchY', value: 301,
     })).toBe(initial)
     expect(projectReducer(initial, {
       type: 'inner-packaging-2/rotation-set', value: 45,

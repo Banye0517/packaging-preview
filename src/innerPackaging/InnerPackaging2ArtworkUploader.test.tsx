@@ -26,8 +26,10 @@ describe('InnerPackaging2ArtworkUploader', () => {
     )
 
     expect(screen.getAllByLabelText(/上传(正面|背面)印刷图/)).toHaveLength(2)
-    expect(screen.queryByLabelText('水平拉伸')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('垂直拉伸')).not.toBeInTheDocument()
+    const disclosure = screen.getByText('高级调整').closest('details')
+    expect(disclosure).not.toHaveAttribute('open')
+    expect(screen.getByRole('slider', { name: '水平拉伸' })).toBeInTheDocument()
+    expect(screen.getByRole('slider', { name: '垂直拉伸' })).toBeInTheDocument()
 
     await user.click(screen.getByText('背面'))
     expect(onSelectFace).toHaveBeenCalledWith('back')
@@ -36,6 +38,11 @@ describe('InnerPackaging2ArtworkUploader', () => {
       target: { value: '35' },
     })
     expect(onTransformChange).toHaveBeenCalledWith('front', 'rotation', 35)
+
+    fireEvent.change(screen.getByRole('slider', { name: '水平拉伸' }), {
+      target: { value: '125' },
+    })
+    expect(onTransformChange).toHaveBeenCalledWith('front', 'stretchX', 125)
 
     await user.click(screen.getByRole('button', { name: '重置正面贴图' }))
     expect(onTransformReset).toHaveBeenCalledWith('front')

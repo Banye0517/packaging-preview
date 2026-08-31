@@ -326,7 +326,10 @@ function isVersion9ProjectState(value: unknown): value is Version9ProjectState {
     hasFinishFields(project.pouchFinish, ['front', 'back'] as const)
 }
 
-function hasInnerPackaging2Fields(project: Partial<ProjectState>) {
+function hasInnerPackaging2Fields(
+  project: Partial<ProjectState>,
+  requireStretch = true,
+) {
   const inner = project.innerPackaging2
   if (!inner || !['front', 'back'].includes(inner.selectedFace)) return false
   const faces = ['front', 'back'] as const
@@ -340,7 +343,7 @@ function hasInnerPackaging2Fields(project: Partial<ProjectState>) {
   if (![0, 90, 180].includes(inner.modelRotation)) return false
   return faces.every((face) => {
     const transform = inner.transforms[face]
-    return !!transform &&
+    const hasBaseTransform = !!transform &&
       typeof transform.scale === 'number' && Number.isFinite(transform.scale) &&
       transform.scale >= 50 && transform.scale <= 300 &&
       typeof transform.offsetX === 'number' && Number.isFinite(transform.offsetX) &&
@@ -349,15 +352,44 @@ function hasInnerPackaging2Fields(project: Partial<ProjectState>) {
       transform.offsetY >= -100 && transform.offsetY <= 100 &&
       typeof transform.rotation === 'number' && Number.isFinite(transform.rotation) &&
       transform.rotation >= -180 && transform.rotation <= 180
+    if (!hasBaseTransform) return false
+    if (!requireStretch) return true
+    return [transform.stretchX, transform.stretchY].every((stretch) =>
+      typeof stretch === 'number' && Number.isFinite(stretch) &&
+      stretch >= 50 && stretch <= 300
+    )
   })
 }
 
 function isProjectState(value: unknown): value is ProjectState {
   if (!value || typeof value !== 'object') return false
   const project = value as Partial<ProjectState>
-  return project.version === 10 &&
+  return project.version === 11 &&
     isVersion9ProjectState({ ...project, version: 9 }) &&
     hasInnerPackaging2Fields(project)
+}
+
+function isVersion10ProjectState(value: unknown) {
+  if (!value || typeof value !== 'object') return false
+  const project = value as Partial<Omit<ProjectState, 'version'>> & { version?: number }
+  return project.version === 10 &&
+    isVersion9ProjectState({ ...project, version: 9 }) &&
+    hasInnerPackaging2Fields(project as Partial<ProjectState>, false)
+}
+
+function addInnerPackaging2Stretch(value: Record<string, unknown>): ProjectState {
+  const project = value as unknown as Omit<ProjectState, 'version'> & { version: 10 }
+  return {
+    ...project,
+    version: 11,
+    innerPackaging2: {
+      ...project.innerPackaging2,
+      transforms: {
+        front: { ...project.innerPackaging2.transforms.front, stretchX: 100, stretchY: 100 },
+        back: { ...project.innerPackaging2.transforms.back, stretchX: 100, stretchY: 100 },
+      },
+    },
+  }
 }
 
 export function encodeProject(project: ProjectState): string {
@@ -368,13 +400,16 @@ export function decodeProject(source: string): ProjectState {
   try {
     const value: unknown = JSON.parse(source)
     if (isProjectState(value)) return value
+    if (isVersion10ProjectState(value)) {
+      return addInnerPackaging2Stretch(value as Record<string, unknown>)
+    }
     if (isVersion9ProjectState(value)) {
-      return { ...value, version: 10, innerPackaging2: createDefaultInnerPackaging2() }
+      return { ...value, version: 11, innerPackaging2: createDefaultInnerPackaging2() }
     }
     if (isVersion8ProjectState(value)) {
       return {
         ...value,
-        version: 10,
+        version: 11,
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
       }
@@ -382,7 +417,7 @@ export function decodeProject(source: string): ProjectState {
     if (isVersion7ProjectState(value)) {
       return {
         ...value,
-        version: 10,
+        version: 11,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -391,7 +426,7 @@ export function decodeProject(source: string): ProjectState {
     if (isVersion6ProjectState(value)) {
       return {
         ...value,
-        version: 10,
+        version: 11,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -404,7 +439,7 @@ export function decodeProject(source: string): ProjectState {
     if (isVersion5ProjectState(value)) {
       return {
         ...value,
-        version: 10,
+        version: 11,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -420,7 +455,7 @@ export function decodeProject(source: string): ProjectState {
     if (isVersion4ProjectState(value)) {
       return {
         ...value,
-        version: 10,
+        version: 11,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -440,7 +475,7 @@ export function decodeProject(source: string): ProjectState {
       const initial = createInitialProject()
       return {
         ...value,
-        version: 10,
+        version: 11,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -464,7 +499,7 @@ export function decodeProject(source: string): ProjectState {
       const initial = createInitialProject()
       return {
         ...value,
-        version: 10,
+        version: 11,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
