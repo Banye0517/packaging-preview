@@ -8,6 +8,7 @@ import type { ProjectState } from '../app/types'
 import { renderTransparentPng, type PngExportSize } from '../export/transparentPng'
 import { PrintedInnerPackaging1 } from '../innerPackaging/PrintedInnerPackaging1'
 import { PrintedInnerPackaging2 } from '../innerPackaging/PrintedInnerPackaging2'
+import { PrintedHangingTissue } from '../hangingTissue/PrintedHangingTissue'
 import { PrintedPouch } from '../pouch/PrintedPouch'
 import { PrintedBox } from './PrintedBox'
 import { CAMERA_POLAR_LIMITS, CAMERA_POSITIONS } from './cameraLimits'
@@ -61,8 +62,10 @@ export const BoxScene = forwardRef<BoxSceneHandle, BoxSceneProps>(function BoxSc
           <PrintedPouch pouch={project.pouch} finish={project.pouchFinish} />
         ) : project.packagingType === 'inner-packaging-1' ? (
           <PrintedInnerPackaging1 value={project.innerPackaging1} />
-        ) : (
+        ) : project.packagingType === 'inner-packaging-2' ? (
           <PrintedInnerPackaging2 value={project.innerPackaging2} />
+        ) : (
+          <PrintedHangingTissue value={project.hangingTissue} />
         )}
       </group>
       <group name="product-contact-shadow">
