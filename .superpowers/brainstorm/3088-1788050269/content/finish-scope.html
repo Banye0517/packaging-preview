@@ -1,0 +1,60 @@
+<h2>工艺复刻范围</h2>
+<p class="subtitle">参考站实际是“多工艺图层 + 独立黑白蒙版 + 实时 PBR 材质”，不是简单的整盒亮度滤镜。请选择工艺先覆盖哪些包装。</p>
+
+<div class="mockup">
+  <div class="mockup-header">已确认的参考站结构</div>
+  <div class="mockup-body">
+    <div style="display:grid;grid-template-columns:repeat(5,minmax(110px,1fr));gap:10px">
+      <div style="padding:14px;border:1px solid #d7dfeb;border-radius:14px;background:#edf5ff"><b>烫金</b><br><small>金属反射</small></div>
+      <div style="padding:14px;border:1px solid #d7dfeb;border-radius:14px"><b>烫银</b><br><small>银色金属</small></div>
+      <div style="padding:14px;border:1px solid #d7dfeb;border-radius:14px"><b>镭射</b><br><small>虹彩金属</small></div>
+      <div style="padding:14px;border:1px solid #d7dfeb;border-radius:14px"><b>UV亮膜</b><br><small>原图高光</small></div>
+      <div style="padding:14px;border:1px solid #d7dfeb;border-radius:14px"><b>击凸/压凹</b><br><small>立体纹理</small></div>
+    </div>
+    <p style="margin:14px 0 0;color:#64748b">每层可单独显示、恢复默认参数、上传对应面的黑白蒙版；多种工艺可叠加。</p>
+  </div>
+</div>
+
+<div class="cards" style="margin-top:22px">
+  <div class="card" data-choice="a-box-first" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:20px;background:linear-gradient(135deg,#eff6ff,#fff7e8)">
+      <div style="display:flex;gap:8px;align-items:center;justify-content:center">
+        <div style="width:74px;height:112px;border-radius:8px;background:linear-gradient(135deg,#f5f7fb 25%,#d9ad35 48%,#fff 51%,#d9ad35 54%,#f5f7fb 75%);box-shadow:0 18px 30px #32415424"></div>
+        <div style="font-weight:700">六面盒 → 5 种工艺</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A｜先完整复刻六面盒（推荐）</h3>
+      <p>完全按参考站：五种工艺、多层叠加、六面蒙版、参数调节。自立袋和内包装1暂不显示工艺控件。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b-all-types" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:20px;background:linear-gradient(135deg,#f3f7ff,#f7fff5)">
+      <div style="display:flex;gap:12px;align-items:end;justify-content:center">
+        <div style="width:58px;height:90px;border-radius:7px;background:linear-gradient(145deg,#eef2f8,#b8d7ff,#fff)"></div>
+        <div style="width:58px;height:82px;border-radius:16px 16px 8px 8px;background:linear-gradient(145deg,#eef2f8,#d8c6ff,#fff)"></div>
+        <div style="width:54px;height:88px;border-radius:12px;background:linear-gradient(145deg,#eef2f8,#bcf3df,#fff)"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B｜三种包装同时支持</h3>
+      <p>盒、自立袋、内包装1一起接入五种工艺；需要为两类袋体重新定义蒙版 UV 和上传入口，范围明显更大。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c-global-only" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:20px;background:#f8fafc">
+      <div style="height:92px;border-radius:12px;background:linear-gradient(110deg,#e7edf5,#fff,#c7d4e6);display:flex;align-items:center;justify-content:center;font-weight:700">整件材质切换</div>
+    </div>
+    <div class="card-body">
+      <h3>C｜只做整件工艺</h3>
+      <p>不上传蒙版，整只包装直接变成烫金/镭射/亮膜。开发快，但不符合真实包装工艺，也不是参考站的核心实现。</p>
+    </div>
+  </div>
+</div>
+
+<div class="pros-cons" style="margin-top:22px">
+  <div class="pros"><h4>我的判断</h4><ul><li>A 最符合“只添加工艺、不碰现有配置”</li><li>先把六面盒做准，可复用现有六面映射和上传组件</li><li>后续袋体工艺需基于各自 UV 单独设计，不能草率套用</li></ul></div>
+  <div class="cons"><h4>已排除</h4><ul><li>不加入参考站的刀模拆面与自动分配</li><li>不加入场景、AI、其他新标签</li><li>不修改贴图、盒型、相机现有行为</li></ul></div>
+</div>

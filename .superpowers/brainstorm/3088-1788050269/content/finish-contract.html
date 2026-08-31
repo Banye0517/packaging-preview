@@ -1,0 +1,51 @@
+<h2>六面盒工艺｜最终设计合同</h2>
+<p class="subtitle">只替换当前“工艺”占位页；贴图、盒型、相机、自立袋、内包装1的 UI 与行为不变。</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">工艺面板</div>
+    <div class="mockup-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div><span class="label">FINISH</span><h3 style="margin:4px 0">表面工艺</h3></div><span style="padding:7px 10px;border-radius:18px;background:#eef2f4;color:#536174">多工艺叠加</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+        <div style="padding:12px;border:1.5px solid #3b82f6;border-radius:13px;background:#edf5ff"><b>烫金</b><br><small>金色金属反射</small></div>
+        <div style="padding:12px;border:1px solid #d8e0ea;border-radius:13px"><b>烫银</b><br><small>银色金属反射</small></div>
+        <div style="padding:12px;border:1px solid #d8e0ea;border-radius:13px"><b>镭射</b><br><small>银色彩虹金属光泽</small></div>
+        <div style="padding:12px;border:1px solid #d8e0ea;border-radius:13px"><b>UV亮膜</b><br><small>原图色彩亮膜高光</small></div>
+        <div style="padding:12px;border:1px solid #d8e0ea;border-radius:13px"><b>击凸/压凹</b><br><small>立体模压纹理</small></div>
+      </div>
+      <div style="margin-top:14px;padding:13px;border-radius:13px;background:#fffaf1;border:1px solid #efdfbd"><b>当前工艺参数</b><p style="margin:8px 0 0;color:#64748b">数值输入 + 滑块同步；恢复当前工艺默认值</p></div>
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-header">六面蒙版</div>
+    <div class="mockup-body">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <div class="placeholder">顶部</div><div class="placeholder">左侧</div><div class="placeholder">正面</div>
+        <div class="placeholder">右侧</div><div class="placeholder">背面</div><div class="placeholder">底部</div>
+      </div>
+      <p style="margin:14px 0 0;color:#64748b">每种工艺各有六张独立黑白蒙版。黑色代表工艺区域，白色透明；仅接受 PNG/JPEG/WebP，本机读取。</p>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:22px">
+  <h3>渲染与状态规则</h3>
+  <div class="options" data-multiselect>
+    <div class="option" style="cursor:default"><div class="letter">1</div><div class="content"><h3>真实局部覆盖</h3><p>在六面基础印刷材质上叠加工艺层；没有蒙版的面保持原样，绝不把整盒染成金属。</p></div></div>
+    <div class="option" style="cursor:default"><div class="letter">2</div><div class="content"><h3>五层可同时存在</h3><p>工艺选择只切换编辑对象；每层拥有独立开关、六面蒙版和参数，切换不会清掉其他工艺。</p></div></div>
+    <div class="option" style="cursor:default"><div class="letter">3</div><div class="content"><h3>参数跟随参考站</h3><p>烫金/烫银：粗糙度、箔面细纹、微表面法线、凹凸；镭射：粗糙度、虹彩、凹凸；UV：粗糙度、亮膜强度、凹凸；击凸/压凹：粗糙度、凹凸强度。</p></div></div>
+    <div class="option" style="cursor:default"><div class="letter">4</div><div class="content"><h3>保存与撤销完整接入</h3><p>工艺状态进入现有项目历史、JSON 保存/打开和新建重置；旧项目文件自动补默认工艺状态。</p></div></div>
+  </div>
+</div>
+
+<div class="pros-cons">
+  <div class="pros"><h4>完成标准</h4><ul><li>五种工艺面板和六面上传可操作</li><li>正面蒙版只影响正面对应区域</li><li>多层叠加、开关、重置、撤销/重做有效</li><li>透明 PNG 导出包含当前工艺效果</li><li>桌面与 390×844 无溢出遮挡</li></ul></div>
+  <div class="cons"><h4>明确不做</h4><ul><li>不做自动分配或刀模识别</li><li>不把工艺套到两类袋体</li><li>不增加无工艺对比按钮</li><li>不修改现有上传和尺寸配置</li></ul></div>
+</div>
+
+<div class="options" style="margin-top:22px">
+  <div class="option" data-choice="approve-contract" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content"><h3>确认这个设计合同</h3><p>确认后进入中文规格文档与实施计划，不再扩大范围。</p></div>
+  </div>
+</div>

@@ -1,0 +1,42 @@
+<h2>自立袋 3D 结构方案</h2>
+<p class="subtitle">三种方案都保留现有六面盒型；差别只在自立袋的几何真实度与后期维护成本。</p>
+
+<div class="cards">
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="height:280px;display:grid;place-items:center;background:linear-gradient(145deg,#f5f7fb,#dce4ef)">
+      <div style="position:relative;width:150px;height:210px;border-radius:18px 18px 28px 28px;background:linear-gradient(90deg,#d7e0ec 0%,#fff 18%,#f6f8fc 55%,#c9d5e4 100%);box-shadow:0 24px 30px rgba(28,43,63,.2);transform:perspective(500px) rotateY(-12deg)">
+        <div style="position:absolute;left:13px;right:13px;top:33px;height:5px;border-top:2px solid #aab8ca;border-bottom:2px solid #aab8ca"></div>
+        <div style="position:absolute;left:10px;right:10px;bottom:8px;height:28px;border-radius:0 0 50% 50%;border-bottom:3px solid #9baabd"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B · 参数化薄膜袋（推荐）</h3>
+      <p>前后曲面、侧封边、风琴底和顶部压封线分别建模；圆角、拉链、吸嘴均可真实切换。贴图不会因开关变化而重置。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="height:280px;display:grid;place-items:center;background:linear-gradient(145deg,#f5f7fb,#dce4ef)">
+      <div style="width:150px;height:210px;border-radius:16px 16px 22px 22px;background:linear-gradient(90deg,#d8e1ec,#fff 48%,#cad5e3);box-shadow:0 24px 30px rgba(28,43,63,.18);transform:skewY(-1deg)"></div>
+    </div>
+    <div class="card-body">
+      <h3>A · 变形盒体近似</h3>
+      <p>复用现有圆角盒体并压薄。开发快，但侧面和底部像硬盒，吸嘴与拉链容易显得贴上去，不适合设计审稿。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="height:280px;display:grid;place-items:center;background:linear-gradient(145deg,#f5f7fb,#dce4ef)">
+      <div style="position:relative;width:150px;height:210px;border-radius:18px 18px 28px 28px;background:linear-gradient(105deg,#cbd6e3,#fff 34%,#eef2f7 58%,#bcc9d9);box-shadow:0 24px 30px rgba(28,43,63,.24);clip-path:polygon(6% 0,94% 0,100% 89%,87% 100%,13% 100%,0 89%)"></div>
+    </div>
+    <div class="card-body">
+      <h3>C · 高密度写实软体袋</h3>
+      <p>增加大量随机褶皱和更细的薄膜起伏。近看最写实，但性能、贴图稳定性和移动端帧率成本更高，本期没有必要。</p>
+    </div>
+  </div>
+</div>
+
+<div class="pros-cons">
+  <div class="pros"><h4>推荐 B 的原因</h4><ul><li>能表达自立底，而不是封死底边</li><li>圆角和封口结构有明确几何反馈</li><li>参数稳定，适合保存项目与导出 PNG</li></ul></div>
+  <div class="cons"><h4>明确不做</h4><ul><li>不改现有六面盒模型</li><li>不做软体物理模拟</li><li>不增加场景或 AI 设置区</li></ul></div>
+</div>

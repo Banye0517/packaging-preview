@@ -1,0 +1,41 @@
+<h2>“内包装1”需要哪种设置范围？</h2>
+<p class="subtitle">模型实际是单独的内包装袋：约 0.78 宽高比、0.27 深高比，并且包含一个“大概尺寸”辅助网格（正式显示时会排除）。</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">现有自立袋</div>
+    <div class="mockup-body" style="display:grid;place-items:center;min-height:300px;background:#edf3fa">
+      <div style="width:150px;height:220px;border-radius:18px 18px 28px 28px;background:linear-gradient(90deg,#dfe7f0,#fff 46%,#d6e0eb);box-shadow:0 22px 34px #5a6d8533;position:relative">
+        <div style="position:absolute;left:0;right:0;top:28px;border-top:8px double #bcc9d7"></div>
+        <div style="position:absolute;left:24px;right:24px;bottom:-9px;height:24px;border-radius:50%;background:#c7d2df"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">新增内包装1</div>
+    <div class="mockup-body" style="display:grid;place-items:center;min-height:300px;background:#edf3fa">
+      <div style="width:170px;height:218px;border-radius:20px 20px 30px 30px;background:linear-gradient(90deg,#d7e0ea,#fff 48%,#ced9e5);box-shadow:0 22px 34px #5a6d8533;position:relative">
+        <div style="position:absolute;left:0;right:0;top:0;height:18px;border-radius:20px 20px 4px 4px;background:#c6d2df"></div>
+        <div style="position:absolute;left:22px;right:22px;bottom:-10px;height:28px;border-radius:50%;background:#becbd9"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="options" style="margin-top:24px">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>保留模型原形（推荐）</h3>
+      <p>内包装1独立上传正背两面，只调整宽高，厚度、底部和封口完全跟随 glTF 原模型。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>复制自立袋全部控件</h3>
+      <p>除两面上传外，也显示厚度、底部深度、圆角、拉链和吸嘴；这些可能与模型已有结构重复。</p>
+    </div>
+  </div>
+</div>
