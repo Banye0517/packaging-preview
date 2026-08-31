@@ -16,7 +16,7 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 
 ## Durable Packaging Decisions
 
-- Keep four independent packaging types: `box`, `pouch`, `inner-packaging-1`, and `inner-packaging-2`.
+- Keep five independent packaging types: `box`, `pouch`, `inner-packaging-1`, `inner-packaging-2`, and `hanging-tissue`.
 - “内包装1” uses the supplied glTF main bag mesh and excludes the helper mesh named “大概尺寸”.
 - “内包装1” has one full-UV artwork upload and width/height controls only. Use the glTF's authored UVs and preserve the model's native depth, bottom, seals, and bulge; do not reuse pouch structure controls.
 - “内包装1” full-UV artwork supports 50%–300% scale, horizontal/vertical -100%–100% offsets, and reset. Exposed texture areas are white; never tile or edge-stretch the artwork.
@@ -24,6 +24,8 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - “内包装2” uses `public/models/inner-packaging-2.gltf` from the supplied `翅中.gltf` and preserves its single mesh, native shape, depth, rounded corners, bulge, and authored UVs.
 - “内包装2” has exactly two artwork uploads. The PSD left UV island is the front and the right UV island is the back. Default uploads must be calibrated from the model's real front/back UV bounds, fill the target region, and apply the model's fixed orientation correction without changing user transform values. Advanced adjustments are collapsed by default; each face independently supports 50%–300% proportional scale, -100%–100% horizontal/vertical offsets, -180°–180° rotation, and 50%–300% horizontal/vertical stretch. Never tile or edge-stretch artwork.
 - “内包装2” reuses inner-packaging-1 width, height, and 0°/90°/180° model direction controls. It does not support surface finishes.
+- “悬挂抽纸” uses `public/models/hanging-tissue.gltf` from the supplied `悬挂纸巾.gltf`. Render only the `悬挂抽纸开` hierarchy and use node `纸.1` as the pulled-sheet visibility switch; never render the duplicate no-sheet hierarchy.
+- “悬挂抽纸” has exactly four artwork uploads: front, back, left, and right, with no top or bottom upload. Its supplied authored UV islands overlap between panels, so split printable triangles by face normals and rebuild each selected face as a continuous planar 0–1 mapping; user transforms are independently 50%–300% proportional scale, -100%–100% offsets, -180°–180° rotation, and 50%–300% horizontal/vertical stretch, collapsed by default. It reuses width, height, and 0°/90°/180° direction controls and does not support surface finishes.
 
 ## Box Finish Rules
 

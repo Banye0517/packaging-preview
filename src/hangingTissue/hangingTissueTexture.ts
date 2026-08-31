@@ -1,4 +1,4 @@
-import type { BufferGeometry } from 'three'
+import { Float32BufferAttribute, Uint32BufferAttribute, type BufferGeometry } from 'three'
 
 import type { ArtworkTransform, HangingTissueFace } from '../app/types'
 
@@ -17,6 +17,7 @@ interface AtlasFaceInput {
 }
 
 const FACES = ['front', 'back', 'left', 'right'] as const
+const MIN_SURFACE_ALIGNMENT = 0.5
 const MODEL_UV_ROTATION: Record<HangingTissueFace, number> = {
   front: 0,
   back: 0,
@@ -38,7 +39,7 @@ function includeUv(region: UvRegion, u: number, v: number) {
 function validateRegion(region: UvRegion) {
   return Number.isFinite(region.minU) && Number.isFinite(region.maxU) &&
     Number.isFinite(region.minV) && Number.isFinite(region.maxV) &&
-    region.minU >= 0 && region.maxU <= 1 && region.minV >= 0 && region.maxV <= 1 &&
+    region.minU >= -0.01 && region.maxU <= 1.01 && region.minV >= -0.01 && region.maxV <= 1.01 &&
     region.maxU > region.minU && region.maxV > region.minV
 }
 
@@ -47,29 +48,85 @@ function faceForNormal(x: number, z: number): HangingTissueFace {
   return x >= 0 ? 'right' : 'left'
 }
 
+function collectFaceIndices(geometry: BufferGeometry) {
+  const normal = geometry.getAttribute('normal')
+  const index = geometry.getIndex()
+  if (!normal) throw new Error('Hanging tissue model contains no normals or UVs')
+  if (!index) throw new Error('Hanging tissue model contains no index')
+  const result: Record<HangingTissueFace, number[]> = {
+    front: [], back: [], left: [], right: [],
+  }
+  const remainder: number[] = []
+  for (let offset = 0; offset < index.count; offset += 3) {
+    const vertices = [0, 1, 2].map((corner) => index.getX(offset + corner))
+    const normalX = vertices.reduce((sum, vertex) => sum + normal.getX(vertex), 0) / 3
+    const normalZ = vertices.reduce((sum, vertex) => sum + normal.getZ(vertex), 0) / 3
+    if (Math.max(Math.abs(normalX), Math.abs(normalZ)) < MIN_SURFACE_ALIGNMENT) {
+      remainder.push(...vertices)
+      continue
+    }
+    result[faceForNormal(normalX, normalZ)].push(...vertices)
+  }
+  return { faces: result, remainder }
+}
+
+export function extractHangingTissueFaceGeometrySet(geometry: BufferGeometry) {
+  if (!geometry.getAttribute('position')) {
+    throw new Error('Hanging tissue model contains no positions')
+  }
+  const { faces: faceIndices, remainder } = collectFaceIndices(geometry)
+  const faces = Object.fromEntries(FACES.map((face) => {
+    if (faceIndices[face].length === 0) {
+      throw new Error(`Hanging tissue model contains no ${face} surface`)
+    }
+    const result = geometry.clone()
+    result.setIndex(new Uint32BufferAttribute(faceIndices[face], 1))
+    const position = result.getAttribute('position')
+    const usedVertices = [...new Set(faceIndices[face])]
+    const usesZForHorizontal = face === 'left' || face === 'right'
+    const horizontal = usedVertices.map((vertex) => usesZForHorizontal ? position.getZ(vertex) : position.getX(vertex))
+    const vertical = usedVertices.map((vertex) => position.getY(vertex))
+    const minHorizontal = Math.min(...horizontal)
+    const maxHorizontal = Math.max(...horizontal)
+    const minVertical = Math.min(...vertical)
+    const maxVertical = Math.max(...vertical)
+    if (maxHorizontal <= minHorizontal || maxVertical <= minVertical) {
+      throw new Error(`Hanging tissue ${face} surface cannot be planar-mapped`)
+    }
+    const projectedUv = new Float32Array(position.count * 2)
+    usedVertices.forEach((vertex) => {
+      const horizontalValue = usesZForHorizontal ? position.getZ(vertex) : position.getX(vertex)
+      projectedUv[vertex * 2] = (horizontalValue - minHorizontal) / (maxHorizontal - minHorizontal)
+      projectedUv[vertex * 2 + 1] = 1 - (position.getY(vertex) - minVertical) / (maxVertical - minVertical)
+    })
+    result.setAttribute('uv', new Float32BufferAttribute(projectedUv, 2))
+    return [face, result]
+  })) as Record<HangingTissueFace, BufferGeometry>
+  const remainderGeometry = geometry.clone()
+  remainderGeometry.setIndex(new Uint32BufferAttribute(remainder, 1))
+  return { faces, remainder: remainderGeometry }
+}
+
+export function extractHangingTissueFaceGeometries(geometry: BufferGeometry) {
+  return extractHangingTissueFaceGeometrySet(geometry).faces
+}
+
 export function extractHangingTissueUvRegions(
   geometry: BufferGeometry,
 ): HangingTissueUvRegions {
   const position = geometry.getAttribute('position')
-  const normal = geometry.getAttribute('normal')
   const uv = geometry.getAttribute('uv')
-  const index = geometry.getIndex()
   if (!position) throw new Error('Hanging tissue model contains no positions')
-  if (!normal || !uv) throw new Error('Hanging tissue model contains no normals or UVs')
-  if (!index) throw new Error('Hanging tissue model contains no index')
+  if (!uv) throw new Error('Hanging tissue model contains no normals or UVs')
 
   const regions = Object.fromEntries(
     FACES.map((face) => [face, createEmptyRegion()]),
   ) as HangingTissueUvRegions
 
-  for (let offset = 0; offset < index.count; offset += 3) {
-    const vertices = [0, 1, 2].map((corner) => index.getX(offset + corner))
-    const normalX = vertices.reduce((sum, vertex) => sum + normal.getX(vertex), 0) / 3
-    const normalZ = vertices.reduce((sum, vertex) => sum + normal.getZ(vertex), 0) / 3
-    if (Math.max(Math.abs(normalX), Math.abs(normalZ)) < 0.05) continue
-    const region = regions[faceForNormal(normalX, normalZ)]
-    vertices.forEach((vertex) => includeUv(region, uv.getX(vertex), uv.getY(vertex)))
-  }
+  const { faces: faceIndices } = collectFaceIndices(geometry)
+  FACES.forEach((face) => faceIndices[face].forEach((vertex) =>
+    includeUv(regions[face], uv.getX(vertex), uv.getY(vertex)),
+  ))
 
   if (!FACES.every((face) => validateRegion(regions[face]))) {
     throw new Error('Hanging tissue four-face UV regions could not be resolved')

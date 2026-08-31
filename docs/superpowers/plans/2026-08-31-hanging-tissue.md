@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 新增“悬挂抽纸”独立盒型：四面原生 UV 贴图、可选抽纸节点、内包装式尺寸和高级微调，并保持现有盒型不变。
+**Goal:** 新增“悬挂抽纸”独立盒型：四面按实际表面自动展开贴图、可选抽纸节点、内包装式尺寸和高级微调，并保持现有盒型不变。
 
-**Architecture:** 将 `悬挂纸巾.gltf` 放进本地静态模型目录，只渲染 `悬挂抽纸开` 层级，使用节点 `纸.1` 的可见性实现抽纸开关。新纹理模块从包装主体网格的法线、索引和原生 UV 提取正/背/左/右四个区域，在一个画布中按各区域裁切并绘制四张图片；状态、序列化和 UI 都使用新增的独立 `hangingTissue` 分支。
+**Architecture:** 将 `悬挂纸巾.gltf` 放进本地静态模型目录，只渲染 `悬挂抽纸开` 层级，使用节点 `纸.1` 的可见性实现抽纸开关。因可打印面的原生 UV 岛相互重叠，新纹理模块从包装主体网格的法线、索引和顶点位置划分正/背/左/右四个表面，并为每面重建连续 UV 后绘制独立图片；状态、序列化和 UI 都使用新增的独立 `hangingTissue` 分支。
 
 **Tech Stack:** React 18、TypeScript、React Three Fiber、Three.js、@react-three/drei、Vitest、Vite。
 
@@ -136,7 +136,7 @@ git add src/app/types.ts src/app/projectReducer.ts src/app/projectReducer.test.t
 git commit -m "feat: add hanging tissue project state"
 ```
 
-### Task 3: 以四面真实 UV 绘制受裁切的贴图 atlas
+### Task 3: 按四面实际表面重建 UV 并绘制独立贴图
 
 **Files:**
 - Create: `src/hangingTissue/hangingTissueTexture.ts`
@@ -317,7 +317,7 @@ git commit -m "feat: add hanging tissue controls"
 
 - [ ] **Step 1: 更新持久产品规则**
 
-在 `AGENTS.md` 的 Durable Packaging Decisions 增加“悬挂抽纸”规则：单一模型、四面上传、无顶底、`纸.1` 开关、原生 UV 自动映射、六项默认收起微调、无表面工艺。同步 `PRD.md` 与 `Tech-Spec.md` 的包装类型数量、状态结构、行为与验收清单。
+在 `AGENTS.md` 的 Durable Packaging Decisions 增加“悬挂抽纸”规则：单一模型、四面上传、无顶底、`纸.1` 开关、按模型实际表面自动展开映射、六项默认收起微调、无表面工艺。同步 `PRD.md` 与 `Tech-Spec.md` 的包装类型数量、状态结构、行为与验收清单。
 
 - [ ] **Step 2: 运行完整自动验证**
 

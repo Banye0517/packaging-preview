@@ -411,7 +411,7 @@ export function App() {
                       ? '上传一张按照原始 UV 模板制作的完整贴图，覆盖整只袋体。'
                       : project.packagingType === 'inner-packaging-2'
                         ? '分别上传正面和背面设计图；图片按模型原生 UV 映射。'
-                        : '分别上传正面、背面、左侧、右侧设计图；图片按模型原生 UV 映射。'}
+                        : '分别上传正面、背面、左侧、右侧设计图；图片按模型实际表面自动贴合。'}
               </p>
               {project.packagingType === 'box' ? (
                 <FaceGrid

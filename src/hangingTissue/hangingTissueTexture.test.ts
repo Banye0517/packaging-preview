@@ -4,6 +4,8 @@ import { BufferGeometry, Float32BufferAttribute } from 'three'
 import type { ArtworkTransform } from '../app/types'
 import {
   drawHangingTissueAtlas,
+  extractHangingTissueFaceGeometrySet,
+  extractHangingTissueFaceGeometries,
   extractHangingTissueUvRegions,
 } from './hangingTissueTexture'
 
@@ -50,6 +52,61 @@ describe('hanging tissue texture atlas', () => {
     expect(() => extractHangingTissueUvRegions(geometry)).toThrow(
       'Hanging tissue model contains no index',
     )
+  })
+
+  it('rejects geometry without positions before rebuilding face UVs', () => {
+    const geometry = createFourFaceGeometry()
+    geometry.deleteAttribute('position')
+    expect(() => extractHangingTissueFaceGeometries(geometry)).toThrow(
+      'Hanging tissue model contains no positions',
+    )
+  })
+
+  it('creates separate face geometries even when their UV regions overlap', () => {
+    const faces = extractHangingTissueFaceGeometries(createFourFaceGeometry())
+
+    expect(faces.front.getIndex()?.count).toBe(3)
+    expect(faces.back.getIndex()?.count).toBe(3)
+    expect(faces.left.getIndex()?.count).toBe(3)
+    expect(faces.right.getIndex()?.count).toBe(3)
+    expect(faces.front.getIndex()?.getX(0)).toBe(0)
+    expect(faces.left.getIndex()?.getX(0)).toBe(6)
+  })
+
+  it('keeps non-printable top and bottom triangles as a remainder geometry', () => {
+    const geometry = createFourFaceGeometry()
+    const position = geometry.getAttribute('position')
+    const normal = geometry.getAttribute('normal')
+    const uv = geometry.getAttribute('uv')
+    geometry.setAttribute('position', new Float32BufferAttribute([
+      ...position.array, -1, 1, -1, 1, 1, -1, 0, 1, 1,
+    ], 3))
+    geometry.setAttribute('normal', new Float32BufferAttribute([
+      ...normal.array, 0, 1, 0, 0, 1, 0, 0, 1, 0,
+    ], 3))
+    geometry.setAttribute('uv', new Float32BufferAttribute([
+      ...uv.array, 0, 0, 1, 0, 0.5, 1,
+    ], 2))
+    geometry.setIndex([...Array(12).keys(), 12, 13, 14])
+
+    const set = extractHangingTissueFaceGeometrySet(geometry)
+    expect(set.faces.front.getIndex()?.count).toBe(3)
+    expect(set.remainder.getIndex()?.count).toBe(3)
+  })
+
+  it('rebuilds each face UV as a continuous 0–1 planar layout', () => {
+    const faces = extractHangingTissueFaceGeometries(createFourFaceGeometry())
+    const frontUv = faces.front.getAttribute('uv')
+    const leftUv = faces.left.getAttribute('uv')
+
+    expect(frontUv.getX(0)).toBeCloseTo(0)
+    expect(frontUv.getX(1)).toBeCloseTo(1)
+    // Canvas textures use a top-left image origin. The regenerated UV must
+    // invert the model's vertical direction so uploaded artwork stays upright.
+    expect(frontUv.getY(0)).toBeCloseTo(1)
+    expect(frontUv.getY(2)).toBeCloseTo(0)
+    expect(leftUv.getX(6)).toBeCloseTo(0)
+    expect(leftUv.getX(7)).toBeCloseTo(0)
   })
 
   it('clips each selected image to its own UV region', () => {
