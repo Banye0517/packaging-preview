@@ -22,4 +22,10 @@ describe('packaging artwork renderer policy', () => {
     expect(hangingSource).toContain('images[face]')
     expect(hangingSource).toContain('new MeshStandardMaterial')
   })
+
+  it('layers hanging-tissue artwork over a lit base and matches the pulled-sheet material', () => {
+    expect(hangingSource).toContain('baseFaceMeshes')
+    expect(hangingSource).toContain('material.transparent = true')
+    expect(hangingSource).toContain('pulledSheetRef.current.traverse')
+  })
 })

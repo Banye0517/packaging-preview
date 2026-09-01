@@ -152,7 +152,7 @@ describe('hanging tissue texture atlas', () => {
 
   it('clips each selected image to its own UV region', () => {
     const context = {
-      fillStyle: '', fillRect: vi.fn(), save: vi.fn(), restore: vi.fn(), beginPath: vi.fn(),
+      fillStyle: '', fillRect: vi.fn(), clearRect: vi.fn(), save: vi.fn(), restore: vi.fn(), beginPath: vi.fn(),
       rect: vi.fn(), clip: vi.fn(), translate: vi.fn(), scale: vi.fn(), rotate: vi.fn(), drawImage: vi.fn(),
     } as unknown as CanvasRenderingContext2D
     const image = { width: 600, height: 1200 } as HTMLImageElement
@@ -177,5 +177,7 @@ describe('hanging tissue texture atlas', () => {
     ])
     expect(context.drawImage).toHaveBeenCalledTimes(2)
     expect(context.scale).toHaveBeenCalledWith(0.5, 2)
+    expect(context.clearRect).toHaveBeenCalledWith(0, 0, 1000, 1000)
+    expect(context.fillRect).not.toHaveBeenCalled()
   })
 })

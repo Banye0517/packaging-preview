@@ -173,8 +173,7 @@ export function drawHangingTissueAtlas(
   faces: Partial<Record<HangingTissueFace, AtlasFaceInput>>,
   regions: HangingTissueUvRegions,
 ) {
-  context.fillStyle = '#ffffff'
-  context.fillRect(0, 0, size, size)
+  context.clearRect(0, 0, size, size)
 
   FACES.forEach((face) => {
     const input = faces[face]

@@ -66,6 +66,12 @@ function createModel(scene: Group) {
     }
     const geometrySet = extractHangingTissueFaceGeometrySet(printableBody.geometry)
     const uvRegions = extractHangingTissueUvRegions(printableBody.geometry)
+    const baseFaceMeshes = Object.fromEntries(FACES.map((face) => {
+      const baseFaceMesh = printableBody.clone()
+      baseFaceMesh.geometry = geometrySet.faces[face]
+      printableBody.parent!.add(baseFaceMesh)
+      return [face, baseFaceMesh]
+    })) as Record<(typeof FACES)[number], Mesh>
     const faceMeshes = Object.fromEntries(FACES.map((face) => {
       const faceMesh = printableBody.clone()
       faceMesh.geometry = geometrySet.faces[face]
@@ -76,7 +82,7 @@ function createModel(scene: Group) {
     remainderMesh.geometry = geometrySet.remainder
     printableBody.parent!.add(remainderMesh)
     printableBody.visible = false
-    return { faceMeshes, remainderMesh, uvRegions, sourceGeometrySet: geometrySet }
+    return { baseFaceMeshes, faceMeshes, remainderMesh, uvRegions, sourceGeometrySet: geometrySet }
   })
   return { model, printableBodies, pulledSheet }
 }
@@ -139,8 +145,11 @@ export function PrintedHangingTissue({ value }: { value: HangingTissueState }) {
 
   useEffect(() => () => textures.forEach((texture) => texture?.dispose()), [textures])
   useEffect(() => {
-    printableBodiesRef.current.forEach(({ faceMeshes, remainderMesh }, index) => {
-      FACES.forEach((face) => { faceMeshes[face].geometry = deformedGeometrySets[index].faces[face] })
+    printableBodiesRef.current.forEach(({ baseFaceMeshes, faceMeshes, remainderMesh }, index) => {
+      FACES.forEach((face) => {
+        baseFaceMeshes[face].geometry = deformedGeometrySets[index].faces[face]
+        faceMeshes[face].geometry = deformedGeometrySets[index].faces[face]
+      })
       remainderMesh.geometry = deformedGeometrySets[index].remainder
     })
     return () => deformedGeometrySets.forEach(({ faces, remainder }) => {
@@ -152,15 +161,22 @@ export function PrintedHangingTissue({ value }: { value: HangingTissueState }) {
     pulledSheetRef.current.visible = value.showPulledSheet
   }, [value.showPulledSheet])
   useEffect(() => {
-    const materials = printableBodiesRef.current.flatMap(({ faceMeshes }, index) => FACES.map((face) => {
-      const material = images[face]
-        ? createArtworkMaterial(textures[index], HANGING_TISSUE_PRINT_SIDE)
-        : new MeshStandardMaterial({
-            color: '#f8fafc',
-            roughness: 0.48,
-            metalness: 0.01,
-            side: HANGING_TISSUE_PRINT_SIDE,
-          })
+    const baseMaterials = printableBodiesRef.current.flatMap(({ baseFaceMeshes }) => FACES.map((face) => {
+      const material = new MeshStandardMaterial({
+        color: '#f8fafc', roughness: 0.48, metalness: 0.01, side: HANGING_TISSUE_PRINT_SIDE,
+      })
+      baseFaceMeshes[face].material = material
+      return material
+    }))
+    const artworkMaterials = printableBodiesRef.current.flatMap(({ faceMeshes }, index) => FACES.map((face) => {
+      const material = createArtworkMaterial(textures[index], HANGING_TISSUE_PRINT_SIDE)
+      material.transparent = true
+      material.alphaTest = 0.001
+      material.depthWrite = false
+      material.polygonOffset = true
+      material.polygonOffsetFactor = -1
+      material.polygonOffsetUnits = -1
+      faceMeshes[face].visible = Boolean(images[face])
       faceMeshes[face].material = material
       return material
     }))
@@ -169,7 +185,14 @@ export function PrintedHangingTissue({ value }: { value: HangingTissueState }) {
       remainderMesh.material = material
       return material
     })
-    return () => [...materials, ...remainderMaterials].forEach((material) => material.dispose())
+    const pulledSheetMaterial = new MeshStandardMaterial({
+      color: '#f8fafc', roughness: 0.48, metalness: 0.01,
+    })
+    pulledSheetRef.current.traverse((object) => {
+      if (object instanceof Mesh) object.material = pulledSheetMaterial
+    })
+    return () => [...baseMaterials, ...artworkMaterials, ...remainderMaterials, pulledSheetMaterial]
+      .forEach((material) => material.dispose())
   }, [images, textures])
 
   const baseScale = placement.size.y > 0 ? 3.2 / placement.size.y : 1
