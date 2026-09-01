@@ -131,7 +131,7 @@ export function PrintedHangingTissue({ value }: { value: HangingTissueState }) {
     return {
       faces: Object.fromEntries(FACES.map((face) => [
         face,
-        deformHangingTissueGeometry(sourceGeometrySet.faces[face], options),
+        deformHangingTissueGeometry(sourceGeometrySet.faces[face], { ...options, surfaceFace: face }),
       ])),
       remainder: deformHangingTissueGeometry(sourceGeometrySet.remainder, options),
     }

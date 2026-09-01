@@ -118,6 +118,34 @@ describe('hanging tissue body deformation', () => {
     expect(Math.abs(position.getZ(2))).toBeLessThanOrEqual(1)
   })
 
+  it('lets front artwork own the full corner while side artwork starts at its tangent', () => {
+    const source = new BufferGeometry()
+    source.setAttribute('position', new Float32BufferAttribute([
+      1, 2, 1,
+    ], 3))
+    const shared = {
+      bodyMinY: 1, bodyMaxY: 3, connectorMaxY: 4,
+      widthScale: 1, heightScale: 1, depthScale: 1,
+      radius: 20,
+      bodyWidth: 160,
+      bodyDepth: 80,
+      bodyCenterX: 0,
+      bodyCenterZ: 0,
+      bodyHalfWidth: 1,
+      bodyHalfDepth: 1,
+    }
+
+    const front = deformHangingTissueGeometry(source, { ...shared, surfaceFace: 'front' })
+    const side = deformHangingTissueGeometry(source, { ...shared, surfaceFace: 'right' })
+    const frontPosition = front.getAttribute('position')
+    const sidePosition = side.getAttribute('position')
+
+    expect(frontPosition.getX(0)).toBeCloseTo(1)
+    expect(frontPosition.getZ(0)).toBeCloseTo(0.5)
+    expect(sidePosition.getX(0)).toBeCloseTo(frontPosition.getX(0))
+    expect(sidePosition.getZ(0)).toBeCloseTo(frontPosition.getZ(0))
+  })
+
   it('keeps radius zero identical to the existing resize result', () => {
     const source = createFixture()
     const existing = deformHangingTissueGeometry(source, {

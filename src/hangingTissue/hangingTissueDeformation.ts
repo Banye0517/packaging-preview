@@ -1,5 +1,7 @@
 import { BufferAttribute, type BufferGeometry } from 'three'
 
+import type { HangingTissueFace } from '../app/types'
+
 export interface HangingTissueDeformation {
   bodyMinY: number
   bodyMaxY: number
@@ -14,6 +16,7 @@ export interface HangingTissueDeformation {
   bodyCenterZ?: number
   bodyHalfWidth?: number
   bodyHalfDepth?: number
+  surfaceFace?: HangingTissueFace
 }
 
 function roundedCrossSection(
@@ -45,19 +48,33 @@ function roundedCrossSection(
   let roundedX = localX
   let roundedZ = localZ
 
-  const isFrontOrBack = absZ / halfDepth >= absX / halfWidth
-  if (isFrontOrBack) {
+  if (options.surfaceFace === 'front' || options.surfaceFace === 'back') {
     if (absX > halfWidth - radiusX) {
       const t = Math.min(Math.max((absX - (halfWidth - radiusX)) / radiusX, 0), 1)
-      const angle = Math.PI / 2 - t * Math.PI / 4
+      const angle = Math.PI / 2 - t * Math.PI / 2
       roundedX = signX * (halfWidth - radiusX + radiusX * Math.cos(angle))
       roundedZ = signZ * (halfDepth - radiusZ + radiusZ * Math.sin(angle))
     }
-  } else if (absZ > halfDepth - radiusZ) {
-      const t = Math.min(Math.max((absZ - (halfDepth - radiusZ)) / radiusZ, 0), 1)
-      const angle = t * Math.PI / 4
-      roundedX = signX * (halfWidth - radiusX + radiusX * Math.cos(angle))
-      roundedZ = signZ * (halfDepth - radiusZ + radiusZ * Math.sin(angle))
+  } else if (options.surfaceFace === 'left' || options.surfaceFace === 'right') {
+    if (absZ > halfDepth - radiusZ) {
+      roundedX = signX * halfWidth
+      roundedZ = signZ * (halfDepth - radiusZ)
+    }
+  } else {
+    const isFrontOrBack = absZ / halfDepth >= absX / halfWidth
+    if (isFrontOrBack) {
+      if (absX > halfWidth - radiusX) {
+        const t = Math.min(Math.max((absX - (halfWidth - radiusX)) / radiusX, 0), 1)
+        const angle = Math.PI / 2 - t * Math.PI / 4
+        roundedX = signX * (halfWidth - radiusX + radiusX * Math.cos(angle))
+        roundedZ = signZ * (halfDepth - radiusZ + radiusZ * Math.sin(angle))
+      }
+    } else if (absZ > halfDepth - radiusZ) {
+        const t = Math.min(Math.max((absZ - (halfDepth - radiusZ)) / radiusZ, 0), 1)
+        const angle = t * Math.PI / 4
+        roundedX = signX * (halfWidth - radiusX + radiusX * Math.cos(angle))
+        roundedZ = signZ * (halfDepth - radiusZ + radiusZ * Math.sin(angle))
+    }
   }
 
   return {
