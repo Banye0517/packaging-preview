@@ -153,7 +153,14 @@ export function PrintedHangingTissue({ value }: { value: HangingTissueState }) {
   }, [value.showPulledSheet])
   useEffect(() => {
     const materials = printableBodiesRef.current.flatMap(({ faceMeshes }, index) => FACES.map((face) => {
-      const material = createArtworkMaterial(textures[index], HANGING_TISSUE_PRINT_SIDE)
+      const material = images[face]
+        ? createArtworkMaterial(textures[index], HANGING_TISSUE_PRINT_SIDE)
+        : new MeshStandardMaterial({
+            color: '#f8fafc',
+            roughness: 0.48,
+            metalness: 0.01,
+            side: HANGING_TISSUE_PRINT_SIDE,
+          })
       faceMeshes[face].material = material
       return material
     }))
@@ -163,7 +170,7 @@ export function PrintedHangingTissue({ value }: { value: HangingTissueState }) {
       return material
     })
     return () => [...materials, ...remainderMaterials].forEach((material) => material.dispose())
-  }, [textures])
+  }, [images, textures])
 
   const baseScale = placement.size.y > 0 ? 3.2 / placement.size.y : 1
   return (

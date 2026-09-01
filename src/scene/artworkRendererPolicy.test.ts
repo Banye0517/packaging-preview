@@ -15,4 +15,11 @@ describe('packaging artwork renderer policy', () => {
     expect(hangingSource).toContain('createArtworkMaterial')
     expect(hangingSource).not.toContain('emissiveMap')
   })
+
+  it('keeps unprinted inner packaging 2 and hanging-tissue faces physically lit', () => {
+    expect(inner2Source).toContain('if (!frontImage && !backImage)')
+    expect(inner2Source).toContain('<meshStandardMaterial')
+    expect(hangingSource).toContain('images[face]')
+    expect(hangingSource).toContain('new MeshStandardMaterial')
+  })
 })

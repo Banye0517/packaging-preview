@@ -120,6 +120,17 @@ function InnerPackaging2Material({
     if (materialRef.current) applyTextureMap(materialRef.current, texture)
   }, [texture])
 
+  if (!frontImage && !backImage) {
+    return (
+      <meshStandardMaterial
+        color="#f8fafc"
+        roughness={0.48}
+        metalness={0.01}
+        side={2}
+      />
+    )
+  }
+
   return (
     <meshBasicMaterial
       ref={materialRef}

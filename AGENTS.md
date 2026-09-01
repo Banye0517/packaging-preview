@@ -16,7 +16,7 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 
 ## Durable Packaging Decisions
 
-- All ordinary uploaded artwork for every current and future packaging type uses direct sRGB color rendering: a pure-white `MeshBasicMaterial` base with `toneMapped={false}`. Artwork color must not be altered by scene lights, environment reflections, exposure, or tone mapping. Keep unprinted structure, shadows, and surface-finish materials physically lit; this rule does not make the whole model unlit.
+- All ordinary uploaded artwork for every current and future packaging type uses direct sRGB color rendering: a pure-white `MeshBasicMaterial` base with `toneMapped={false}`. Artwork color must not be altered by scene lights, environment reflections, exposure, or tone mapping. Apply this only to faces that actually have uploaded artwork; every unuploaded printable face, unprinted structure, shadow, and surface-finish material remains physically lit so the blank model retains its form.
 - Keep five independent packaging types: `box`, `pouch`, `inner-packaging-1`, `inner-packaging-2`, and `hanging-tissue`.
 - “内包装1” uses the supplied glTF main bag mesh and excludes the helper mesh named “大概尺寸”.
 - “内包装1” has one full-UV artwork upload and width/height controls only. Use the glTF's authored UVs and preserve the model's native depth, bottom, seals, and bulge; do not reuse pouch structure controls.
