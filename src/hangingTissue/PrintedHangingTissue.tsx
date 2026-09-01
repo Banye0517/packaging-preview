@@ -66,15 +66,6 @@ function createModel(scene: Group) {
     }
     const geometrySet = extractHangingTissueFaceGeometrySet(printableBody.geometry)
     const uvRegions = extractHangingTissueUvRegions(printableBody.geometry)
-    printableBody.geometry.computeBoundingBox()
-    const bounds = printableBody.geometry.boundingBox
-    if (!bounds) throw new Error('Hanging tissue model contains no body bounds')
-    const bodyBounds = {
-      centerX: (bounds.min.x + bounds.max.x) / 2,
-      centerZ: (bounds.min.z + bounds.max.z) / 2,
-      halfWidth: (bounds.max.x - bounds.min.x) / 2,
-      halfDepth: (bounds.max.z - bounds.min.z) / 2,
-    }
     const baseFaceMeshes = Object.fromEntries(FACES.map((face) => {
       const baseFaceMesh = printableBody.clone()
       baseFaceMesh.geometry = geometrySet.faces[face]
@@ -91,7 +82,7 @@ function createModel(scene: Group) {
     remainderMesh.geometry = geometrySet.remainder
     printableBody.parent!.add(remainderMesh)
     printableBody.visible = false
-    return { baseFaceMeshes, faceMeshes, remainderMesh, uvRegions, sourceGeometrySet: geometrySet, bodyBounds }
+    return { baseFaceMeshes, faceMeshes, remainderMesh, uvRegions, sourceGeometrySet: geometrySet }
   })
   return { model, printableBodies, pulledSheet }
 }
@@ -112,7 +103,7 @@ export function PrintedHangingTissue({ value }: { value: HangingTissueState }) {
   const images = useMemo(() => ({
     front: frontImage, back: backImage, left: leftImage, right: rightImage,
   }), [backImage, frontImage, leftImage, rightImage])
-  const deformedGeometrySets = useMemo(() => printableBodies.map(({ sourceGeometrySet, bodyBounds }) => {
+  const deformedGeometrySets = useMemo(() => printableBodies.map(({ sourceGeometrySet }) => {
     const options = {
       bodyMinY: BODY_MIN_Y,
       bodyMaxY: BODY_MAX_Y,
@@ -120,22 +111,15 @@ export function PrintedHangingTissue({ value }: { value: HangingTissueState }) {
       widthScale: value.width / 160,
       heightScale: value.height / 205,
       depthScale: value.depth / 80,
-      radius: value.radius,
-      bodyWidth: value.width,
-      bodyDepth: value.depth,
-      bodyCenterX: bodyBounds.centerX,
-      bodyCenterZ: bodyBounds.centerZ,
-      bodyHalfWidth: bodyBounds.halfWidth,
-      bodyHalfDepth: bodyBounds.halfDepth,
     }
     return {
       faces: Object.fromEntries(FACES.map((face) => [
         face,
-        deformHangingTissueGeometry(sourceGeometrySet.faces[face], { ...options, surfaceFace: face }),
+        deformHangingTissueGeometry(sourceGeometrySet.faces[face], options),
       ])),
       remainder: deformHangingTissueGeometry(sourceGeometrySet.remainder, options),
     }
-  }), [printableBodies, value.depth, value.height, value.radius, value.width])
+  }), [printableBodies, value.depth, value.height, value.width])
   const textures = useMemo(() => printableBodies.map(({ uvRegions }) => {
       if (!FACES.some((face) => images[face])) return null
       const canvas = document.createElement('canvas')

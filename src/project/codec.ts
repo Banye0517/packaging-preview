@@ -369,7 +369,6 @@ function hasHangingTissueFields(
   project: Partial<ProjectState>,
   requireDepth = true,
   requireReferences = true,
-  requireRadius = true,
 ) {
   const tissue = project.hangingTissue
   const faces = ['front', 'back', 'left', 'right'] as const
@@ -382,10 +381,6 @@ function hasHangingTissueFields(
     typeof value === 'number' && Number.isFinite(value) && value > 0) ||
     ![0, 90, 180].includes(tissue.modelRotation) ||
     typeof tissue.showPulledSheet !== 'boolean') return false
-  if (requireRadius && (
-    typeof tissue.radius !== 'number' || !Number.isFinite(tissue.radius) || tissue.radius < 0 ||
-    tissue.radius > Math.min(tissue.width, tissue.depth) / 2
-  )) return false
   if (requireReferences) {
     const references = tissue.artworkReferenceDimensions
     if (!references || Object.keys(references).length !== faces.length ||
@@ -421,7 +416,7 @@ type Version13ProjectState = Omit<ProjectState, 'version' | 'hangingTissue'> & {
 
 type Version14ProjectState = Omit<ProjectState, 'version' | 'hangingTissue'> & {
   version: 14
-  hangingTissue: Omit<ProjectState['hangingTissue'], 'radius'>
+  hangingTissue: ProjectState['hangingTissue']
 }
 
 function isVersion11ProjectState(value: unknown): value is Version11ProjectState {
@@ -437,7 +432,7 @@ function isVersion12ProjectState(value: unknown): value is Version12ProjectState
   const project = value as Partial<Version12ProjectState>
   return project.version === 12 &&
     isVersion11ProjectState({ ...project, version: 11 }) &&
-    hasHangingTissueFields(project as Partial<ProjectState>, false, false, false)
+    hasHangingTissueFields(project as Partial<ProjectState>, false, false)
 }
 
 function isVersion13ProjectState(value: unknown): value is Version13ProjectState {
@@ -445,7 +440,7 @@ function isVersion13ProjectState(value: unknown): value is Version13ProjectState
   const project = value as Partial<Version13ProjectState>
   return project.version === 13 &&
     isVersion12ProjectState({ ...project, version: 12 }) &&
-    hasHangingTissueFields(project as Partial<ProjectState>, true, false, false)
+    hasHangingTissueFields(project as Partial<ProjectState>, true, false)
 }
 
 function isVersion14ProjectState(value: unknown): value is Version14ProjectState {
@@ -453,7 +448,7 @@ function isVersion14ProjectState(value: unknown): value is Version14ProjectState
   const project = value as Partial<Version14ProjectState>
   return project.version === 14 &&
     isVersion13ProjectState({ ...project, version: 13 }) &&
-    hasHangingTissueFields(project as Partial<ProjectState>, true, true, false)
+    hasHangingTissueFields(project as Partial<ProjectState>, true, true)
 }
 
 function isProjectState(value: unknown): value is ProjectState {
@@ -510,19 +505,23 @@ export function encodeProject(project: ProjectState): string {
 export function decodeProject(source: string): ProjectState {
   try {
     const value: unknown = JSON.parse(source)
-    if (isProjectState(value)) return value
+    if (isProjectState(value)) {
+      const hangingTissue = { ...value.hangingTissue } as ProjectState['hangingTissue'] & { radius?: unknown }
+      delete hangingTissue.radius
+      return { ...value, hangingTissue }
+    }
     if (isVersion14ProjectState(value)) {
       return {
         ...value,
         version: 15,
-        hangingTissue: { ...value.hangingTissue, radius: 0 },
+        hangingTissue: value.hangingTissue,
       }
     }
     if (isVersion13ProjectState(value)) {
       return {
         ...value,
         version: 15,
-        hangingTissue: { ...addHangingTissueArtworkReferences(value.hangingTissue), radius: 0 },
+        hangingTissue: addHangingTissueArtworkReferences(value.hangingTissue),
       }
     }
     if (isVersion12ProjectState(value)) {
@@ -530,7 +529,7 @@ export function decodeProject(source: string): ProjectState {
       return {
         ...value,
         version: 15,
-        hangingTissue: { ...addHangingTissueArtworkReferences(hangingTissue), radius: 0 },
+        hangingTissue: addHangingTissueArtworkReferences(hangingTissue),
       }
     }
     if (isVersion11ProjectState(value)) {

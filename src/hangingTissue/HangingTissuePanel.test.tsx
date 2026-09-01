@@ -5,7 +5,7 @@ import { createDefaultHangingTissue } from '../app/projectReducer'
 import { HangingTissuePanel } from './HangingTissuePanel'
 
 describe('HangingTissuePanel', () => {
-  it('edits width, height, depth, and radius as independent body dimensions', () => {
+  it('edits only width, height, and depth as independent body dimensions', () => {
     const onChange = vi.fn()
     render(
       <HangingTissuePanel
@@ -19,16 +19,12 @@ describe('HangingTissuePanel', () => {
     expect(screen.getByLabelText('盒身宽度（毫米）')).toHaveValue(160)
     expect(screen.getByLabelText('盒身高度（毫米）')).toHaveValue(205)
     expect(screen.getByLabelText('盒身厚度（毫米）')).toHaveValue(80)
-    expect(screen.getByLabelText('盒身圆角（毫米）')).toHaveValue(0)
+    expect(screen.queryByLabelText('盒身圆角（毫米）')).not.toBeInTheDocument()
 
     fireEvent.change(screen.getByLabelText('盒身厚度（毫米）'), {
       target: { value: '96' },
     })
     expect(onChange).toHaveBeenCalledWith('depth', 96)
 
-    fireEvent.change(screen.getByLabelText('盒身圆角（毫米）'), {
-      target: { value: '12' },
-    })
-    expect(onChange).toHaveBeenCalledWith('radius', 12)
   })
 })

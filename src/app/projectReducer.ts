@@ -88,7 +88,7 @@ export type ProjectAction =
   | { type: 'hanging-tissue/transform-set'; face: HangingTissueFace; key: keyof ArtworkTransform; value: number }
   | { type: 'hanging-tissue/transform-reset'; face: HangingTissueFace }
   | { type: 'hanging-tissue/rotation-set'; value: InnerPackagingModelRotation | number }
-  | { type: 'hanging-tissue/set'; key: 'width' | 'height' | 'depth' | 'radius'; value: number }
+  | { type: 'hanging-tissue/set'; key: 'width' | 'height' | 'depth'; value: number }
   | { type: 'hanging-tissue/set-pulled-sheet'; value: boolean }
   | { type: 'camera/autoRotate'; value: boolean }
   | { type: 'box-finish/select-kind'; kind: FinishKind }
@@ -153,7 +153,6 @@ export function createDefaultHangingTissue(): ProjectState['hangingTissue'] {
     width: 160,
     height: 205,
     depth: 80,
-    radius: 0,
     modelRotation: 0,
     showPulledSheet: true,
   }
@@ -436,28 +435,8 @@ export function projectReducer(
         },
       }
     case 'hanging-tissue/set':
-      if (!Number.isFinite(action.value)) return state
-      if (action.key === 'radius') {
-        if (action.value < 0) return state
-        return {
-          ...state,
-          hangingTissue: {
-            ...state.hangingTissue,
-            radius: Math.min(action.value, state.hangingTissue.width / 2, state.hangingTissue.depth / 2),
-          },
-        }
-      }
-      if (action.value < 30 || action.value > 1000) return state
-      return {
-        ...state,
-        hangingTissue: {
-          ...state.hangingTissue,
-          [action.key]: action.value,
-          radius: action.key === 'width' || action.key === 'depth'
-            ? Math.min(state.hangingTissue.radius, action.value / 2)
-            : state.hangingTissue.radius,
-        },
-      }
+      if (!Number.isFinite(action.value) || action.value < 30 || action.value > 1000) return state
+      return { ...state, hangingTissue: { ...state.hangingTissue, [action.key]: action.value } }
     case 'hanging-tissue/set-pulled-sheet':
       return { ...state, hangingTissue: { ...state.hangingTissue, showPulledSheet: action.value } }
     case 'camera/autoRotate':

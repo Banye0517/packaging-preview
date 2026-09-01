@@ -21,7 +21,6 @@ describe('projectReducer', () => {
       width: 160,
       height: 205,
       depth: 80,
-      radius: 0,
       modelRotation: 0,
       showPulledSheet: true,
     })
@@ -44,13 +43,6 @@ describe('projectReducer', () => {
       type: 'hanging-tissue/set', key: 'height', value: 1001,
     })).toBe(resized)
 
-    const rounded = projectReducer(resized, {
-      type: 'hanging-tissue/set', key: 'radius', value: 24,
-    })
-    expect(rounded.hangingTissue.radius).toBe(24)
-    expect(projectReducer(rounded, {
-      type: 'hanging-tissue/set', key: 'depth', value: 30,
-    }).hangingTissue.radius).toBe(15)
   })
 
   it('updates one hanging tissue face and toggles only the pulled sheet', () => {

@@ -4,15 +4,15 @@ import { createInitialProject } from '../app/projectReducer'
 import { decodeProject, encodeProject } from './codec'
 
 describe('project codec', () => {
-  it('migrates version 14 hanging tissue with a zero body radius', () => {
+  it('removes the rejected body radius from version 15 projects', () => {
     const current = createInitialProject()
-    const version14 = JSON.parse(JSON.stringify({ ...current, version: 14 }))
-    delete version14.hangingTissue.radius
+    const version15 = JSON.parse(JSON.stringify(current))
+    version15.hangingTissue.radius = 20
 
-    const decoded = decodeProject(JSON.stringify(version14))
+    const decoded = decodeProject(JSON.stringify(version15))
 
     expect(decoded.version).toBe(15)
-    expect(decoded.hangingTissue.radius).toBe(0)
+    expect('radius' in decoded.hangingTissue).toBe(false)
   })
 
   it('migrates version 11 projects with default hanging tissue state', () => {

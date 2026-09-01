@@ -80,7 +80,6 @@ export interface HangingTissueState {
   width: number
   height: number
   depth: number
-  radius: number
   modelRotation: InnerPackagingModelRotation
   showPulledSheet: boolean
 }
