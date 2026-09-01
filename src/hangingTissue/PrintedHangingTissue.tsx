@@ -20,10 +20,10 @@ import {
 import {
   calculateHangingTissuePlacement,
   findModelNode,
+  HANGING_TISSUE_ARTWORK_MATERIAL,
   HANGING_TISSUE_BODY_ROOT_NAME,
   HANGING_TISSUE_MODEL_URL,
   HANGING_TISSUE_PRINTABLE_MESH_NAMES,
-  HANGING_TISSUE_PRINT_SIDE,
   HANGING_TISSUE_PULLED_SHEET_NAME,
   isPrintableBodyMesh,
 } from './hangingTissueModel'
@@ -148,10 +148,7 @@ export function PrintedHangingTissue({ value }: { value: HangingTissueState }) {
   useEffect(() => {
     const materials = printableBodiesRef.current.flatMap(({ faceMeshes }, index) => FACES.map((face) => {
       const material = new MeshStandardMaterial({
-        color: '#f8fafc',
-        roughness: 0.48,
-        metalness: 0.01,
-        side: HANGING_TISSUE_PRINT_SIDE,
+        ...HANGING_TISSUE_ARTWORK_MATERIAL,
       })
       applyTextureMap(material, textures[index])
       faceMeshes[face].material = material

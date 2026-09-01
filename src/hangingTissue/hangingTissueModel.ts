@@ -5,6 +5,13 @@ export const HANGING_TISSUE_BODY_ROOT_NAME = '悬挂抽纸155'
 export const HANGING_TISSUE_PULLED_SHEET_NAME = '纸.1'
 export const HANGING_TISSUE_PRINTABLE_MESH_NAMES = ['悬挂抽纸155'] as const
 export const HANGING_TISSUE_PRINT_SIDE = BackSide
+export const HANGING_TISSUE_ARTWORK_MATERIAL = {
+  color: '#ffffff',
+  roughness: 0.48,
+  metalness: 0.01,
+  toneMapped: false,
+  side: HANGING_TISSUE_PRINT_SIDE,
+} as const
 
 export function calculateHangingTissuePlacement(bounds: Box3) {
   const size = bounds.getSize(new Vector3())
