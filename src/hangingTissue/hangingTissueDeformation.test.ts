@@ -89,6 +89,35 @@ describe('hanging tissue body deformation', () => {
     expect(position.getZ(2)).toBeCloseTo(1)
   })
 
+  it('keeps front and side centers fixed while rounding inward at corners', () => {
+    const source = new BufferGeometry()
+    source.setAttribute('position', new Float32BufferAttribute([
+      0, 2, 1,
+      1, 2, 0,
+      1, 2, 1,
+    ], 3))
+
+    const result = deformHangingTissueGeometry(source, {
+      bodyMinY: 1, bodyMaxY: 3, connectorMaxY: 4,
+      widthScale: 1, heightScale: 1, depthScale: 1,
+      radius: 20,
+      bodyWidth: 160,
+      bodyDepth: 80,
+      bodyCenterX: 0,
+      bodyCenterZ: 0,
+      bodyHalfWidth: 1,
+      bodyHalfDepth: 1,
+    })
+    const position = result.getAttribute('position')
+
+    expect(position.getX(0)).toBeCloseTo(0)
+    expect(position.getZ(0)).toBeCloseTo(1)
+    expect(position.getX(1)).toBeCloseTo(1)
+    expect(position.getZ(1)).toBeCloseTo(0)
+    expect(Math.abs(position.getX(2))).toBeLessThanOrEqual(1)
+    expect(Math.abs(position.getZ(2))).toBeLessThanOrEqual(1)
+  })
+
   it('keeps radius zero identical to the existing resize result', () => {
     const source = createFixture()
     const existing = deformHangingTissueGeometry(source, {
