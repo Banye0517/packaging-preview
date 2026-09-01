@@ -10,7 +10,7 @@ import {
 } from 'three'
 
 import type { HangingTissueState } from '../app/types'
-import { applyTextureMap } from '../scene/textureMaterial'
+import { createArtworkMaterial } from '../scene/artworkMaterial'
 import { deformHangingTissueGeometry } from './hangingTissueDeformation'
 import {
   drawHangingTissueAtlas,
@@ -20,9 +20,9 @@ import {
 import {
   calculateHangingTissuePlacement,
   findModelNode,
-  HANGING_TISSUE_ARTWORK_MATERIAL,
   HANGING_TISSUE_BODY_ROOT_NAME,
   HANGING_TISSUE_MODEL_URL,
+  HANGING_TISSUE_PRINT_SIDE,
   HANGING_TISSUE_PRINTABLE_MESH_NAMES,
   HANGING_TISSUE_PULLED_SHEET_NAME,
   isPrintableBodyMesh,
@@ -153,12 +153,7 @@ export function PrintedHangingTissue({ value }: { value: HangingTissueState }) {
   }, [value.showPulledSheet])
   useEffect(() => {
     const materials = printableBodiesRef.current.flatMap(({ faceMeshes }, index) => FACES.map((face) => {
-      const material = new MeshStandardMaterial({
-        ...HANGING_TISSUE_ARTWORK_MATERIAL,
-      })
-      applyTextureMap(material, textures[index])
-      material.emissiveMap = textures[index]
-      material.needsUpdate = true
+      const material = createArtworkMaterial(textures[index], HANGING_TISSUE_PRINT_SIDE)
       faceMeshes[face].material = material
       return material
     }))

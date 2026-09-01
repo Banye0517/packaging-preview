@@ -16,6 +16,7 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 
 ## Durable Packaging Decisions
 
+- All ordinary uploaded artwork for every current and future packaging type uses direct sRGB color rendering: a pure-white `MeshBasicMaterial` base with `toneMapped={false}`. Artwork color must not be altered by scene lights, environment reflections, exposure, or tone mapping. Keep unprinted structure, shadows, and surface-finish materials physically lit; this rule does not make the whole model unlit.
 - Keep five independent packaging types: `box`, `pouch`, `inner-packaging-1`, `inner-packaging-2`, and `hanging-tissue`.
 - “内包装1” uses the supplied glTF main bag mesh and excludes the helper mesh named “大概尺寸”.
 - “内包装1” has one full-UV artwork upload and width/height controls only. Use the glTF's authored UVs and preserve the model's native depth, bottom, seals, and bulge; do not reuse pouch structure controls.
@@ -27,7 +28,7 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - “悬挂抽纸” uses `public/models/hanging-tissue.gltf` from the supplied `悬挂纸巾.gltf`. Render the single printable mesh `悬挂抽纸155` with the independent node `纸.1`, which is the pulled-sheet visibility switch. Never recreate the previous two overlapping printable body meshes.
 - The supplied hanging-tissue printable mesh has inward-facing triangle winding and normals. Render only its four artwork geometries with Three.js `BackSide` so artwork appears on the package exterior; keep structural remainder and pulled paper materials unchanged.
 - “悬挂抽纸” has exactly four artwork uploads: front, back, left, and right, with no top or bottom upload. The corrected authored UV islands run along U as front, right, back, and left. Label islands by their model-space positions, preserve authored UVs, and never classify them through the asset's inverted normals or rebuild planar UVs. User transforms are independently 50%–300% proportional scale, -100%–100% offsets, -180°–180° rotation, and 50%–300% horizontal/vertical stretch, collapsed by default. Its printable body width, height, and depth are independently editable; deformation applies only to the middle body, while the top handle and independent pulled sheet keep their native shape. It keeps its bottom anchored to the contact ground, retains 0°/90°/180° direction controls, and does not support surface finishes.
-- Hanging-tissue artwork uses sRGB textures, a pure-white material base, normal tone mapping, and a low-intensity matching emissive map to avoid gray/desaturated output without overexposing white areas; retain light Standard-material shading.
+- Hanging-tissue artwork follows the global direct-color artwork material rule while retaining its required `BackSide` rendering; white structural remainder and pulled-paper materials remain lit.
 - Each hanging-tissue face stores the body dimensions at upload time. Later width, height, or depth changes must inverse-compensate that face in atlas space so its physical artwork size and aspect remain fixed: larger bodies expose white space and smaller bodies crop; never stretch the artwork with geometry.
 
 ## Box Finish Rules

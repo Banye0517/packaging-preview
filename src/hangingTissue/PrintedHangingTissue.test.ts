@@ -4,7 +4,6 @@ import { BackSide, Box3, Group, Mesh, Vector3 } from 'three'
 
 import {
   calculateHangingTissuePlacement,
-  HANGING_TISSUE_ARTWORK_MATERIAL,
   HANGING_TISSUE_BODY_ROOT_NAME,
   HANGING_TISSUE_MODEL_URL,
   HANGING_TISSUE_PRINTABLE_MESH_NAMES,
@@ -21,15 +20,6 @@ describe('PrintedHangingTissue', () => {
     expect(HANGING_TISSUE_PULLED_SHEET_NAME).toBe('纸.1')
     expect(HANGING_TISSUE_PRINTABLE_MESH_NAMES).toEqual(['悬挂抽纸155'])
     expect(HANGING_TISSUE_PRINT_SIDE).toBe(BackSide)
-    expect(HANGING_TISSUE_ARTWORK_MATERIAL).toEqual({
-      color: '#ffffff',
-      roughness: 0.48,
-      metalness: 0.01,
-      emissive: '#ffffff',
-      emissiveIntensity: 0.18,
-      toneMapped: true,
-      side: BackSide,
-    })
   })
 
   it('centers the model horizontally and moves its minimum y to the local origin', () => {

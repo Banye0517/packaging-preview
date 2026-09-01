@@ -119,11 +119,10 @@ function LoadedPanelMaterial({ source }: { source: string }) {
   useEffect(() => () => texture.dispose(), [texture])
 
   return (
-    <meshStandardMaterial
+    <meshBasicMaterial
       map={texture}
-      color={texture ? '#ffffff' : FILM_COLOR}
-      roughness={0.48}
-      metalness={0.01}
+      color="#ffffff"
+      toneMapped={false}
       side={2}
     />
   )

@@ -4,7 +4,7 @@ import {
   CanvasTexture,
   Matrix4,
   Mesh,
-  MeshStandardMaterial,
+  MeshBasicMaterial,
   SRGBColorSpace,
   type BufferGeometry,
 } from 'three'
@@ -98,7 +98,7 @@ function LoadedPanelMaterial({
   >
 }) {
   const [image, setImage] = useState<HTMLImageElement | null>(null)
-  const materialRef = useRef<MeshStandardMaterial>(null)
+  const materialRef = useRef<MeshBasicMaterial>(null)
 
   useEffect(() => {
     const loaded = new Image()
@@ -154,12 +154,11 @@ function LoadedPanelMaterial({
   }, [texture])
 
   return (
-    <meshStandardMaterial
+    <meshBasicMaterial
       ref={materialRef}
       map={texture}
       color="#ffffff"
-      roughness={0.48}
-      metalness={0.01}
+      toneMapped={false}
       side={2}
     />
   )

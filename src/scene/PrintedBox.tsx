@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  MeshStandardMaterial,
+  MeshBasicMaterial,
   SRGBColorSpace,
   Texture,
   TextureLoader,
@@ -57,7 +57,7 @@ function FaceMaterial({ index, source }: { index: number; source: string | null 
 
 function LoadedFaceMaterial({ index, source }: { index: number; source: string }) {
   const [texture, setTexture] = useState<Texture | null>(null)
-  const materialRef = useRef<MeshStandardMaterial>(null)
+  const materialRef = useRef<MeshBasicMaterial>(null)
 
   useEffect(() => {
     let active = true
@@ -77,13 +77,12 @@ function LoadedFaceMaterial({ index, source }: { index: number; source: string }
   }, [texture])
 
   return (
-    <meshStandardMaterial
+    <meshBasicMaterial
       ref={materialRef}
       attach={`material-${index}`}
       map={texture}
-      color={texture ? '#ffffff' : '#f7f9fc'}
-      roughness={0.58}
-      metalness={0.02}
+      color="#ffffff"
+      toneMapped={false}
     />
   )
 }

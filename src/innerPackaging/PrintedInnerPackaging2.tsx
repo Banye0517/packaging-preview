@@ -4,7 +4,7 @@ import {
   CanvasTexture,
   Matrix4,
   Mesh,
-  MeshStandardMaterial,
+  MeshBasicMaterial,
   SRGBColorSpace,
   type BufferGeometry,
 } from 'three'
@@ -19,7 +19,6 @@ import {
 } from './innerPackaging2Texture'
 
 export const INNER_PACKAGING_2_MODEL_URL = '/models/inner-packaging-2.gltf'
-const FILM_COLOR = '#f8fafc'
 
 function useLoadedImage(source: string | undefined) {
   const [loadedState, setLoadedState] = useState<{
@@ -97,7 +96,7 @@ function InnerPackaging2Material({
 }) {
   const frontImage = useLoadedImage(value.faces.front?.previewUrl)
   const backImage = useLoadedImage(value.faces.back?.previewUrl)
-  const materialRef = useRef<MeshStandardMaterial>(null)
+  const materialRef = useRef<MeshBasicMaterial>(null)
   const texture = useMemo(() => {
     if (!frontImage && !backImage) return null
     const size = 1024
@@ -122,12 +121,11 @@ function InnerPackaging2Material({
   }, [texture])
 
   return (
-    <meshStandardMaterial
+    <meshBasicMaterial
       ref={materialRef}
       map={texture}
-      color={FILM_COLOR}
-      roughness={0.48}
-      metalness={0.01}
+      color="#ffffff"
+      toneMapped={false}
       side={2}
     />
   )
