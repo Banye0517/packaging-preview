@@ -7,7 +7,6 @@ import {
   Mesh,
   MeshStandardMaterial,
   SRGBColorSpace,
-  Vector3,
 } from 'three'
 
 import type { HangingTissueState } from '../app/types'
@@ -15,17 +14,20 @@ import { applyTextureMap } from '../scene/textureMaterial'
 import {
   drawHangingTissueAtlas,
   extractHangingTissueFaceGeometrySet,
+  extractHangingTissueUvRegions,
 } from './hangingTissueTexture'
 import {
+  calculateHangingTissuePlacement,
   findModelNode,
+  HANGING_TISSUE_BODY_ROOT_NAME,
   HANGING_TISSUE_MODEL_URL,
+  HANGING_TISSUE_PULLED_SHEET_NAME,
   isPrintableBodyMesh,
 } from './hangingTissueModel'
 
-const OPEN_ROOT_NAME = '悬挂抽纸开'
 const PRINTABLE_BODY_NAMES = ['悬挂抽纸155-材质.2', '悬挂抽纸155-悬挂纸巾']
-const PULLED_SHEET_NAME = '纸.1'
 const FACES = ['front', 'back', 'left', 'right'] as const
+const LOCAL_GROUND_Y = -1.87
 
 function useLoadedImage(source: string | undefined) {
   const [loadedState, setLoadedState] = useState<{
@@ -46,16 +48,19 @@ function useLoadedImage(source: string | undefined) {
   return loadedState.image
 }
 
-function createOpenModel(scene: Group) {
-  const root = scene.getObjectByName(OPEN_ROOT_NAME)
-  if (!root) throw new Error('Hanging tissue model contains no open hierarchy')
-  const model = root.clone(true)
+function createModel(scene: Group) {
+  const bodyRoot = findModelNode(scene, HANGING_TISSUE_BODY_ROOT_NAME)?.clone(true)
+  const pulledSheet = findModelNode(scene, HANGING_TISSUE_PULLED_SHEET_NAME)?.clone(true)
+  if (!bodyRoot || !pulledSheet) throw new Error('Hanging tissue model nodes are incomplete')
+  const model = new Group()
+  model.add(bodyRoot, pulledSheet)
   const printableBodies = PRINTABLE_BODY_NAMES.map((name) => {
-    const printableBody = findModelNode(model, name)
+    const printableBody = findModelNode(bodyRoot, name)
     if (!isPrintableBodyMesh(printableBody) || !printableBody.parent) {
       throw new Error('Hanging tissue model contains no printable body mesh')
     }
     const geometrySet = extractHangingTissueFaceGeometrySet(printableBody.geometry)
+    const uvRegions = extractHangingTissueUvRegions(printableBody.geometry)
     const faceMeshes = Object.fromEntries(FACES.map((face) => {
       const faceMesh = printableBody.clone()
       faceMesh.geometry = geometrySet.faces[face]
@@ -66,19 +71,20 @@ function createOpenModel(scene: Group) {
     remainderMesh.geometry = geometrySet.remainder
     printableBody.parent!.add(remainderMesh)
     printableBody.visible = false
-    return { faceMeshes, remainderMesh }
+    return { faceMeshes, remainderMesh, uvRegions }
   })
-  const pulledSheet = findModelNode(model, PULLED_SHEET_NAME)
-  if (!pulledSheet) throw new Error('Hanging tissue model contains no pulled-sheet node')
   return { model, printableBodies, pulledSheet }
 }
 
 export function PrintedHangingTissue({ value }: { value: HangingTissueState }) {
   const { scene } = useGLTF(HANGING_TISSUE_MODEL_URL)
-  const { model, printableBodies, pulledSheet } = useMemo(() => createOpenModel(scene), [scene])
+  const { model, printableBodies, pulledSheet } = useMemo(() => createModel(scene), [scene])
   const printableBodiesRef = useRef(printableBodies)
   const pulledSheetRef = useRef(pulledSheet)
-  const size = useMemo(() => new Box3().setFromObject(model).getSize(new Vector3()), [model])
+  const placement = useMemo(
+    () => calculateHangingTissuePlacement(new Box3().setFromObject(model)),
+    [model],
+  )
   const frontImage = useLoadedImage(value.faces.front?.previewUrl)
   const backImage = useLoadedImage(value.faces.back?.previewUrl)
   const leftImage = useLoadedImage(value.faces.left?.previewUrl)
@@ -86,36 +92,31 @@ export function PrintedHangingTissue({ value }: { value: HangingTissueState }) {
   const images = useMemo(() => ({
     front: frontImage, back: backImage, left: leftImage, right: rightImage,
   }), [backImage, frontImage, leftImage, rightImage])
-  const textureSets = useMemo(() => printableBodies.map(() =>
-    Object.fromEntries(FACES.map((face) => {
-      const image = images[face]
-      if (!image) return [face, null]
+  const textures = useMemo(() => printableBodies.map(({ uvRegions }) => {
+      if (!FACES.some((face) => images[face])) return null
       const canvas = document.createElement('canvas')
-      canvas.width = 1024
-      canvas.height = 1024
+      canvas.width = 2048
+      canvas.height = 2048
       const context = canvas.getContext('2d')
-      if (!context) return [face, null]
-      drawHangingTissueAtlas(context, 1024, { [face]: { image, transform: value.transforms[face] } }, {
-        front: { minU: 0, maxU: 1, minV: 0, maxV: 1 },
-        back: { minU: 0, maxU: 1, minV: 0, maxV: 1 },
-        left: { minU: 0, maxU: 1, minV: 0, maxV: 1 },
-        right: { minU: 0, maxU: 1, minV: 0, maxV: 1 },
-      })
+      if (!context) return null
+      drawHangingTissueAtlas(context, 2048, Object.fromEntries(FACES.flatMap((face) => {
+        const image = images[face]
+        return image ? [[face, { image, transform: value.transforms[face] }]] : []
+      })), uvRegions)
       const texture = new CanvasTexture(canvas)
       texture.colorSpace = SRGBColorSpace
       texture.flipY = false
-      return [face, texture]
-    })) as Record<(typeof FACES)[number], CanvasTexture | null>,
-  ), [images, printableBodies, value.transforms])
+      return texture
+    }), [images, printableBodies, value.transforms])
 
-  useEffect(() => () => textureSets.flatMap((set) => FACES.map((face) => set[face])).forEach((texture) => texture?.dispose()), [textureSets])
+  useEffect(() => () => textures.forEach((texture) => texture?.dispose()), [textures])
   useEffect(() => {
     pulledSheetRef.current.visible = value.showPulledSheet
   }, [value.showPulledSheet])
   useEffect(() => {
     const materials = printableBodiesRef.current.flatMap(({ faceMeshes }, index) => FACES.map((face) => {
       const material = new MeshStandardMaterial({ color: '#f8fafc', roughness: 0.48, metalness: 0.01 })
-      applyTextureMap(material, textureSets[index][face])
+      applyTextureMap(material, textures[index])
       faceMeshes[face].material = material
       return material
     }))
@@ -125,16 +126,17 @@ export function PrintedHangingTissue({ value }: { value: HangingTissueState }) {
       return material
     })
     return () => [...materials, ...remainderMaterials].forEach((material) => material.dispose())
-  }, [textureSets])
+  }, [textures])
 
-  const baseScale = size.y > 0 ? 3.2 / size.y : 1
+  const baseScale = placement.size.y > 0 ? 3.2 / placement.size.y : 1
   return (
     <group
       data-testid="printed-hanging-tissue"
+      position={[0, LOCAL_GROUND_Y, 0]}
       rotation={[0, 0, value.modelRotation * Math.PI / 180]}
       scale={[baseScale * value.width / 160, baseScale * value.height / 205, baseScale * value.width / 160]}
     >
-      <primitive object={model} />
+      <primitive object={model} position={placement.modelOffset} />
     </group>
   )
 }

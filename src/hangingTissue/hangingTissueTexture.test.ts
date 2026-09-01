@@ -29,9 +29,33 @@ function createFourFaceGeometry() {
   ], 3))
   geometry.setAttribute('uv', new Float32BufferAttribute([
     0.05, 0.1, 0.25, 0.1, 0.15, 0.9,
-    0.35, 0.1, 0.45, 0.9, 0.55, 0.1,
-    0.6, 0.2, 0.7, 0.2, 0.65, 0.8,
-    0.75, 0.2, 0.95, 0.2, 0.85, 0.8,
+    0.55, 0.1, 0.65, 0.9, 0.75, 0.1,
+    0.83, 0.2, 0.97, 0.2, 0.9, 0.8,
+    0.33, 0.2, 0.47, 0.2, 0.4, 0.8,
+  ], 2))
+  geometry.setIndex([...Array(12).keys()])
+  return geometry
+}
+
+function createAuthoredIslandGeometry() {
+  const geometry = new BufferGeometry()
+  geometry.setAttribute('position', new Float32BufferAttribute([
+    -1, -1, 3, 1, -1, 3, 0, 1, 3,
+    3, -1, -1, 3, -1, 1, 3, 1, 0,
+    -1, -1, -3, 0, 1, -3, 1, -1, -3,
+    -3, -1, -1, -3, 1, 0, -3, -1, 1,
+  ], 3))
+  geometry.setAttribute('normal', new Float32BufferAttribute([
+    0, 0, -1, 0, 0, -1, 0, 0, -1,
+    -1, 0, 0, -1, 0, 0, -1, 0, 0,
+    0, 0, 1, 0, 0, 1, 0, 0, 1,
+    1, 0, 0, 1, 0, 0, 1, 0, 0,
+  ], 3))
+  geometry.setAttribute('uv', new Float32BufferAttribute([
+    0.05, 0.1, 0.25, 0.1, 0.15, 0.9,
+    0.33, 0.2, 0.47, 0.2, 0.4, 0.8,
+    0.55, 0.1, 0.75, 0.9, 0.65, 0.1,
+    0.83, 0.2, 0.9, 0.8, 0.97, 0.2,
   ], 2))
   geometry.setIndex([...Array(12).keys()])
   return geometry
@@ -41,9 +65,9 @@ describe('hanging tissue texture atlas', () => {
   it('extracts front, back, left, and right UV bounds from face normals', () => {
     const regions = extractHangingTissueUvRegions(createFourFaceGeometry())
     expect(regions.front).toMatchObject({ minU: expect.closeTo(0.05), maxU: expect.closeTo(0.25), minV: expect.closeTo(0.1), maxV: expect.closeTo(0.9) })
-    expect(regions.back).toMatchObject({ minU: expect.closeTo(0.35), maxU: expect.closeTo(0.55), minV: expect.closeTo(0.1), maxV: expect.closeTo(0.9) })
-    expect(regions.left).toMatchObject({ minU: expect.closeTo(0.6), maxU: expect.closeTo(0.7), minV: expect.closeTo(0.2), maxV: expect.closeTo(0.8) })
-    expect(regions.right).toMatchObject({ minU: expect.closeTo(0.75), maxU: expect.closeTo(0.95), minV: expect.closeTo(0.2), maxV: expect.closeTo(0.8) })
+    expect(regions.back).toMatchObject({ minU: expect.closeTo(0.55), maxU: expect.closeTo(0.75), minV: expect.closeTo(0.1), maxV: expect.closeTo(0.9) })
+    expect(regions.left).toMatchObject({ minU: expect.closeTo(0.83), maxU: expect.closeTo(0.97), minV: expect.closeTo(0.2), maxV: expect.closeTo(0.8) })
+    expect(regions.right).toMatchObject({ minU: expect.closeTo(0.33), maxU: expect.closeTo(0.47), minV: expect.closeTo(0.2), maxV: expect.closeTo(0.8) })
   })
 
   it('rejects geometry without an index', () => {
@@ -73,7 +97,7 @@ describe('hanging tissue texture atlas', () => {
     expect(faces.left.getIndex()?.getX(0)).toBe(6)
   })
 
-  it('keeps non-printable top and bottom triangles as a remainder geometry', () => {
+  it('keeps triangles outside the four authored UV islands as remainder geometry', () => {
     const geometry = createFourFaceGeometry()
     const position = geometry.getAttribute('position')
     const normal = geometry.getAttribute('normal')
@@ -85,7 +109,7 @@ describe('hanging tissue texture atlas', () => {
       ...normal.array, 0, 1, 0, 0, 1, 0, 0, 1, 0,
     ], 3))
     geometry.setAttribute('uv', new Float32BufferAttribute([
-      ...uv.array, 0, 0, 1, 0, 0.5, 1,
+      ...uv.array, 1.1, 0, 1.2, 0, 1.15, 1,
     ], 2))
     geometry.setIndex([...Array(12).keys(), 12, 13, 14])
 
@@ -94,19 +118,23 @@ describe('hanging tissue texture atlas', () => {
     expect(set.remainder.getIndex()?.count).toBe(3)
   })
 
-  it('rebuilds each face UV as a continuous 0–1 planar layout', () => {
-    const faces = extractHangingTissueFaceGeometries(createFourFaceGeometry())
-    const frontUv = faces.front.getAttribute('uv')
-    const leftUv = faces.left.getAttribute('uv')
+  it('maps authored UV islands by physical panel position instead of inverted normals', () => {
+    const faces = extractHangingTissueFaceGeometries(createAuthoredIslandGeometry())
 
-    expect(frontUv.getX(0)).toBeCloseTo(0)
-    expect(frontUv.getX(1)).toBeCloseTo(1)
-    // Canvas textures use a top-left image origin. The regenerated UV must
-    // invert the model's vertical direction so uploaded artwork stays upright.
-    expect(frontUv.getY(0)).toBeCloseTo(1)
-    expect(frontUv.getY(2)).toBeCloseTo(0)
-    expect(leftUv.getX(6)).toBeCloseTo(0)
-    expect(leftUv.getX(7)).toBeCloseTo(0)
+    expect(faces.front.getIndex()?.getX(0)).toBe(0)
+    expect(faces.right.getIndex()?.getX(0)).toBe(3)
+    expect(faces.back.getIndex()?.getX(0)).toBe(6)
+    expect(faces.left.getIndex()?.getX(0)).toBe(9)
+  })
+
+  it('preserves authored UV coordinates instead of planar remapping', () => {
+    const source = createAuthoredIslandGeometry()
+    const sourceUv = source.getAttribute('uv')
+    const faces = extractHangingTissueFaceGeometries(source)
+    const frontUv = faces.front.getAttribute('uv')
+
+    expect(frontUv.getX(0)).toBeCloseTo(sourceUv.getX(0))
+    expect(frontUv.getY(2)).toBeCloseTo(sourceUv.getY(2))
   })
 
   it('clips each selected image to its own UV region', () => {
@@ -127,7 +155,7 @@ describe('hanging tissue texture atlas', () => {
       expect.closeTo(50), expect.closeTo(100), expect.closeTo(200), expect.closeTo(800),
     ])
     expect(vi.mocked(context.rect).mock.calls[1]).toEqual([
-      expect.closeTo(600), expect.closeTo(200), expect.closeTo(100), expect.closeTo(600),
+      expect.closeTo(830), expect.closeTo(200), expect.closeTo(140), expect.closeTo(600),
     ])
     expect(context.drawImage).toHaveBeenCalledTimes(2)
   })

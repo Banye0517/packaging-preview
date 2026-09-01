@@ -1,12 +1,32 @@
 import { describe, expect, it } from 'vitest'
 
-import { Group, Mesh } from 'three'
+import { Box3, Group, Mesh, Vector3 } from 'three'
 
-import { HANGING_TISSUE_MODEL_URL, findModelNode, isPrintableBodyMesh } from './hangingTissueModel'
+import {
+  calculateHangingTissuePlacement,
+  HANGING_TISSUE_BODY_ROOT_NAME,
+  HANGING_TISSUE_MODEL_URL,
+  HANGING_TISSUE_PULLED_SHEET_NAME,
+  findModelNode,
+  isPrintableBodyMesh,
+} from './hangingTissueModel'
 
 describe('PrintedHangingTissue', () => {
   it('uses the supplied hanging tissue model asset', () => {
     expect(HANGING_TISSUE_MODEL_URL).toBe('/models/hanging-tissue.gltf')
+    expect(HANGING_TISSUE_BODY_ROOT_NAME).toBe('悬挂抽纸155')
+    expect(HANGING_TISSUE_PULLED_SHEET_NAME).toBe('纸.1')
+  })
+
+  it('centers the model horizontally and moves its minimum y to the local origin', () => {
+    const placement = calculateHangingTissuePlacement(
+      new Box3(new Vector3(-8, 0.1, -4), new Vector3(8, 39, 4)),
+    )
+
+    expect(placement.modelOffset.x).toBeCloseTo(0)
+    expect(placement.modelOffset.y).toBeCloseTo(-0.1)
+    expect(placement.modelOffset.z).toBeCloseTo(0)
+    expect(placement.size.y).toBeCloseTo(38.9)
   })
 
   it('recognizes a printable Three.js mesh through its runtime mesh flag', () => {

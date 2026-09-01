@@ -3,11 +3,17 @@ import { describe, expect, it } from 'vitest'
 import modelSource from '../../public/models/hanging-tissue.gltf?raw'
 
 describe('hanging tissue model asset', () => {
-  it('contains the open hierarchy, printable body UVs, and the pulled-sheet node', () => {
+  it('contains the corrected body hierarchy, printable UVs, and independent pulled sheet', () => {
     const model = JSON.parse(modelSource)
 
-    expect(model.nodes.some((node: { name?: string }) => node.name === '悬挂抽纸开')).toBe(true)
-    expect(model.nodes.some((node: { name?: string }) => node.name === '纸.1')).toBe(true)
+    expect(model.nodes.map((node: { name?: string }) => node.name)).toEqual(expect.arrayContaining([
+      '悬挂抽纸155',
+      '悬挂抽纸155-材质.2',
+      '悬挂抽纸155-悬挂纸巾',
+      '纸.1',
+    ]))
+    expect(model.scenes[0].nodes).toEqual([0, 3])
+    expect(model.nodes.some((node: { name?: string }) => node.name === '悬挂抽纸开')).toBe(false)
 
     const printableBody = model.meshes.find(
       (mesh: { name?: string }) => mesh.name === '悬挂抽纸155-材质.2',
