@@ -6,6 +6,7 @@ import {
   calculateHangingTissuePlacement,
   HANGING_TISSUE_BODY_ROOT_NAME,
   HANGING_TISSUE_MODEL_URL,
+  HANGING_TISSUE_PRINTABLE_MESH_NAMES,
   HANGING_TISSUE_PULLED_SHEET_NAME,
   findModelNode,
   isPrintableBodyMesh,
@@ -16,6 +17,7 @@ describe('PrintedHangingTissue', () => {
     expect(HANGING_TISSUE_MODEL_URL).toBe('/models/hanging-tissue.gltf')
     expect(HANGING_TISSUE_BODY_ROOT_NAME).toBe('悬挂抽纸155')
     expect(HANGING_TISSUE_PULLED_SHEET_NAME).toBe('纸.1')
+    expect(HANGING_TISSUE_PRINTABLE_MESH_NAMES).toEqual(['悬挂抽纸155'])
   })
 
   it('centers the model horizontally and moves its minimum y to the local origin', () => {

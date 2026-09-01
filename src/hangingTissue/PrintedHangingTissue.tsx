@@ -21,11 +21,11 @@ import {
   findModelNode,
   HANGING_TISSUE_BODY_ROOT_NAME,
   HANGING_TISSUE_MODEL_URL,
+  HANGING_TISSUE_PRINTABLE_MESH_NAMES,
   HANGING_TISSUE_PULLED_SHEET_NAME,
   isPrintableBodyMesh,
 } from './hangingTissueModel'
 
-const PRINTABLE_BODY_NAMES = ['悬挂抽纸155-材质.2', '悬挂抽纸155-悬挂纸巾']
 const FACES = ['front', 'back', 'left', 'right'] as const
 const LOCAL_GROUND_Y = -1.87
 
@@ -54,7 +54,7 @@ function createModel(scene: Group) {
   if (!bodyRoot || !pulledSheet) throw new Error('Hanging tissue model nodes are incomplete')
   const model = new Group()
   model.add(bodyRoot, pulledSheet)
-  const printableBodies = PRINTABLE_BODY_NAMES.map((name) => {
+  const printableBodies = HANGING_TISSUE_PRINTABLE_MESH_NAMES.map((name) => {
     const printableBody = findModelNode(bodyRoot, name)
     if (!isPrintableBodyMesh(printableBody) || !printableBody.parent) {
       throw new Error('Hanging tissue model contains no printable body mesh')
