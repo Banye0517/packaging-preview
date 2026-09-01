@@ -55,4 +55,60 @@ describe('hanging tissue body deformation', () => {
     expect(source.getAttribute('position').getX(1)).toBe(1)
     expect(source.getAttribute('position').getY(5)).toBe(5)
   })
+
+  it('rounds only the middle-body cross-section and fades before the handle', () => {
+    const source = new BufferGeometry()
+    source.setAttribute('position', new Float32BufferAttribute([
+      1, 2, 1,
+      1, 3.5, 1,
+      1, 4, 1,
+    ], 3))
+
+    const result = deformHangingTissueGeometry(source, {
+      bodyMinY: 1,
+      bodyMaxY: 3,
+      connectorMaxY: 4,
+      widthScale: 1,
+      heightScale: 1,
+      depthScale: 1,
+      radius: 20,
+      bodyWidth: 160,
+      bodyDepth: 80,
+      bodyCenterX: 0,
+      bodyCenterZ: 0,
+      bodyHalfWidth: 1,
+      bodyHalfDepth: 1,
+    })
+    const position = result.getAttribute('position')
+
+    expect(position.getX(0)).toBeLessThan(1)
+    expect(position.getZ(0)).toBeLessThan(1)
+    expect(position.getX(1)).toBeGreaterThan(position.getX(0))
+    expect(position.getZ(1)).toBeGreaterThan(position.getZ(0))
+    expect(position.getX(2)).toBeCloseTo(1)
+    expect(position.getZ(2)).toBeCloseTo(1)
+  })
+
+  it('keeps radius zero identical to the existing resize result', () => {
+    const source = createFixture()
+    const existing = deformHangingTissueGeometry(source, {
+      bodyMinY: 1, bodyMaxY: 3, connectorMaxY: 4,
+      widthScale: 1.5, heightScale: 0.75, depthScale: 0.6,
+    })
+    const radiusZero = deformHangingTissueGeometry(source, {
+      bodyMinY: 1, bodyMaxY: 3, connectorMaxY: 4,
+      widthScale: 1.5, heightScale: 0.75, depthScale: 0.6,
+      radius: 0,
+      bodyWidth: 160,
+      bodyDepth: 80,
+      bodyCenterX: 0,
+      bodyCenterZ: 0,
+      bodyHalfWidth: 1,
+      bodyHalfDepth: 1,
+    })
+
+    expect(Array.from(radiusZero.getAttribute('position').array)).toEqual(
+      Array.from(existing.getAttribute('position').array),
+    )
+  })
 })

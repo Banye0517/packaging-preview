@@ -7,6 +7,60 @@ export interface HangingTissueDeformation {
   widthScale: number
   heightScale: number
   depthScale: number
+  radius?: number
+  bodyWidth?: number
+  bodyDepth?: number
+  bodyCenterX?: number
+  bodyCenterZ?: number
+  bodyHalfWidth?: number
+  bodyHalfDepth?: number
+}
+
+function roundedCrossSection(
+  x: number,
+  z: number,
+  weight: number,
+  options: HangingTissueDeformation,
+) {
+  const radius = Math.min(
+    Math.max(options.radius ?? 0, 0),
+    (options.bodyWidth ?? 0) / 2,
+    (options.bodyDepth ?? 0) / 2,
+  )
+  if (radius === 0 || !options.bodyWidth || !options.bodyDepth ||
+    !options.bodyHalfWidth || !options.bodyHalfDepth || weight === 0) return { x, z }
+
+  const centerX = (options.bodyCenterX ?? 0) * options.widthScale
+  const centerZ = (options.bodyCenterZ ?? 0) * options.depthScale
+  const halfWidth = options.bodyHalfWidth * options.widthScale
+  const halfDepth = options.bodyHalfDepth * options.depthScale
+  const radiusX = radius / options.bodyWidth * halfWidth * 2
+  const radiusZ = radius / options.bodyDepth * halfDepth * 2
+  const localX = x - centerX
+  const localZ = z - centerZ
+  const absX = Math.abs(localX)
+  const absZ = Math.abs(localZ)
+  const signX = Math.sign(localX) || 1
+  const signZ = Math.sign(localZ) || 1
+  let roundedX = localX
+  let roundedZ = localZ
+
+  if (absZ / halfDepth >= absX / halfWidth && absX > halfWidth - radiusX) {
+    const t = Math.min(Math.max((absX - (halfWidth - radiusX)) / radiusX, 0), 1)
+    const angle = Math.PI / 2 - t * Math.PI / 4
+    roundedX = signX * (halfWidth - radiusX + radiusX * Math.cos(angle))
+    roundedZ = signZ * (halfDepth - radiusZ + radiusZ * Math.sin(angle))
+  } else if (absZ > halfDepth - radiusZ) {
+    const t = Math.min(Math.max((absZ - (halfDepth - radiusZ)) / radiusZ, 0), 1)
+    const angle = t * Math.PI / 4
+    roundedX = signX * (halfWidth - radiusX + radiusX * Math.cos(angle))
+    roundedZ = signZ * (halfDepth - radiusZ + radiusZ * Math.sin(angle))
+  }
+
+  return {
+    x: x + (centerX + roundedX - x) * weight,
+    z: z + (centerZ + roundedZ - z) * weight,
+  }
 }
 
 function horizontalWeight(y: number, options: HangingTissueDeformation) {
@@ -36,9 +90,12 @@ export function deformHangingTissueGeometry(
   for (let index = 0; index < positions.count; index += 1) {
     const y = positions.getY(index)
     const weight = horizontalWeight(y, options)
-    positions.setX(index, positions.getX(index) * (1 + (options.widthScale - 1) * weight))
+    const scaledX = positions.getX(index) * (1 + (options.widthScale - 1) * weight)
+    const scaledZ = positions.getZ(index) * (1 + (options.depthScale - 1) * weight)
+    const rounded = roundedCrossSection(scaledX, scaledZ, weight, options)
+    positions.setX(index, rounded.x)
     positions.setY(index, mappedY(y, options))
-    positions.setZ(index, positions.getZ(index) * (1 + (options.depthScale - 1) * weight))
+    positions.setZ(index, rounded.z)
   }
   positions.needsUpdate = true
   result.computeVertexNormals()
