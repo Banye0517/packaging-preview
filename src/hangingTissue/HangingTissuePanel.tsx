@@ -2,7 +2,7 @@ import type { HangingTissueState, InnerPackagingModelRotation } from '../app/typ
 
 interface HangingTissuePanelProps {
   value: HangingTissueState
-  onChange: (key: 'width' | 'height', value: number) => void
+  onChange: (key: 'width' | 'height' | 'depth', value: number) => void
   onRotationChange: (value: InnerPackagingModelRotation) => void
   onPulledSheetChange: (value: boolean) => void
 }
@@ -14,11 +14,12 @@ export function HangingTissuePanel({
     <>
       <p className="eyebrow">HANGING TISSUE DIMENSIONS</p>
       <h1>悬挂抽纸设置</h1>
-      <p className="panel-description">保持原模型的悬挂结构、厚度和内纸形态，仅调整整体宽高。</p>
+      <p className="panel-description">独立调整中间印刷盒身，顶部拉手和底部抽纸保持原始形状。</p>
       <div className="control-stack">
         {([
-          ['width', '袋宽（毫米）'],
-          ['height', '袋高（毫米）'],
+          ['width', '盒身宽度（毫米）'],
+          ['height', '盒身高度（毫米）'],
+          ['depth', '盒身厚度（毫米）'],
         ] as const).map(([key, label]) => (
           <label className="field-row" key={key}>
             <span>{label}</span>

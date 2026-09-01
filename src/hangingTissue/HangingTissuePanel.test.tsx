@@ -1,25 +1,28 @@
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { createDefaultHangingTissue } from '../app/projectReducer'
 import { HangingTissuePanel } from './HangingTissuePanel'
 
 describe('HangingTissuePanel', () => {
-  it('changes only the pulled-sheet visibility through its switch', async () => {
-    const user = userEvent.setup()
-    const onPulledSheetChange = vi.fn()
+  it('edits width, height, and depth as independent body dimensions', () => {
+    const onChange = vi.fn()
     render(
       <HangingTissuePanel
         value={createDefaultHangingTissue()}
-        onChange={vi.fn()}
+        onChange={onChange}
         onRotationChange={vi.fn()}
-        onPulledSheetChange={onPulledSheetChange}
+        onPulledSheetChange={vi.fn()}
       />,
     )
 
-    await user.click(screen.getByRole('checkbox', { name: '显示抽纸' }))
+    expect(screen.getByLabelText('盒身宽度（毫米）')).toHaveValue(160)
+    expect(screen.getByLabelText('盒身高度（毫米）')).toHaveValue(205)
+    expect(screen.getByLabelText('盒身厚度（毫米）')).toHaveValue(80)
 
-    expect(onPulledSheetChange).toHaveBeenCalledWith(false)
+    fireEvent.change(screen.getByLabelText('盒身厚度（毫米）'), {
+      target: { value: '96' },
+    })
+    expect(onChange).toHaveBeenCalledWith('depth', 96)
   })
 })

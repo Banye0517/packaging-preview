@@ -9,7 +9,9 @@ export const HANGING_TISSUE_ARTWORK_MATERIAL = {
   color: '#ffffff',
   roughness: 0.48,
   metalness: 0.01,
-  toneMapped: false,
+  emissive: '#ffffff',
+  emissiveIntensity: 0.18,
+  toneMapped: true,
   side: HANGING_TISSUE_PRINT_SIDE,
 } as const
 

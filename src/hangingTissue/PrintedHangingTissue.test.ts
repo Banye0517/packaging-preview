@@ -25,7 +25,9 @@ describe('PrintedHangingTissue', () => {
       color: '#ffffff',
       roughness: 0.48,
       metalness: 0.01,
-      toneMapped: false,
+      emissive: '#ffffff',
+      emissiveIntensity: 0.18,
+      toneMapped: true,
       side: BackSide,
     })
   })

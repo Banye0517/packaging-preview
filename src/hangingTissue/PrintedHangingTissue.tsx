@@ -151,6 +151,8 @@ export function PrintedHangingTissue({ value }: { value: HangingTissueState }) {
         ...HANGING_TISSUE_ARTWORK_MATERIAL,
       })
       applyTextureMap(material, textures[index])
+      material.emissiveMap = textures[index]
+      material.needsUpdate = true
       faceMeshes[face].material = material
       return material
     }))
