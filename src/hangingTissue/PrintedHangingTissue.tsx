@@ -11,6 +11,7 @@ import {
 
 import type { HangingTissueState } from '../app/types'
 import { applyTextureMap } from '../scene/textureMaterial'
+import { deformHangingTissueGeometry } from './hangingTissueDeformation'
 import {
   drawHangingTissueAtlas,
   extractHangingTissueFaceGeometrySet,
@@ -29,6 +30,9 @@ import {
 
 const FACES = ['front', 'back', 'left', 'right'] as const
 const LOCAL_GROUND_Y = -1.87
+const BODY_MIN_Y = 0.03241796791553497
+const BODY_MAX_Y = 29
+const CONNECTOR_MAX_Y = 33
 
 function useLoadedImage(source: string | undefined) {
   const [loadedState, setLoadedState] = useState<{
@@ -72,7 +76,7 @@ function createModel(scene: Group) {
     remainderMesh.geometry = geometrySet.remainder
     printableBody.parent!.add(remainderMesh)
     printableBody.visible = false
-    return { faceMeshes, remainderMesh, uvRegions }
+    return { faceMeshes, remainderMesh, uvRegions, sourceGeometrySet: geometrySet }
   })
   return { model, printableBodies, pulledSheet }
 }
@@ -93,6 +97,23 @@ export function PrintedHangingTissue({ value }: { value: HangingTissueState }) {
   const images = useMemo(() => ({
     front: frontImage, back: backImage, left: leftImage, right: rightImage,
   }), [backImage, frontImage, leftImage, rightImage])
+  const deformedGeometrySets = useMemo(() => printableBodies.map(({ sourceGeometrySet }) => {
+    const options = {
+      bodyMinY: BODY_MIN_Y,
+      bodyMaxY: BODY_MAX_Y,
+      connectorMaxY: CONNECTOR_MAX_Y,
+      widthScale: value.width / 160,
+      heightScale: value.height / 205,
+      depthScale: value.depth / 80,
+    }
+    return {
+      faces: Object.fromEntries(FACES.map((face) => [
+        face,
+        deformHangingTissueGeometry(sourceGeometrySet.faces[face], options),
+      ])),
+      remainder: deformHangingTissueGeometry(sourceGeometrySet.remainder, options),
+    }
+  }), [printableBodies, value.depth, value.height, value.width])
   const textures = useMemo(() => printableBodies.map(({ uvRegions }) => {
       if (!FACES.some((face) => images[face])) return null
       const canvas = document.createElement('canvas')
@@ -111,6 +132,16 @@ export function PrintedHangingTissue({ value }: { value: HangingTissueState }) {
     }), [images, printableBodies, value.transforms])
 
   useEffect(() => () => textures.forEach((texture) => texture?.dispose()), [textures])
+  useEffect(() => {
+    printableBodiesRef.current.forEach(({ faceMeshes, remainderMesh }, index) => {
+      FACES.forEach((face) => { faceMeshes[face].geometry = deformedGeometrySets[index].faces[face] })
+      remainderMesh.geometry = deformedGeometrySets[index].remainder
+    })
+    return () => deformedGeometrySets.forEach(({ faces, remainder }) => {
+      FACES.forEach((face) => faces[face].dispose())
+      remainder.dispose()
+    })
+  }, [deformedGeometrySets])
   useEffect(() => {
     pulledSheetRef.current.visible = value.showPulledSheet
   }, [value.showPulledSheet])
@@ -140,7 +171,7 @@ export function PrintedHangingTissue({ value }: { value: HangingTissueState }) {
       data-testid="printed-hanging-tissue"
       position={[0, LOCAL_GROUND_Y, 0]}
       rotation={[0, 0, value.modelRotation * Math.PI / 180]}
-      scale={[baseScale * value.width / 160, baseScale * value.height / 205, baseScale * value.width / 160]}
+      scale={baseScale}
     >
       <primitive object={model} position={placement.modelOffset} />
     </group>
