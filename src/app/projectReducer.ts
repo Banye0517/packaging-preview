@@ -77,7 +77,12 @@ export type ProjectAction =
       key: 'width' | 'height'
       value: number
     }
-  | { type: 'hanging-tissue/face-set'; face: HangingTissueFace; asset: ArtworkAsset }
+  | {
+      type: 'hanging-tissue/face-set'
+      face: HangingTissueFace
+      asset: ArtworkAsset
+      referenceDimensions: ProjectState['hangingTissue']['artworkReferenceDimensions'][HangingTissueFace]
+    }
   | { type: 'hanging-tissue/face-remove'; face: HangingTissueFace }
   | { type: 'hanging-tissue/select-face'; face: HangingTissueFace }
   | { type: 'hanging-tissue/transform-set'; face: HangingTissueFace; key: keyof ArtworkTransform; value: number }
@@ -137,6 +142,7 @@ export function createDefaultInnerPackaging2(): ProjectState['innerPackaging2'] 
 export function createDefaultHangingTissue(): ProjectState['hangingTissue'] {
   return {
     faces: { front: null, back: null, left: null, right: null },
+    artworkReferenceDimensions: { front: null, back: null, left: null, right: null },
     transforms: {
       front: { ...DEFAULT_ARTWORK_TRANSFORM },
       back: { ...DEFAULT_ARTWORK_TRANSFORM },
@@ -154,7 +160,7 @@ export function createDefaultHangingTissue(): ProjectState['hangingTissue'] {
 
 export function createInitialProject(): ProjectState {
   return {
-    version: 13,
+    version: 14,
     name: '未命名包装',
     activeTab: 'artwork',
     packagingType: 'box',
@@ -373,6 +379,10 @@ export function projectReducer(
         hangingTissue: {
           ...state.hangingTissue,
           faces: { ...state.hangingTissue.faces, [action.face]: action.asset },
+          artworkReferenceDimensions: {
+            ...state.hangingTissue.artworkReferenceDimensions,
+            [action.face]: action.referenceDimensions,
+          },
           selectedFace: action.face,
         },
       }
@@ -382,6 +392,10 @@ export function projectReducer(
         hangingTissue: {
           ...state.hangingTissue,
           faces: { ...state.hangingTissue.faces, [action.face]: null },
+          artworkReferenceDimensions: {
+            ...state.hangingTissue.artworkReferenceDimensions,
+            [action.face]: null,
+          },
         },
       }
     case 'hanging-tissue/select-face':

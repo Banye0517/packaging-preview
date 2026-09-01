@@ -180,6 +180,11 @@ export function App() {
       commit({ type: 'commit', action: {
         type: 'hanging-tissue/face-set', face,
         asset: { id: crypto.randomUUID(), name: file.name, previewUrl, ...metadata },
+        referenceDimensions: {
+          width: project.hangingTissue.width,
+          height: project.hangingTissue.height,
+          depth: project.hangingTissue.depth,
+        },
       } })
       setHangingTissueErrors((current) => ({ ...current, [face]: undefined }))
     } catch (error) {

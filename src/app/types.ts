@@ -66,8 +66,15 @@ export interface InnerPackaging2State {
   modelRotation: InnerPackagingModelRotation
 }
 
+export interface HangingTissueDimensions {
+  width: number
+  height: number
+  depth: number
+}
+
 export interface HangingTissueState {
   faces: Record<HangingTissueFace, ArtworkAsset | null>
+  artworkReferenceDimensions: Record<HangingTissueFace, HangingTissueDimensions | null>
   transforms: Record<HangingTissueFace, ArtworkTransform>
   selectedFace: HangingTissueFace
   width: number
@@ -78,7 +85,7 @@ export interface HangingTissueState {
 }
 
 export interface ProjectState {
-  version: 13
+  version: 14
   name: string
   activeTab: 'artwork' | 'finish' | 'box' | 'camera'
   packagingType: PackagingType
