@@ -72,12 +72,13 @@ export interface HangingTissueState {
   selectedFace: HangingTissueFace
   width: number
   height: number
+  depth: number
   modelRotation: InnerPackagingModelRotation
   showPulledSheet: boolean
 }
 
 export interface ProjectState {
-  version: 12
+  version: 13
   name: string
   activeTab: 'artwork' | 'finish' | 'box' | 'camera'
   packagingType: PackagingType

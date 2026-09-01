@@ -365,14 +365,15 @@ function hasInnerPackaging2Fields(
   })
 }
 
-function hasHangingTissueFields(project: Partial<ProjectState>) {
+function hasHangingTissueFields(project: Partial<ProjectState>, requireDepth = true) {
   const tissue = project.hangingTissue
   const faces = ['front', 'back', 'left', 'right'] as const
   if (!tissue || !faces.includes(tissue.selectedFace)) return false
   if (Object.keys(tissue.faces ?? {}).length !== faces.length ||
     Object.keys(tissue.transforms ?? {}).length !== faces.length ||
     !faces.every((face) => isArtworkAsset(tissue.faces[face]) && !!tissue.transforms[face])) return false
-  if (![tissue.width, tissue.height].every((value) =>
+  const dimensions = requireDepth ? [tissue.width, tissue.height, tissue.depth] : [tissue.width, tissue.height]
+  if (!dimensions.every((value) =>
     typeof value === 'number' && Number.isFinite(value) && value > 0) ||
     ![0, 90, 180].includes(tissue.modelRotation) ||
     typeof tissue.showPulledSheet !== 'boolean') return false
@@ -389,6 +390,11 @@ function hasHangingTissueFields(project: Partial<ProjectState>) {
 
 type Version11ProjectState = Omit<ProjectState, 'version' | 'hangingTissue'> & { version: 11 }
 
+type Version12ProjectState = Omit<ProjectState, 'version' | 'hangingTissue'> & {
+  version: 12
+  hangingTissue: Omit<ProjectState['hangingTissue'], 'depth'>
+}
+
 function isVersion11ProjectState(value: unknown): value is Version11ProjectState {
   if (!value || typeof value !== 'object') return false
   const project = value as Partial<Version11ProjectState>
@@ -397,11 +403,19 @@ function isVersion11ProjectState(value: unknown): value is Version11ProjectState
     hasInnerPackaging2Fields(project as Partial<ProjectState>)
 }
 
+function isVersion12ProjectState(value: unknown): value is Version12ProjectState {
+  if (!value || typeof value !== 'object') return false
+  const project = value as Partial<Version12ProjectState>
+  return project.version === 12 &&
+    isVersion11ProjectState({ ...project, version: 11 }) &&
+    hasHangingTissueFields(project as Partial<ProjectState>, false)
+}
+
 function isProjectState(value: unknown): value is ProjectState {
   if (!value || typeof value !== 'object') return false
   const project = value as Partial<ProjectState>
-  return project.version === 12 &&
-    isVersion11ProjectState({ ...project, version: 11 }) &&
+  return project.version === 13 &&
+    isVersion12ProjectState({ ...project, version: 12 }) &&
     hasHangingTissueFields(project)
 }
 
@@ -417,7 +431,7 @@ function addInnerPackaging2Stretch(value: Record<string, unknown>): ProjectState
   const project = value as unknown as Omit<ProjectState, 'version'> & { version: 10 }
   return {
     ...project,
-    version: 12,
+    version: 13,
     innerPackaging2: {
       ...project.innerPackaging2,
       transforms: {
@@ -437,19 +451,26 @@ export function decodeProject(source: string): ProjectState {
   try {
     const value: unknown = JSON.parse(source)
     if (isProjectState(value)) return value
+    if (isVersion12ProjectState(value)) {
+      return {
+        ...value,
+        version: 13,
+        hangingTissue: { ...value.hangingTissue, depth: 80 },
+      }
+    }
     if (isVersion11ProjectState(value)) {
-      return { ...value, version: 12, hangingTissue: createDefaultHangingTissue() }
+      return { ...value, version: 13, hangingTissue: createDefaultHangingTissue() }
     }
     if (isVersion10ProjectState(value)) {
       return addInnerPackaging2Stretch(value as Record<string, unknown>)
     }
     if (isVersion9ProjectState(value)) {
-      return { ...value, version: 12, innerPackaging2: createDefaultInnerPackaging2(), hangingTissue: createDefaultHangingTissue() }
+      return { ...value, version: 13, innerPackaging2: createDefaultInnerPackaging2(), hangingTissue: createDefaultHangingTissue() }
     }
     if (isVersion8ProjectState(value)) {
       return {
         ...value,
-        version: 12,
+        version: 13,
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
         hangingTissue: createDefaultHangingTissue(),
@@ -458,7 +479,7 @@ export function decodeProject(source: string): ProjectState {
     if (isVersion7ProjectState(value)) {
       return {
         ...value,
-        version: 12,
+        version: 13,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -468,7 +489,7 @@ export function decodeProject(source: string): ProjectState {
     if (isVersion6ProjectState(value)) {
       return {
         ...value,
-        version: 12,
+        version: 13,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -482,7 +503,7 @@ export function decodeProject(source: string): ProjectState {
     if (isVersion5ProjectState(value)) {
       return {
         ...value,
-        version: 12,
+        version: 13,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -499,7 +520,7 @@ export function decodeProject(source: string): ProjectState {
     if (isVersion4ProjectState(value)) {
       return {
         ...value,
-        version: 12,
+        version: 13,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -520,7 +541,7 @@ export function decodeProject(source: string): ProjectState {
       const initial = createInitialProject()
       return {
         ...value,
-        version: 12,
+        version: 13,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -545,7 +566,7 @@ export function decodeProject(source: string): ProjectState {
       const initial = createInitialProject()
       return {
         ...value,
-        version: 12,
+        version: 13,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),

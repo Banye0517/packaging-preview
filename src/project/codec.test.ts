@@ -11,11 +11,25 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version11))
 
-    expect(decoded.version).toBe(12)
+    expect(decoded.version).toBe(13)
     expect(decoded.hangingTissue.faces).toEqual({
       front: null, back: null, left: null, right: null,
     })
     expect(decoded.hangingTissue.showPulledSheet).toBe(true)
+  })
+
+  it('migrates version 12 hanging tissue with the native default depth', () => {
+    const current = createInitialProject()
+    const version12 = JSON.parse(JSON.stringify({ ...current, version: 12 }))
+    delete version12.hangingTissue.depth
+
+    const decoded = decodeProject(JSON.stringify(version12))
+
+    expect(decoded.version).toBe(13)
+    expect(decoded.hangingTissue.depth).toBe(80)
+    expect(decoded.hangingTissue.faces).toEqual(current.hangingTissue.faces)
+    expect(decoded.hangingTissue.width).toBe(current.hangingTissue.width)
+    expect(decoded.hangingTissue.height).toBe(current.hangingTissue.height)
   })
 
   it('round-trips a valid local project', () => {
@@ -35,7 +49,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version10))
 
-    expect(decoded.version).toBe(12)
+    expect(decoded.version).toBe(13)
     expect(decoded.innerPackaging2.transforms.front).toMatchObject({
       stretchX: 100,
       stretchY: 100,
@@ -63,7 +77,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version8))
 
-    expect(decoded.version).toBe(12)
+    expect(decoded.version).toBe(13)
     expect(Object.keys(decoded.pouchFinish.layers['gold-foil'].masks)).toEqual(['front', 'back'])
   })
 
@@ -100,7 +114,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(legacy))
 
-    expect(decoded.version).toBe(12)
+    expect(decoded.version).toBe(13)
     expect(decoded.packagingType).toBe('box')
     expect(decoded.pouch.faces).toEqual({ front: null, back: null })
     expect(decoded.faces).toEqual(legacy.faces)
@@ -125,7 +139,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version2))
 
-    expect(decoded.version).toBe(12)
+    expect(decoded.version).toBe(13)
     expect(decoded.innerPackaging1.artwork).toBeNull()
   })
 
@@ -151,7 +165,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version3))
 
-    expect(decoded.version).toBe(12)
+    expect(decoded.version).toBe(13)
     expect(decoded.innerPackaging1.artwork).toEqual(artwork)
   })
 
@@ -169,7 +183,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version4))
 
-    expect(decoded.version).toBe(12)
+    expect(decoded.version).toBe(13)
     expect(decoded.innerPackaging1).toMatchObject({
       artworkScale: 100,
       artworkOffsetX: 0,
@@ -197,7 +211,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version5))
 
-    expect(decoded.version).toBe(12)
+    expect(decoded.version).toBe(13)
     expect(decoded.innerPackaging1).toMatchObject({
       artworkScale: 120,
       artworkOffsetX: 10,
@@ -216,7 +230,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version6))
 
-    expect(decoded.version).toBe(12)
+    expect(decoded.version).toBe(13)
     expect(decoded.innerPackaging1.modelRotation).toBe(0)
   })
 
@@ -227,7 +241,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version7))
 
-    expect(decoded.version).toBe(12)
+    expect(decoded.version).toBe(13)
     expect(decoded.boxFinish.selectedKind).toBe('gold-foil')
     expect(decoded.boxFinish.layers['gold-foil'].masks.front).toBeNull()
   })
@@ -256,7 +270,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version9))
 
-    expect(decoded.version).toBe(12)
+    expect(decoded.version).toBe(13)
     expect(decoded.innerPackaging2.faces).toEqual({ front: null, back: null })
     expect(decoded.innerPackaging2.transforms.front).toEqual({
       scale: 100, offsetX: 0, offsetY: 0, rotation: 0, stretchX: 100, stretchY: 100,
