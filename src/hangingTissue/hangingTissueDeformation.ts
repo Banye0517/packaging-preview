@@ -49,15 +49,18 @@ function roundedCrossSection(
   let roundedZ = localZ
 
   if (options.surfaceFace === 'front' || options.surfaceFace === 'back') {
+    const faceSignZ = options.surfaceFace === 'front' ? 1 : -1
+    roundedZ = faceSignZ * halfDepth
     if (absX > halfWidth - radiusX) {
       const t = Math.min(Math.max((absX - (halfWidth - radiusX)) / radiusX, 0), 1)
       const angle = Math.PI / 2 - t * Math.PI / 2
       roundedX = signX * (halfWidth - radiusX + radiusX * Math.cos(angle))
-      roundedZ = signZ * (halfDepth - radiusZ + radiusZ * Math.sin(angle))
+      roundedZ = faceSignZ * (halfDepth - radiusZ + radiusZ * Math.sin(angle))
     }
   } else if (options.surfaceFace === 'left' || options.surfaceFace === 'right') {
+    const faceSignX = options.surfaceFace === 'right' ? 1 : -1
+    roundedX = faceSignX * halfWidth
     if (absZ > halfDepth - radiusZ) {
-      roundedX = signX * halfWidth
       roundedZ = signZ * (halfDepth - radiusZ)
     }
   } else {

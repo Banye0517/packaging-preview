@@ -32,6 +32,7 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Each hanging-tissue face stores the body dimensions at upload time. Later width, height, or depth changes must inverse-compensate that face in atlas space so its physical artwork size and aspect remain fixed: larger bodies expose white space and smaller bodies crop; never stretch the artwork with geometry.
 - Hanging-tissue body radius defaults to `0 mm` and is capped at half the smaller current width/depth. Follow the six-face box rule that rounding cuts inward while preserving the requested outer width/depth: front/back and side centers stay fixed, and no rounded vertex may protrude beyond the sharp body bounds. It rounds only the middle-body cross-section and fades out through the existing top connector range; never deform the handle or independent pulled sheet, and never alter artwork transforms or artwork-size references.
 - On hanging-tissue rounded corners, front/back artwork owns the complete corner arc through the side tangent. Left/right artwork starts only on the planar side surface; never allow side artwork to appear on the front/back-facing rounded arc.
+- When hanging-tissue radius is non-zero, project front/back center vertices onto their exact front/back planes and left/right center vertices onto their exact side planes. Do not preserve the supplied mesh's slight side tilt or inset in the printable middle body, because that makes side artwork visible in the exact front camera.
 
 ## Box Finish Rules
 
