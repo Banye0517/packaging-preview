@@ -7,7 +7,7 @@ describe('projectReducer', () => {
   it('initializes hanging tissue with four independent faces and a visible pulled sheet', () => {
     const initial = createInitialProject()
 
-    expect(initial.version).toBe(14)
+    expect(initial.version).toBe(15)
     expect(initial.hangingTissue).toEqual({
       faces: { front: null, back: null, left: null, right: null },
       artworkReferenceDimensions: { front: null, back: null, left: null, right: null },
@@ -21,6 +21,7 @@ describe('projectReducer', () => {
       width: 160,
       height: 205,
       depth: 80,
+      radius: 0,
       modelRotation: 0,
       showPulledSheet: true,
     })
@@ -42,6 +43,14 @@ describe('projectReducer', () => {
     expect(projectReducer(resized, {
       type: 'hanging-tissue/set', key: 'height', value: 1001,
     })).toBe(resized)
+
+    const rounded = projectReducer(resized, {
+      type: 'hanging-tissue/set', key: 'radius', value: 24,
+    })
+    expect(rounded.hangingTissue.radius).toBe(24)
+    expect(projectReducer(rounded, {
+      type: 'hanging-tissue/set', key: 'depth', value: 30,
+    }).hangingTissue.radius).toBe(15)
   })
 
   it('updates one hanging tissue face and toggles only the pulled sheet', () => {
@@ -80,7 +89,7 @@ describe('projectReducer', () => {
   it('initializes inner packaging 2 with independent front and back transforms', () => {
     const initial = createInitialProject()
 
-    expect(initial.version).toBe(14)
+    expect(initial.version).toBe(15)
     expect(initial.innerPackaging2).toEqual({
       faces: { front: null, back: null },
       transforms: {

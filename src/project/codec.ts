@@ -369,6 +369,7 @@ function hasHangingTissueFields(
   project: Partial<ProjectState>,
   requireDepth = true,
   requireReferences = true,
+  requireRadius = true,
 ) {
   const tissue = project.hangingTissue
   const faces = ['front', 'back', 'left', 'right'] as const
@@ -381,6 +382,10 @@ function hasHangingTissueFields(
     typeof value === 'number' && Number.isFinite(value) && value > 0) ||
     ![0, 90, 180].includes(tissue.modelRotation) ||
     typeof tissue.showPulledSheet !== 'boolean') return false
+  if (requireRadius && (
+    typeof tissue.radius !== 'number' || !Number.isFinite(tissue.radius) || tissue.radius < 0 ||
+    tissue.radius > Math.min(tissue.width, tissue.depth) / 2
+  )) return false
   if (requireReferences) {
     const references = tissue.artworkReferenceDimensions
     if (!references || Object.keys(references).length !== faces.length ||
@@ -414,6 +419,11 @@ type Version13ProjectState = Omit<ProjectState, 'version' | 'hangingTissue'> & {
   hangingTissue: Omit<ProjectState['hangingTissue'], 'artworkReferenceDimensions'>
 }
 
+type Version14ProjectState = Omit<ProjectState, 'version' | 'hangingTissue'> & {
+  version: 14
+  hangingTissue: Omit<ProjectState['hangingTissue'], 'radius'>
+}
+
 function isVersion11ProjectState(value: unknown): value is Version11ProjectState {
   if (!value || typeof value !== 'object') return false
   const project = value as Partial<Version11ProjectState>
@@ -427,7 +437,7 @@ function isVersion12ProjectState(value: unknown): value is Version12ProjectState
   const project = value as Partial<Version12ProjectState>
   return project.version === 12 &&
     isVersion11ProjectState({ ...project, version: 11 }) &&
-    hasHangingTissueFields(project as Partial<ProjectState>, false, false)
+    hasHangingTissueFields(project as Partial<ProjectState>, false, false, false)
 }
 
 function isVersion13ProjectState(value: unknown): value is Version13ProjectState {
@@ -435,14 +445,22 @@ function isVersion13ProjectState(value: unknown): value is Version13ProjectState
   const project = value as Partial<Version13ProjectState>
   return project.version === 13 &&
     isVersion12ProjectState({ ...project, version: 12 }) &&
-    hasHangingTissueFields(project as Partial<ProjectState>, true, false)
+    hasHangingTissueFields(project as Partial<ProjectState>, true, false, false)
+}
+
+function isVersion14ProjectState(value: unknown): value is Version14ProjectState {
+  if (!value || typeof value !== 'object') return false
+  const project = value as Partial<Version14ProjectState>
+  return project.version === 14 &&
+    isVersion13ProjectState({ ...project, version: 13 }) &&
+    hasHangingTissueFields(project as Partial<ProjectState>, true, true, false)
 }
 
 function isProjectState(value: unknown): value is ProjectState {
   if (!value || typeof value !== 'object') return false
   const project = value as Partial<ProjectState>
-  return project.version === 14 &&
-    isVersion13ProjectState({ ...project, version: 13 }) &&
+  return project.version === 15 &&
+    isVersion14ProjectState({ ...project, version: 14 }) &&
     hasHangingTissueFields(project)
 }
 
@@ -473,7 +491,7 @@ function addInnerPackaging2Stretch(value: Record<string, unknown>): ProjectState
   const project = value as unknown as Omit<ProjectState, 'version'> & { version: 10 }
   return {
     ...project,
-    version: 14,
+    version: 15,
     innerPackaging2: {
       ...project.innerPackaging2,
       transforms: {
@@ -493,34 +511,41 @@ export function decodeProject(source: string): ProjectState {
   try {
     const value: unknown = JSON.parse(source)
     if (isProjectState(value)) return value
+    if (isVersion14ProjectState(value)) {
+      return {
+        ...value,
+        version: 15,
+        hangingTissue: { ...value.hangingTissue, radius: 0 },
+      }
+    }
     if (isVersion13ProjectState(value)) {
       return {
         ...value,
-        version: 14,
-        hangingTissue: addHangingTissueArtworkReferences(value.hangingTissue),
+        version: 15,
+        hangingTissue: { ...addHangingTissueArtworkReferences(value.hangingTissue), radius: 0 },
       }
     }
     if (isVersion12ProjectState(value)) {
       const hangingTissue = { ...value.hangingTissue, depth: 80 }
       return {
         ...value,
-        version: 14,
-        hangingTissue: addHangingTissueArtworkReferences(hangingTissue),
+        version: 15,
+        hangingTissue: { ...addHangingTissueArtworkReferences(hangingTissue), radius: 0 },
       }
     }
     if (isVersion11ProjectState(value)) {
-      return { ...value, version: 14, hangingTissue: createDefaultHangingTissue() }
+      return { ...value, version: 15, hangingTissue: createDefaultHangingTissue() }
     }
     if (isVersion10ProjectState(value)) {
       return addInnerPackaging2Stretch(value as Record<string, unknown>)
     }
     if (isVersion9ProjectState(value)) {
-      return { ...value, version: 14, innerPackaging2: createDefaultInnerPackaging2(), hangingTissue: createDefaultHangingTissue() }
+      return { ...value, version: 15, innerPackaging2: createDefaultInnerPackaging2(), hangingTissue: createDefaultHangingTissue() }
     }
     if (isVersion8ProjectState(value)) {
       return {
         ...value,
-        version: 14,
+        version: 15,
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
         hangingTissue: createDefaultHangingTissue(),
@@ -529,7 +554,7 @@ export function decodeProject(source: string): ProjectState {
     if (isVersion7ProjectState(value)) {
       return {
         ...value,
-        version: 14,
+        version: 15,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -539,7 +564,7 @@ export function decodeProject(source: string): ProjectState {
     if (isVersion6ProjectState(value)) {
       return {
         ...value,
-        version: 14,
+        version: 15,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -553,7 +578,7 @@ export function decodeProject(source: string): ProjectState {
     if (isVersion5ProjectState(value)) {
       return {
         ...value,
-        version: 14,
+        version: 15,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -570,7 +595,7 @@ export function decodeProject(source: string): ProjectState {
     if (isVersion4ProjectState(value)) {
       return {
         ...value,
-        version: 14,
+        version: 15,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -591,7 +616,7 @@ export function decodeProject(source: string): ProjectState {
       const initial = createInitialProject()
       return {
         ...value,
-        version: 14,
+        version: 15,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -616,7 +641,7 @@ export function decodeProject(source: string): ProjectState {
       const initial = createInitialProject()
       return {
         ...value,
-        version: 14,
+        version: 15,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),

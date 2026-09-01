@@ -2,7 +2,7 @@ import type { HangingTissueState, InnerPackagingModelRotation } from '../app/typ
 
 interface HangingTissuePanelProps {
   value: HangingTissueState
-  onChange: (key: 'width' | 'height' | 'depth', value: number) => void
+  onChange: (key: 'width' | 'height' | 'depth' | 'radius', value: number) => void
   onRotationChange: (value: InnerPackagingModelRotation) => void
   onPulledSheetChange: (value: boolean) => void
 }
@@ -26,6 +26,16 @@ export function HangingTissuePanel({
             <input type="number" min={30} max={1000} value={value[key]} onChange={(event) => onChange(key, event.currentTarget.valueAsNumber)} />
           </label>
         ))}
+        <label className="field-row">
+          <span>盒身圆角（毫米）</span>
+          <input
+            type="number"
+            min={0}
+            max={Math.min(value.width, value.depth) / 2}
+            value={value.radius}
+            onChange={(event) => onChange('radius', event.currentTarget.valueAsNumber)}
+          />
+        </label>
         <label className="field-row">
           <span>显示抽纸</span>
           <input type="checkbox" checked={value.showPulledSheet} onChange={(event) => onPulledSheetChange(event.currentTarget.checked)} />
