@@ -1,6 +1,10 @@
 import { Uint32BufferAttribute, type BufferGeometry } from 'three'
 
-import type { ArtworkTransform, HangingTissueFace } from '../app/types'
+import type {
+  ArtworkTransform,
+  HangingTissueDimensions,
+  HangingTissueFace,
+} from '../app/types'
 
 export interface UvRegion {
   minU: number
@@ -14,6 +18,8 @@ export type HangingTissueUvRegions = Record<HangingTissueFace, UvRegion>
 interface AtlasFaceInput {
   image: HTMLImageElement
   transform: ArtworkTransform
+  currentDimensions?: HangingTissueDimensions
+  referenceDimensions?: HangingTissueDimensions
 }
 
 const FACES = ['front', 'back', 'left', 'right'] as const
@@ -28,6 +34,17 @@ const MODEL_UV_ROTATION: Record<HangingTissueFace, number> = {
   back: 0,
   left: 0,
   right: 0,
+}
+
+export function calculateArtworkDimensionCompensation(
+  face: HangingTissueFace,
+  current: HangingTissueDimensions,
+  reference: HangingTissueDimensions,
+) {
+  return {
+    x: (face === 'front' || face === 'back' ? reference.width / current.width : reference.depth / current.depth),
+    y: reference.height / current.height,
+  }
 }
 
 function createEmptyRegion(): UvRegion {
@@ -168,6 +185,9 @@ export function drawHangingTissueAtlas(
     const panelWidth = (region.maxU - region.minU) * size
     const panelHeight = (region.maxV - region.minV) * size
     const draw = calculateDrawSize(input.image, panelWidth, panelHeight, input.transform)
+    const compensation = input.currentDimensions && input.referenceDimensions
+      ? calculateArtworkDimensionCompensation(face, input.currentDimensions, input.referenceDimensions)
+      : { x: 1, y: 1 }
 
     context.save()
     context.beginPath()
@@ -177,6 +197,7 @@ export function drawHangingTissueAtlas(
       panelX + panelWidth / 2 + input.transform.offsetX / 100 * panelWidth,
       panelY + panelHeight / 2 - input.transform.offsetY / 100 * panelHeight,
     )
+    context.scale(compensation.x, compensation.y)
     context.rotate(MODEL_UV_ROTATION[face] + input.transform.rotation * Math.PI / 180)
     context.drawImage(input.image, -draw.width / 2, -draw.height / 2, draw.width, draw.height)
     context.restore()

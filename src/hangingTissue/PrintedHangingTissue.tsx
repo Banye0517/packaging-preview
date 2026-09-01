@@ -121,15 +121,21 @@ export function PrintedHangingTissue({ value }: { value: HangingTissueState }) {
       canvas.height = 2048
       const context = canvas.getContext('2d')
       if (!context) return null
+      const currentDimensions = { width: value.width, height: value.height, depth: value.depth }
       drawHangingTissueAtlas(context, 2048, Object.fromEntries(FACES.flatMap((face) => {
         const image = images[face]
-        return image ? [[face, { image, transform: value.transforms[face] }]] : []
+        return image ? [[face, {
+          image,
+          transform: value.transforms[face],
+          currentDimensions,
+          referenceDimensions: value.artworkReferenceDimensions[face] ?? currentDimensions,
+        }]] : []
       })), uvRegions)
       const texture = new CanvasTexture(canvas)
       texture.colorSpace = SRGBColorSpace
       texture.flipY = false
       return texture
-    }), [images, printableBodies, value.transforms])
+    }), [images, printableBodies, value.artworkReferenceDimensions, value.depth, value.height, value.transforms, value.width])
 
   useEffect(() => () => textures.forEach((texture) => texture?.dispose()), [textures])
   useEffect(() => {

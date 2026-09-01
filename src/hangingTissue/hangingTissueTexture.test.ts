@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 import { BufferGeometry, Float32BufferAttribute } from 'three'
 
-import type { ArtworkTransform } from '../app/types'
+import type { ArtworkTransform, HangingTissueDimensions } from '../app/types'
 import {
+  calculateArtworkDimensionCompensation,
   drawHangingTissueAtlas,
   extractHangingTissueFaceGeometrySet,
   extractHangingTissueFaceGeometries,
@@ -62,6 +63,18 @@ function createAuthoredIslandGeometry() {
 }
 
 describe('hanging tissue texture atlas', () => {
+  it('counter-scales front and side artwork against their physical body dimensions', () => {
+    const current: HangingTissueDimensions = { width: 320, height: 100, depth: 100 }
+    const reference: HangingTissueDimensions = { width: 160, height: 200, depth: 80 }
+
+    expect(calculateArtworkDimensionCompensation('front', current, reference)).toEqual({
+      x: 0.5, y: 2,
+    })
+    expect(calculateArtworkDimensionCompensation('left', current, reference)).toEqual({
+      x: 0.8, y: 2,
+    })
+  })
+
   it('extracts front, back, left, and right UV bounds from face normals', () => {
     const regions = extractHangingTissueUvRegions(createFourFaceGeometry())
     expect(regions.front).toMatchObject({ minU: expect.closeTo(0.05), maxU: expect.closeTo(0.25), minV: expect.closeTo(0.1), maxV: expect.closeTo(0.9) })
@@ -140,13 +153,18 @@ describe('hanging tissue texture atlas', () => {
   it('clips each selected image to its own UV region', () => {
     const context = {
       fillStyle: '', fillRect: vi.fn(), save: vi.fn(), restore: vi.fn(), beginPath: vi.fn(),
-      rect: vi.fn(), clip: vi.fn(), translate: vi.fn(), rotate: vi.fn(), drawImage: vi.fn(),
+      rect: vi.fn(), clip: vi.fn(), translate: vi.fn(), scale: vi.fn(), rotate: vi.fn(), drawImage: vi.fn(),
     } as unknown as CanvasRenderingContext2D
     const image = { width: 600, height: 1200 } as HTMLImageElement
     const regions = extractHangingTissueUvRegions(createFourFaceGeometry())
 
     drawHangingTissueAtlas(context, 1000, {
-      front: { image, transform },
+      front: {
+        image,
+        transform,
+        currentDimensions: { width: 320, height: 100, depth: 100 },
+        referenceDimensions: { width: 160, height: 200, depth: 80 },
+      },
       left: { image, transform: { ...transform, offsetX: 25 } },
     }, regions)
 
@@ -158,5 +176,6 @@ describe('hanging tissue texture atlas', () => {
       expect.closeTo(830), expect.closeTo(200), expect.closeTo(140), expect.closeTo(600),
     ])
     expect(context.drawImage).toHaveBeenCalledTimes(2)
+    expect(context.scale).toHaveBeenCalledWith(0.5, 2)
   })
 })
