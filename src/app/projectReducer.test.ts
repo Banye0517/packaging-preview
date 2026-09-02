@@ -81,6 +81,41 @@ describe('projectReducer', () => {
     })).toBe(hidden)
   })
 
+  it('initializes and updates wash tissue by reusing the one-artwork tissue controls', () => {
+    const initial = createInitialProject()
+    expect(initial.washTissue).toEqual({
+      artwork: null,
+      width: 160,
+      height: 205,
+      thickness: 80,
+      radius: 0,
+      artworkReferenceDimensions: null,
+      artworkTransform: {
+        scale: 100, offsetX: 0, offsetY: 0, rotation: 0, stretchX: 100, stretchY: 100,
+      },
+      modelRotation: 0,
+      showTopSheet: true,
+    })
+    const asset: ArtworkAsset = {
+      id: 'wash-tissue-artwork', name: 'wash-tissue.png', mimeType: 'image/png',
+      width: 1024, height: 1024, previewUrl: 'data:image/png;base64,AAAA',
+    }
+    const uploaded = projectReducer(initial, { type: 'wash-tissue/artwork-set', asset })
+    const changed = projectReducer(uploaded, { type: 'wash-tissue/set', key: 'thickness', value: 96 })
+    const transformed = projectReducer(changed, { type: 'wash-tissue/transform-set', key: 'rotation', value: 45 })
+    const rotated = projectReducer(transformed, { type: 'wash-tissue/rotation-set', value: 90 })
+    const hidden = projectReducer(rotated, { type: 'wash-tissue/set-top-sheet', value: false })
+
+    expect(uploaded.washTissue.artwork).toEqual(asset)
+    expect(uploaded.washTissue.artworkReferenceDimensions).toEqual({ width: 160, height: 205, thickness: 80 })
+    expect(hidden.washTissue.thickness).toBe(96)
+    expect(hidden.washTissue.artworkTransform.rotation).toBe(45)
+    expect(hidden.washTissue.modelRotation).toBe(90)
+    expect(hidden.washTissue.showTopSheet).toBe(false)
+    expect(projectReducer(hidden, { type: 'wash-tissue/set', key: 'thickness', value: 29 })).toBe(hidden)
+    expect(projectReducer(hidden, { type: 'wash-tissue/transform-set', key: 'scale', value: 301 })).toBe(hidden)
+  })
+
   it('initializes hanging tissue with four independent faces and a visible pulled sheet', () => {
     const initial = createInitialProject()
 

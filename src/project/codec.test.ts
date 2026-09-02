@@ -90,6 +90,26 @@ describe('project codec', () => {
     expect(decoded.wetTissue).toEqual(createInitialProject().wetTissue)
   })
 
+  it('round-trips wash tissue artwork, transforms, dimensions, and paper visibility', () => {
+    const project = createInitialProject()
+    project.packagingType = 'wash-tissue'
+    project.washTissue.showTopSheet = false
+    project.washTissue.artworkTransform.stretchX = 140
+    project.washTissue.width = 180
+    project.washTissue.artworkReferenceDimensions = { width: 160, height: 205, thickness: 80 }
+
+    expect(decodeProject(encodeProject(project)).washTissue).toEqual(project.washTissue)
+  })
+
+  it('adds default wash tissue state to version 16 projects created before this packaging type', () => {
+    const project = JSON.parse(JSON.stringify(createInitialProject())) as Record<string, unknown>
+    delete project.washTissue
+
+    const decoded = decodeProject(JSON.stringify(project))
+
+    expect(decoded.washTissue).toEqual(createInitialProject().washTissue)
+  })
+
   it('migrates version 13 artwork references from current hanging tissue dimensions', () => {
     const current = createInitialProject()
     current.hangingTissue.faces.front = {

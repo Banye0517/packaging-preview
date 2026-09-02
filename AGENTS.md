@@ -33,6 +33,7 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - “悬挂抽纸”不提供盒身圆角控制。保留供稿的直角四面结构与独立正、背、左、右印刷面，禁止通过圆角或跨面几何让侧面贴图进入正面。
 - “面纸”保留 supplied GLTF 的原始 UV，不替换为独立 RoundedBoxGeometry；盒身圆角默认 0，增加圆角时沿原 UV 将单张完整图稿延伸到圆角表面。图稿上传时记录宽、高、厚度，后续尺寸变化按前后/上下 UV 面反补偿，保持已贴图稿的物理比例并在需要时露出白边或裁切。
 - “湿纸巾”使用 supplied GLTF 内的 `湿巾纸开` / `湿巾纸` 根节点作为开关，不重复加载两个内容相同的资产；只提供纸盒完整 UV 和盖子完整 UV 两张贴图，分别映射 `袋子` 与 `1` 网格。默认打开并显示 `纸.1`，关闭状态自动隐藏纸张；两张贴图独立支持 50%–300% 缩放、-100%–100% 位移、-180°–180° 旋转和 50%–300% 横纵拉伸，高级调整默认收起。尺寸调整记录上传时宽高厚并做贴图反补偿，未上传结构保持受灯光影响。
+- “洗脸巾”使用 supplied `洗脸巾1开` 根节点和原始 UV；只提供一张完整主体 UV 图稿映射 `洗脸巾`，`平面` 保持结构材质，`纸` 受顶部纸张开关控制。默认显示纸张；贴图支持同面纸的尺寸记忆/反补偿与旋转、缩放、位移、横纵拉伸，高级调整默认收起。
 - The supplied hanging-tissue front and right UV islands overlap by about five pixels in the 2048 atlas. Draw left/right artwork before back/front artwork so the main front/back panels own every overlap; never hide side materials or deform geometry to mask this UV issue.
 
 ## Box Finish Rules

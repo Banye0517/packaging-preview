@@ -248,4 +248,21 @@ describe('App', () => {
     await user.click(screen.getByRole('radio', { name: '关闭' }))
     expect(screen.getByRole('radio', { name: '关闭' })).toBeChecked()
   })
+
+  it('switches to wash tissue with one full-UV upload and a paper visibility switch', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('tab', { name: '盒型' }))
+    await user.click(screen.getByRole('radio', { name: '洗脸巾' }))
+    expect(screen.getByTestId('packaging-scene')).toHaveAttribute('data-type', 'wash-tissue')
+    expect(screen.getByRole('heading', { name: '洗脸巾设置' })).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: '顶部纸张' })).toBeChecked()
+
+    await user.click(screen.getByRole('tab', { name: '贴图' }))
+    expect(screen.getByRole('heading', { name: '洗脸巾印刷贴图' })).toBeInTheDocument()
+    expect(screen.getAllByLabelText(/^上传.+印刷图$/)).toHaveLength(1)
+    expect(screen.getByLabelText('上传洗脸巾图稿（完整 UV）印刷图')).toBeInTheDocument()
+    expect(screen.getByText('高级调整').closest('details')).not.toHaveAttribute('open')
+  })
 })

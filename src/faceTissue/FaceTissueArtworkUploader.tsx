@@ -8,6 +8,9 @@ interface FaceTissueArtworkUploaderProps {
   onRemove: () => void
   onTransformChange: (key: keyof ArtworkTransform, value: number) => void
   onTransformReset: () => void
+  label?: string
+  transformAriaLabel?: string
+  transformTitle?: string
 }
 
 const CONTROLS = [
@@ -20,14 +23,22 @@ const CONTROLS = [
 ] as const
 
 export function FaceTissueArtworkUploader({
-  value, error, onUpload, onRemove, onTransformChange, onTransformReset,
+  value,
+  error,
+  onUpload,
+  onRemove,
+  onTransformChange,
+  onTransformReset,
+  label = '面纸图稿（完整 UV）',
+  transformAriaLabel = '面纸贴图变换',
+  transformTitle = '面纸贴图调整',
 }: FaceTissueArtworkUploaderProps) {
   return (
     <>
       <div className="face-grid face-grid--face-tissue">
         <FaceUploader
           face="face-tissue"
-          label="面纸图稿（完整 UV）"
+          label={label}
           asset={value.artwork}
           error={error}
           onUpload={(_, file) => onUpload(file)}
@@ -36,9 +47,9 @@ export function FaceTissueArtworkUploader({
       </div>
       <details className="texture-transform-disclosure">
         <summary>高级调整</summary>
-        <section className="texture-transform-controls" aria-label="面纸贴图变换">
+        <section className="texture-transform-controls" aria-label={transformAriaLabel}>
           <div className="texture-transform-heading">
-            <strong>面纸贴图调整</strong>
+            <strong>{transformTitle}</strong>
             <button type="button" onClick={onTransformReset}>重置贴图</button>
           </div>
           {CONTROLS.map(({ key, label, min, max, suffix }) => (
