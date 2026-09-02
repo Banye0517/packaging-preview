@@ -170,14 +170,38 @@ describe('hanging tissue texture atlas', () => {
 
     expect(context.clip).toHaveBeenCalledTimes(2)
     expect(vi.mocked(context.rect).mock.calls[0]).toEqual([
-      expect.closeTo(50), expect.closeTo(100), expect.closeTo(200), expect.closeTo(800),
+      expect.closeTo(830), expect.closeTo(200), expect.closeTo(140), expect.closeTo(600),
     ])
     expect(vi.mocked(context.rect).mock.calls[1]).toEqual([
-      expect.closeTo(830), expect.closeTo(200), expect.closeTo(140), expect.closeTo(600),
+      expect.closeTo(50), expect.closeTo(100), expect.closeTo(200), expect.closeTo(800),
     ])
     expect(context.drawImage).toHaveBeenCalledTimes(2)
     expect(context.scale).toHaveBeenCalledWith(0.5, 2)
     expect(context.clearRect).toHaveBeenCalledWith(0, 0, 1000, 1000)
     expect(context.fillRect).not.toHaveBeenCalled()
+  })
+
+  it('draws side artwork before front and back artwork so main panels own UV overlaps', () => {
+    const context = {
+      clearRect: vi.fn(), save: vi.fn(), restore: vi.fn(), beginPath: vi.fn(),
+      rect: vi.fn(), clip: vi.fn(), translate: vi.fn(), scale: vi.fn(), rotate: vi.fn(), drawImage: vi.fn(),
+    } as unknown as CanvasRenderingContext2D
+    const images = {
+      front: { width: 600, height: 1200, id: 'front' } as unknown as HTMLImageElement,
+      back: { width: 600, height: 1200, id: 'back' } as unknown as HTMLImageElement,
+      left: { width: 300, height: 1200, id: 'left' } as unknown as HTMLImageElement,
+      right: { width: 300, height: 1200, id: 'right' } as unknown as HTMLImageElement,
+    }
+
+    drawHangingTissueAtlas(context, 1000, {
+      front: { image: images.front, transform },
+      back: { image: images.back, transform },
+      left: { image: images.left, transform },
+      right: { image: images.right, transform },
+    }, extractHangingTissueUvRegions(createFourFaceGeometry()))
+
+    expect(vi.mocked(context.drawImage).mock.calls.map(([image]) => image)).toEqual([
+      images.left, images.right, images.back, images.front,
+    ])
   })
 })

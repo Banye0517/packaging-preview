@@ -23,6 +23,7 @@ interface AtlasFaceInput {
 }
 
 const FACES = ['front', 'back', 'left', 'right'] as const
+const ATLAS_DRAW_ORDER = ['left', 'right', 'back', 'front'] as const
 const AUTHORED_UV_ISLANDS = [
   { minU: 0, maxU: 0.31 },
   { minU: 0.31, maxU: 0.5 },
@@ -175,7 +176,7 @@ export function drawHangingTissueAtlas(
 ) {
   context.clearRect(0, 0, size, size)
 
-  FACES.forEach((face) => {
+  ATLAS_DRAW_ORDER.forEach((face) => {
     const input = faces[face]
     if (!input) return
     const region = regions[face]
