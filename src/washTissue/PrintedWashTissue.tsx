@@ -54,7 +54,7 @@ function createArtworkTexture(
   const size = 2048
   const canvas = document.createElement('canvas')
   canvas.width = size
-  canvas.height = size
+  canvas.height = Math.round(size * image.height / image.width)
   const context = canvas.getContext('2d')
   if (!context) return null
   drawWashTissueAtlas(
