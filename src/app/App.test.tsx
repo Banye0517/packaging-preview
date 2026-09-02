@@ -204,4 +204,25 @@ describe('App', () => {
     expect(screen.queryByLabelText('上传顶部印刷图')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('上传底部印刷图')).not.toBeInTheDocument()
   })
+
+  it('switches to face tissue with one full-UV upload and a top-sheet switch', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('tab', { name: '盒型' }))
+    await user.click(screen.getByRole('radio', { name: '面纸' }))
+    expect(screen.getByTestId('packaging-scene')).toHaveAttribute('data-type', 'face-tissue')
+    expect(screen.getByRole('spinbutton', { name: '盒身厚度（毫米）' })).toHaveValue(80)
+    expect(screen.getByRole('checkbox', { name: '顶部抽纸' })).toBeChecked()
+
+    await user.click(screen.getByRole('tab', { name: '贴图' }))
+    expect(screen.getByRole('heading', { name: '面纸印刷贴图' })).toBeInTheDocument()
+    expect(screen.getAllByLabelText(/^上传.+印刷图$/)).toHaveLength(1)
+    expect(screen.getByLabelText('上传面纸图稿（完整 UV）印刷图')).toBeInTheDocument()
+    expect(screen.getByText('高级调整').closest('details')).not.toHaveAttribute('open')
+
+    await user.click(screen.getByRole('tab', { name: '盒型' }))
+    await user.click(screen.getByRole('checkbox', { name: '顶部抽纸' }))
+    expect(screen.getByRole('checkbox', { name: '顶部抽纸' })).not.toBeChecked()
+  })
 })

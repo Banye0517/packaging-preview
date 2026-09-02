@@ -4,10 +4,72 @@ import { createInitialProject, projectReducer } from './projectReducer'
 import type { ArtworkAsset } from './types'
 
 describe('projectReducer', () => {
+  it('initializes face tissue with one artwork, editable dimensions, and a visible top sheet', () => {
+    const initial = createInitialProject()
+
+    expect(initial.version).toBe(16)
+    expect(initial.faceTissue).toEqual({
+      artwork: null,
+      width: 160,
+      height: 205,
+      thickness: 80,
+      artworkTransform: {
+        scale: 100,
+        offsetX: 0,
+        offsetY: 0,
+        rotation: 0,
+        stretchX: 100,
+        stretchY: 100,
+      },
+      modelRotation: 0,
+      showTopSheet: true,
+    })
+  })
+
+  it('updates face tissue artwork, dimensions, transforms, rotation, and top-sheet visibility', () => {
+    const initial = createInitialProject()
+    const asset: ArtworkAsset = {
+      id: 'face-tissue-artwork',
+      name: 'face-tissue.png',
+      mimeType: 'image/png',
+      width: 1024,
+      height: 1024,
+      previewUrl: 'data:image/png;base64,AAAA',
+    }
+
+    const uploaded = projectReducer(initial, {
+      type: 'face-tissue/artwork-set', asset,
+    })
+    const changed = projectReducer(uploaded, {
+      type: 'face-tissue/set', key: 'thickness', value: 96,
+    })
+    const transformed = projectReducer(changed, {
+      type: 'face-tissue/transform-set', key: 'rotation', value: 45,
+    })
+    const rotated = projectReducer(transformed, {
+      type: 'face-tissue/rotation-set', value: 90,
+    })
+    const hidden = projectReducer(rotated, {
+      type: 'face-tissue/set-top-sheet', value: false,
+    })
+
+    expect(hidden.faceTissue.artwork).toEqual(asset)
+    expect(hidden.faceTissue.thickness).toBe(96)
+    expect(hidden.faceTissue.artworkTransform.rotation).toBe(45)
+    expect(hidden.faceTissue.modelRotation).toBe(90)
+    expect(hidden.faceTissue.showTopSheet).toBe(false)
+    expect(projectReducer(hidden, {
+      type: 'face-tissue/transform-set', key: 'scale', value: 301,
+    })).toBe(hidden)
+    expect(projectReducer(hidden, {
+      type: 'face-tissue/set', key: 'width', value: 0,
+    })).toBe(hidden)
+  })
+
   it('initializes hanging tissue with four independent faces and a visible pulled sheet', () => {
     const initial = createInitialProject()
 
-    expect(initial.version).toBe(15)
+    expect(initial.version).toBe(16)
     expect(initial.hangingTissue).toEqual({
       faces: { front: null, back: null, left: null, right: null },
       artworkReferenceDimensions: { front: null, back: null, left: null, right: null },
@@ -81,7 +143,7 @@ describe('projectReducer', () => {
   it('initializes inner packaging 2 with independent front and back transforms', () => {
     const initial = createInitialProject()
 
-    expect(initial.version).toBe(15)
+    expect(initial.version).toBe(16)
     expect(initial.innerPackaging2).toEqual({
       faces: { front: null, back: null },
       transforms: {

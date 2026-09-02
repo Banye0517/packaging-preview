@@ -23,6 +23,8 @@ import { InnerPackaging1Panel } from '../innerPackaging/InnerPackaging1Panel'
 import { InnerPackaging2ArtworkUploader } from '../innerPackaging/InnerPackaging2ArtworkUploader'
 import { HangingTissueArtworkUploader } from '../hangingTissue/HangingTissueArtworkUploader'
 import { HangingTissuePanel } from '../hangingTissue/HangingTissuePanel'
+import { FaceTissueArtworkUploader } from '../faceTissue/FaceTissueArtworkUploader'
+import { FaceTissuePanel } from '../faceTissue/FaceTissuePanel'
 import { PouchPanel } from '../pouch/PouchPanel'
 import { FinishPanel } from '../finish/FinishPanel'
 import type { FinishKind } from '../finish/finishTypes'
@@ -30,6 +32,7 @@ import { createProjectHistory, projectHistoryReducer } from './projectHistory'
 import type {
   BoxFace,
   HangingTissueFace,
+  ArtworkTransform,
   PackagingType,
   PouchClosure,
   PouchFace,
@@ -55,6 +58,7 @@ export function App() {
   const [hangingTissueErrors, setHangingTissueErrors] = useState<
     Partial<Record<HangingTissueFace, string>>
   >({})
+  const [faceTissueError, setFaceTissueError] = useState<string>()
   const [finishErrors, setFinishErrors] = useState<Partial<Record<FinishKind, Partial<Record<BoxFace, string>>>>>({})
   const [pouchFinishErrors, setPouchFinishErrors] = useState<Partial<Record<FinishKind, Partial<Record<PouchFace, string>>>>>({})
   const [cameraCommand, setCameraCommand] = useState<{
@@ -194,6 +198,20 @@ export function App() {
     }
   }
 
+  async function handleFaceTissueArtworkUpload(file: File) {
+    try {
+      const metadata = await validateImage(file)
+      const previewUrl = await readImageDataUrl(file)
+      commit({ type: 'commit', action: {
+        type: 'face-tissue/artwork-set',
+        asset: { id: crypto.randomUUID(), name: file.name, previewUrl, ...metadata },
+      } })
+      setFaceTissueError(undefined)
+    } catch (error) {
+      setFaceTissueError(error instanceof Error ? error.message : '图片读取失败')
+    }
+  }
+
   async function handleFinishMaskUpload(kind: FinishKind, face: BoxFace, file: File) {
     try {
       const metadata = await validateImage(file)
@@ -271,6 +289,11 @@ export function App() {
     setHangingTissueErrors((current) => ({ ...current, [face]: undefined }))
   }
 
+  function handleFaceTissueArtworkRemove() {
+    commit({ type: 'commit', action: { type: 'face-tissue/artwork-remove' } })
+    setFaceTissueError(undefined)
+  }
+
   function handlePouchSettingChange(
     key: Exclude<keyof PouchState, 'faces'>,
     value: number | boolean | PouchClosure,
@@ -326,6 +349,7 @@ export function App() {
       setInnerPackagingArtworkError(undefined)
       setInnerPackaging2Errors({})
       setHangingTissueErrors({})
+      setFaceTissueError(undefined)
       setFinishErrors({})
       setPouchFinishErrors({})
     } catch (error) {
@@ -360,6 +384,7 @@ export function App() {
             setInnerPackagingArtworkError(undefined)
             setInnerPackaging2Errors({})
             setHangingTissueErrors({})
+            setFaceTissueError(undefined)
             setFinishErrors({})
             setPouchFinishErrors({})
           }
@@ -406,7 +431,9 @@ export function App() {
                     ? '内包装1印刷贴图'
                     : project.packagingType === 'inner-packaging-2'
                       ? '内包装2印刷贴图'
-                      : '悬挂抽纸印刷贴图'}</h1>
+                      : project.packagingType === 'face-tissue'
+                        ? '面纸印刷贴图'
+                        : '悬挂抽纸印刷贴图'}</h1>
               <p className="panel-description">
                 {project.packagingType === 'box'
                   ? '分别上传前、后、左、右、上、下六个面的设计图。'
@@ -416,7 +443,9 @@ export function App() {
                       ? '上传一张按照原始 UV 模板制作的完整贴图，覆盖整只袋体。'
                       : project.packagingType === 'inner-packaging-2'
                         ? '分别上传正面和背面设计图；图片按模型原生 UV 映射。'
-                        : '分别上传正面、背面、左侧、右侧设计图；图片按模型实际表面自动贴合。'}
+                        : project.packagingType === 'face-tissue'
+                          ? '上传一张按照原始 UV 模板制作的完整贴图，覆盖前、后、上、下主体面。'
+                          : '分别上传正面、背面、左侧、右侧设计图；图片按模型实际表面自动贴合。'}
               </p>
               {project.packagingType === 'box' ? (
                 <FaceGrid
@@ -476,6 +505,21 @@ export function App() {
                     action: { type: 'inner-packaging-2/transform-reset', face },
                   })}
                 />
+              ) : project.packagingType === 'face-tissue' ? (
+                <FaceTissueArtworkUploader
+                  value={project.faceTissue}
+                  error={faceTissueError}
+                  onUpload={handleFaceTissueArtworkUpload}
+                  onRemove={handleFaceTissueArtworkRemove}
+                  onTransformChange={(key: keyof ArtworkTransform, value) => commit({
+                    type: 'commit',
+                    action: { type: 'face-tissue/transform-set', key, value },
+                  })}
+                  onTransformReset={() => commit({
+                    type: 'commit',
+                    action: { type: 'face-tissue/transform-reset' },
+                  })}
+                />
               ) : (
                 <HangingTissueArtworkUploader
                   value={project.hangingTissue}
@@ -530,6 +574,22 @@ export function App() {
                     action: { type: 'inner-packaging-2/rotation-set', value },
                   })}
                 />
+              ) : project.packagingType === 'face-tissue' ? (
+                <FaceTissuePanel
+                  value={project.faceTissue}
+                  onChange={(key, value) => commit({
+                    type: 'commit',
+                    action: { type: 'face-tissue/set', key, value },
+                  })}
+                  onRotationChange={(value) => commit({
+                    type: 'commit',
+                    action: { type: 'face-tissue/rotation-set', value },
+                  })}
+                  onTopSheetChange={(value) => commit({
+                    type: 'commit',
+                    action: { type: 'face-tissue/set-top-sheet', value },
+                  })}
+                />
               ) : (
                 <HangingTissuePanel
                   value={project.hangingTissue}
@@ -575,7 +635,9 @@ export function App() {
                   ? '内包装1暂不支持表面工艺。'
                   : project.packagingType === 'inner-packaging-2'
                     ? '内包装2暂不支持表面工艺。'
-                    : '悬挂抽纸暂不支持表面工艺。'}
+                    : project.packagingType === 'face-tissue'
+                      ? '面纸暂不支持表面工艺。'
+                      : '悬挂抽纸暂不支持表面工艺。'}
               </p>
             </div>
           )}
@@ -586,8 +648,8 @@ export function App() {
           <section className="help-dialog" role="dialog" aria-modal="true" aria-label="使用帮助">
             <p className="eyebrow">QUICK GUIDE</p>
             <h2>使用帮助</h2>
-            <p>六面盒型上传六张图；自立袋和内包装2上传正背面；悬挂抽纸上传正背左右；内包装1上传一张完整 UV 图。左侧可拖拽旋转并用滚轮缩放。</p>
-            <p>保存会下载包含五种包装状态的本地项目文件；导出会下载当前 3D 画面的 PNG。</p>
+            <p>六面盒型上传六张图；自立袋和内包装2上传正背面；悬挂抽纸上传正背左右；内包装1和面纸上传一张完整 UV 图。左侧可拖拽旋转并用滚轮缩放。</p>
+            <p>保存会下载包含六种包装状态的本地项目文件；导出会下载当前 3D 画面的 PNG。</p>
             <button type="button" onClick={() => setShowHelp(false)}>知道了</button>
           </section>
         </div>
@@ -612,6 +674,7 @@ function PackagingTypeSwitch({
         ['inner-packaging-1', '内包装1'],
         ['inner-packaging-2', '内包装2'],
         ['hanging-tissue', '悬挂抽纸'],
+        ['face-tissue', '面纸'],
       ] as const).map(([type, label]) => (
         <label key={type}>
           <input

@@ -4,6 +4,7 @@ import {
   type ArtworkTransform,
   type BoxFace,
   type HangingTissueFace,
+  type FaceTissueState,
   type PackagingType,
   type InnerPackagingModelRotation,
   type PouchClosure,
@@ -90,6 +91,13 @@ export type ProjectAction =
   | { type: 'hanging-tissue/rotation-set'; value: InnerPackagingModelRotation | number }
   | { type: 'hanging-tissue/set'; key: 'width' | 'height' | 'depth'; value: number }
   | { type: 'hanging-tissue/set-pulled-sheet'; value: boolean }
+  | { type: 'face-tissue/artwork-set'; asset: ArtworkAsset }
+  | { type: 'face-tissue/artwork-remove' }
+  | { type: 'face-tissue/transform-set'; key: keyof ArtworkTransform; value: number }
+  | { type: 'face-tissue/transform-reset' }
+  | { type: 'face-tissue/rotation-set'; value: InnerPackagingModelRotation | number }
+  | { type: 'face-tissue/set'; key: 'width' | 'height' | 'thickness'; value: number }
+  | { type: 'face-tissue/set-top-sheet'; value: boolean }
   | { type: 'camera/autoRotate'; value: boolean }
   | { type: 'box-finish/select-kind'; kind: FinishKind }
   | { type: 'box-finish/select-face'; face: BoxFace }
@@ -158,9 +166,21 @@ export function createDefaultHangingTissue(): ProjectState['hangingTissue'] {
   }
 }
 
+export function createDefaultFaceTissue(): FaceTissueState {
+  return {
+    artwork: null,
+    width: 160,
+    height: 205,
+    thickness: 80,
+    artworkTransform: { ...DEFAULT_ARTWORK_TRANSFORM },
+    modelRotation: 0,
+    showTopSheet: true,
+  }
+}
+
 export function createInitialProject(): ProjectState {
   return {
-    version: 15,
+    version: 16,
     name: '未命名包装',
     activeTab: 'artwork',
     packagingType: 'box',
@@ -189,6 +209,7 @@ export function createInitialProject(): ProjectState {
     },
     innerPackaging2: createDefaultInnerPackaging2(),
     hangingTissue: createDefaultHangingTissue(),
+    faceTissue: createDefaultFaceTissue(),
     boxFinish: createDefaultBoxFinish(),
     pouchFinish: createDefaultPouchFinish(),
     camera: { autoRotate: false },
@@ -439,6 +460,46 @@ export function projectReducer(
       return { ...state, hangingTissue: { ...state.hangingTissue, [action.key]: action.value } }
     case 'hanging-tissue/set-pulled-sheet':
       return { ...state, hangingTissue: { ...state.hangingTissue, showPulledSheet: action.value } }
+    case 'face-tissue/artwork-set':
+      return { ...state, faceTissue: { ...state.faceTissue, artwork: action.asset } }
+    case 'face-tissue/artwork-remove':
+      return { ...state, faceTissue: { ...state.faceTissue, artwork: null } }
+    case 'face-tissue/transform-set': {
+      const isScale = ['scale', 'stretchX', 'stretchY'].includes(action.key)
+      const isRotation = action.key === 'rotation'
+      const min = isScale ? 50 : isRotation ? -180 : -100
+      const max = isScale ? 300 : isRotation ? 180 : 100
+      if (!Number.isFinite(action.value) || action.value < min || action.value > max) return state
+      return {
+        ...state,
+        faceTissue: {
+          ...state.faceTissue,
+          artworkTransform: { ...state.faceTissue.artworkTransform, [action.key]: action.value },
+        },
+      }
+    }
+    case 'face-tissue/transform-reset':
+      return {
+        ...state,
+        faceTissue: {
+          ...state.faceTissue,
+          artworkTransform: { ...DEFAULT_ARTWORK_TRANSFORM },
+        },
+      }
+    case 'face-tissue/rotation-set':
+      if (![0, 90, 180].includes(action.value)) return state
+      return {
+        ...state,
+        faceTissue: {
+          ...state.faceTissue,
+          modelRotation: action.value as InnerPackagingModelRotation,
+        },
+      }
+    case 'face-tissue/set':
+      if (!Number.isFinite(action.value) || action.value <= 0) return state
+      return { ...state, faceTissue: { ...state.faceTissue, [action.key]: action.value } }
+    case 'face-tissue/set-top-sheet':
+      return { ...state, faceTissue: { ...state.faceTissue, showTopSheet: action.value } }
     case 'camera/autoRotate':
       return { ...state, camera: { ...state.camera, autoRotate: action.value } }
     case 'box-finish/select-kind':

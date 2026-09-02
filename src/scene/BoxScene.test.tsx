@@ -24,6 +24,9 @@ vi.mock('../innerPackaging/PrintedInnerPackaging2', () => ({ PrintedInnerPackagi
 vi.mock('../hangingTissue/PrintedHangingTissue', () => ({
   PrintedHangingTissue: () => <div data-testid="printed-hanging-tissue" />,
 }))
+vi.mock('../faceTissue/PrintedFaceTissue', () => ({
+  PrintedFaceTissue: () => <div data-testid="printed-face-tissue" />,
+}))
 vi.mock('./StudioEnvironment', () => ({ StudioEnvironment: () => null }))
 
 import { BoxScene } from './BoxScene'
@@ -42,5 +45,14 @@ describe('BoxScene', () => {
     render(<BoxScene project={project} command={null} />)
 
     expect(screen.getByTestId('printed-hanging-tissue')).toBeInTheDocument()
+  })
+
+  it('renders the face tissue model for the face tissue packaging type', () => {
+    const project = createInitialProject()
+    project.packagingType = 'face-tissue'
+
+    render(<BoxScene project={project} command={null} />)
+
+    expect(screen.getByTestId('printed-face-tissue')).toBeInTheDocument()
   })
 })

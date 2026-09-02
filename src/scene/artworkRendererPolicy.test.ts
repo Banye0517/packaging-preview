@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import hangingSource from '../hangingTissue/PrintedHangingTissue.tsx?raw'
+import faceTissueSource from '../faceTissue/PrintedFaceTissue.tsx?raw'
 import inner1Source from '../innerPackaging/PrintedInnerPackaging1.tsx?raw'
 import inner2Source from '../innerPackaging/PrintedInnerPackaging2.tsx?raw'
 import pouchSource from '../pouch/PrintedPouch.tsx?raw'
@@ -13,6 +14,7 @@ describe('packaging artwork renderer policy', () => {
     expect(inner1Source).toContain('<meshBasicMaterial')
     expect(inner2Source).toContain('<meshBasicMaterial')
     expect(hangingSource).toContain('createArtworkMaterial')
+    expect(faceTissueSource).toContain('createArtworkMaterial')
     expect(hangingSource).not.toContain('emissiveMap')
   })
 
@@ -27,5 +29,11 @@ describe('packaging artwork renderer policy', () => {
     expect(hangingSource).toContain('baseFaceMeshes')
     expect(hangingSource).toContain('material.transparent = true')
     expect(hangingSource).toContain('pulledSheetRef.current.traverse')
+  })
+
+  it('keeps face tissue side mesh and top sheet physically lit', () => {
+    expect(faceTissueSource).toContain('FACE_TISSUE_SIDE_MESH_NAME')
+    expect(faceTissueSource).toContain('FACE_TISSUE_TOP_SHEET_NAME')
+    expect(faceTissueSource).toContain('new MeshStandardMaterial')
   })
 })

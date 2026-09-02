@@ -11,7 +11,7 @@ export type BoxFace = (typeof BOX_FACES)[number]
 export type PouchFace = 'front' | 'back'
 export const HANGING_TISSUE_FACES = ['front', 'back', 'left', 'right'] as const
 export type HangingTissueFace = (typeof HANGING_TISSUE_FACES)[number]
-export type PackagingType = 'box' | 'pouch' | 'inner-packaging-1' | 'inner-packaging-2' | 'hanging-tissue'
+export type PackagingType = 'box' | 'pouch' | 'inner-packaging-1' | 'inner-packaging-2' | 'hanging-tissue' | 'face-tissue'
 export type PouchClosure = 'none' | 'zipper' | 'spout'
 export type InnerPackagingModelRotation = 0 | 90 | 180
 export type ImageMimeType = 'image/png' | 'image/jpeg' | 'image/webp'
@@ -84,8 +84,18 @@ export interface HangingTissueState {
   showPulledSheet: boolean
 }
 
+export interface FaceTissueState {
+  artwork: ArtworkAsset | null
+  width: number
+  height: number
+  thickness: number
+  artworkTransform: ArtworkTransform
+  modelRotation: InnerPackagingModelRotation
+  showTopSheet: boolean
+}
+
 export interface ProjectState {
-  version: 15
+  version: 16
   name: string
   activeTab: 'artwork' | 'finish' | 'box' | 'camera'
   packagingType: PackagingType
@@ -100,6 +110,7 @@ export interface ProjectState {
   innerPackaging1: InnerPackaging1State
   innerPackaging2: InnerPackaging2State
   hangingTissue: HangingTissueState
+  faceTissue: FaceTissueState
   boxFinish: import('../finish/finishTypes').BoxFinishState
   pouchFinish: import('../finish/finishTypes').PouchFinishState
   camera: {

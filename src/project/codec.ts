@@ -8,6 +8,7 @@ import {
 import {
   createDefaultHangingTissue,
   createDefaultInnerPackaging2,
+  createDefaultFaceTissue,
   createInitialProject,
 } from '../app/projectReducer'
 import {
@@ -42,15 +43,15 @@ function isArtworkAsset(value: unknown): value is ArtworkAsset | null {
   )
 }
 
-interface LegacyProjectState extends Omit<ProjectState, 'version' | 'packagingType' | 'pouch' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'boxFinish' | 'pouchFinish'> {
+interface LegacyProjectState extends Omit<ProjectState, 'version' | 'packagingType' | 'pouch' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'boxFinish' | 'pouchFinish'> {
   version: 1
 }
 
-interface Version2ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'boxFinish' | 'pouchFinish'> {
+interface Version2ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'boxFinish' | 'pouchFinish'> {
   version: 2
 }
 
-interface Version3ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'boxFinish' | 'pouchFinish'> {
+interface Version3ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'boxFinish' | 'pouchFinish'> {
   version: 3
   innerPackaging1: {
     faces: Record<PouchFace, ArtworkAsset | null>
@@ -59,7 +60,7 @@ interface Version3ProjectState extends Omit<ProjectState, 'version' | 'innerPack
   }
 }
 
-interface Version4ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'boxFinish' | 'pouchFinish'> {
+interface Version4ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'boxFinish' | 'pouchFinish'> {
   version: 4
   innerPackaging1: {
     artwork: ArtworkAsset | null
@@ -68,7 +69,7 @@ interface Version4ProjectState extends Omit<ProjectState, 'version' | 'innerPack
   }
 }
 
-interface Version5ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'boxFinish' | 'pouchFinish'> {
+interface Version5ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'boxFinish' | 'pouchFinish'> {
   version: 5
   innerPackaging1: Omit<
     ProjectState['innerPackaging1'],
@@ -76,19 +77,19 @@ interface Version5ProjectState extends Omit<ProjectState, 'version' | 'innerPack
   >
 }
 
-interface Version6ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'boxFinish' | 'pouchFinish'> {
+interface Version6ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'boxFinish' | 'pouchFinish'> {
   version: 6
   innerPackaging1: Omit<ProjectState['innerPackaging1'], 'modelRotation'>
 }
 
-interface Version7ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging2' | 'hangingTissue' | 'boxFinish' | 'pouchFinish'> {
+interface Version7ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'boxFinish' | 'pouchFinish'> {
   version: 7
 }
-interface Version8ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging2' | 'hangingTissue' | 'pouchFinish'> {
+interface Version8ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'pouchFinish'> {
   version: 8
 }
 
-interface Version9ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging2' | 'hangingTissue'> {
+interface Version9ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue'> {
   version: 9
 }
 
@@ -402,21 +403,25 @@ function hasHangingTissueFields(
   })
 }
 
-type Version11ProjectState = Omit<ProjectState, 'version' | 'hangingTissue'> & { version: 11 }
+type Version11ProjectState = Omit<ProjectState, 'version' | 'hangingTissue' | 'faceTissue'> & { version: 11 }
 
-type Version12ProjectState = Omit<ProjectState, 'version' | 'hangingTissue'> & {
+type Version12ProjectState = Omit<ProjectState, 'version' | 'hangingTissue' | 'faceTissue'> & {
   version: 12
   hangingTissue: Omit<ProjectState['hangingTissue'], 'depth' | 'artworkReferenceDimensions'>
 }
 
-type Version13ProjectState = Omit<ProjectState, 'version' | 'hangingTissue'> & {
+type Version13ProjectState = Omit<ProjectState, 'version' | 'hangingTissue' | 'faceTissue'> & {
   version: 13
   hangingTissue: Omit<ProjectState['hangingTissue'], 'artworkReferenceDimensions'>
 }
 
-type Version14ProjectState = Omit<ProjectState, 'version' | 'hangingTissue'> & {
+type Version14ProjectState = Omit<ProjectState, 'version' | 'hangingTissue' | 'faceTissue'> & {
   version: 14
   hangingTissue: ProjectState['hangingTissue']
+}
+
+type Version15ProjectState = Omit<ProjectState, 'version' | 'faceTissue'> & {
+  version: 15
 }
 
 function isVersion11ProjectState(value: unknown): value is Version11ProjectState {
@@ -451,12 +456,42 @@ function isVersion14ProjectState(value: unknown): value is Version14ProjectState
     hasHangingTissueFields(project as Partial<ProjectState>, true, true)
 }
 
+function hasFaceTissueFields(project: Partial<ProjectState>) {
+  const faceTissue = project.faceTissue
+  if (!faceTissue || !isArtworkAsset(faceTissue.artwork)) return false
+  if (![faceTissue.width, faceTissue.height, faceTissue.thickness].every((value) =>
+    typeof value === 'number' && Number.isFinite(value) && value > 0,
+  )) return false
+  if (![0, 90, 180].includes(faceTissue.modelRotation) ||
+    typeof faceTissue.showTopSheet !== 'boolean') return false
+  const transform = faceTissue.artworkTransform
+  return !!transform &&
+    transform.scale >= 50 && transform.scale <= 300 &&
+    transform.offsetX >= -100 && transform.offsetX <= 100 &&
+    transform.offsetY >= -100 && transform.offsetY <= 100 &&
+    transform.rotation >= -180 && transform.rotation <= 180 &&
+    transform.stretchX >= 50 && transform.stretchX <= 300 &&
+    transform.stretchY >= 50 && transform.stretchY <= 300 &&
+    [transform.scale, transform.offsetX, transform.offsetY, transform.rotation,
+      transform.stretchX, transform.stretchY].every((value) =>
+      typeof value === 'number' && Number.isFinite(value),
+    )
+}
+
+function isVersion15ProjectState(value: unknown): value is Version15ProjectState {
+  if (!value || typeof value !== 'object') return false
+  const project = value as Partial<Version15ProjectState>
+  return project.version === 15 &&
+    isVersion14ProjectState({ ...project, version: 14 })
+}
+
 function isProjectState(value: unknown): value is ProjectState {
   if (!value || typeof value !== 'object') return false
   const project = value as Partial<ProjectState>
-  return project.version === 15 &&
-    isVersion14ProjectState({ ...project, version: 14 }) &&
-    hasHangingTissueFields(project)
+  return project.version === 16 &&
+    isVersion15ProjectState({ ...project, version: 15 }) &&
+    hasHangingTissueFields(project) &&
+    hasFaceTissueFields(project)
 }
 
 function addHangingTissueArtworkReferences(
@@ -486,7 +521,7 @@ function addInnerPackaging2Stretch(value: Record<string, unknown>): ProjectState
   const project = value as unknown as Omit<ProjectState, 'version'> & { version: 10 }
   return {
     ...project,
-    version: 15,
+    version: 16,
     innerPackaging2: {
       ...project.innerPackaging2,
       transforms: {
@@ -495,6 +530,7 @@ function addInnerPackaging2Stretch(value: Record<string, unknown>): ProjectState
       },
     },
     hangingTissue: createDefaultHangingTissue(),
+    faceTissue: createDefaultFaceTissue(),
   }
 }
 
@@ -510,64 +546,77 @@ export function decodeProject(source: string): ProjectState {
       delete hangingTissue.radius
       return { ...value, hangingTissue }
     }
+    if (isVersion15ProjectState(value)) {
+      return {
+        ...value,
+        version: 16,
+        faceTissue: createDefaultFaceTissue(),
+      }
+    }
     if (isVersion14ProjectState(value)) {
       return {
         ...value,
-        version: 15,
+        version: 16,
         hangingTissue: value.hangingTissue,
+        faceTissue: createDefaultFaceTissue(),
       }
     }
     if (isVersion13ProjectState(value)) {
       return {
         ...value,
-        version: 15,
+        version: 16,
         hangingTissue: addHangingTissueArtworkReferences(value.hangingTissue),
+        faceTissue: createDefaultFaceTissue(),
       }
     }
     if (isVersion12ProjectState(value)) {
       const hangingTissue = { ...value.hangingTissue, depth: 80 }
       return {
         ...value,
-        version: 15,
+        version: 16,
         hangingTissue: addHangingTissueArtworkReferences(hangingTissue),
+        faceTissue: createDefaultFaceTissue(),
       }
     }
     if (isVersion11ProjectState(value)) {
-      return { ...value, version: 15, hangingTissue: createDefaultHangingTissue() }
+      return { ...value, version: 16, hangingTissue: createDefaultHangingTissue(), faceTissue: createDefaultFaceTissue() }
     }
     if (isVersion10ProjectState(value)) {
       return addInnerPackaging2Stretch(value as Record<string, unknown>)
     }
     if (isVersion9ProjectState(value)) {
-      return { ...value, version: 15, innerPackaging2: createDefaultInnerPackaging2(), hangingTissue: createDefaultHangingTissue() }
+      return { ...value, version: 16, innerPackaging2: createDefaultInnerPackaging2(), hangingTissue: createDefaultHangingTissue(), faceTissue: createDefaultFaceTissue() }
     }
     if (isVersion8ProjectState(value)) {
       return {
         ...value,
-        version: 15,
+        version: 16,
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
         hangingTissue: createDefaultHangingTissue(),
+        faceTissue: createDefaultFaceTissue(),
       }
     }
     if (isVersion7ProjectState(value)) {
       return {
         ...value,
-        version: 15,
+        version: 16,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
         hangingTissue: createDefaultHangingTissue(),
+        faceTissue: createDefaultFaceTissue(),
       }
     }
     if (isVersion6ProjectState(value)) {
       return {
         ...value,
-        version: 15,
+        version: 16,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
         hangingTissue: createDefaultHangingTissue(),
+        faceTissue: createDefaultFaceTissue(),
         innerPackaging1: {
           ...value.innerPackaging1,
           modelRotation: 0,
@@ -577,11 +626,12 @@ export function decodeProject(source: string): ProjectState {
     if (isVersion5ProjectState(value)) {
       return {
         ...value,
-        version: 15,
+        version: 16,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
         hangingTissue: createDefaultHangingTissue(),
+        faceTissue: createDefaultFaceTissue(),
         innerPackaging1: {
           ...value.innerPackaging1,
           artworkRotation: 0,
@@ -594,11 +644,12 @@ export function decodeProject(source: string): ProjectState {
     if (isVersion4ProjectState(value)) {
       return {
         ...value,
-        version: 15,
+        version: 16,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
         hangingTissue: createDefaultHangingTissue(),
+        faceTissue: createDefaultFaceTissue(),
         innerPackaging1: {
           ...value.innerPackaging1,
           artworkScale: 100,
@@ -615,11 +666,12 @@ export function decodeProject(source: string): ProjectState {
       const initial = createInitialProject()
       return {
         ...value,
-        version: 15,
+        version: 16,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
         hangingTissue: createDefaultHangingTissue(),
+        faceTissue: createDefaultFaceTissue(),
         innerPackaging1: {
           artwork:
             value.innerPackaging1.faces.front ??
@@ -640,11 +692,12 @@ export function decodeProject(source: string): ProjectState {
       const initial = createInitialProject()
       return {
         ...value,
-        version: 15,
+        version: 16,
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
         hangingTissue: createDefaultHangingTissue(),
+        faceTissue: createDefaultFaceTissue(),
         innerPackaging1: initial.innerPackaging1,
       }
     }
