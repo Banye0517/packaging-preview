@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import hangingSource from '../hangingTissue/PrintedHangingTissue.tsx?raw'
 import faceTissueSource from '../faceTissue/PrintedFaceTissue.tsx?raw'
+import wetTissueSource from '../wetTissue/PrintedWetTissue.tsx?raw'
 import inner1Source from '../innerPackaging/PrintedInnerPackaging1.tsx?raw'
 import inner2Source from '../innerPackaging/PrintedInnerPackaging2.tsx?raw'
 import pouchSource from '../pouch/PrintedPouch.tsx?raw'
@@ -35,5 +36,14 @@ describe('packaging artwork renderer policy', () => {
     expect(faceTissueSource).toContain('FACE_TISSUE_SIDE_MESH_NAME')
     expect(faceTissueSource).toContain('FACE_TISSUE_TOP_SHEET_NAME')
     expect(faceTissueSource).toContain('new MeshStandardMaterial')
+  })
+
+  it('keeps wet tissue artwork direct-color while selecting the supplied roots', () => {
+    expect(wetTissueSource).toContain('createArtworkMaterial')
+    expect(wetTissueSource).toContain('new MeshStandardMaterial')
+    expect(wetTissueSource).toContain('WET_TISSUE_OPEN_ROOT_NAME')
+    expect(wetTissueSource).toContain('WET_TISSUE_CLOSED_ROOT_NAME')
+    expect(wetTissueSource).toContain('WET_TISSUE_BODY_MESH_NAME')
+    expect(wetTissueSource).toContain('WET_TISSUE_LID_ART_MESH_NAME')
   })
 })

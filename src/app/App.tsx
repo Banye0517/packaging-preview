@@ -25,6 +25,8 @@ import { HangingTissueArtworkUploader } from '../hangingTissue/HangingTissueArtw
 import { HangingTissuePanel } from '../hangingTissue/HangingTissuePanel'
 import { FaceTissueArtworkUploader } from '../faceTissue/FaceTissueArtworkUploader'
 import { FaceTissuePanel } from '../faceTissue/FaceTissuePanel'
+import { WetTissueArtworkUploader } from '../wetTissue/WetTissueArtworkUploader'
+import { WetTissuePanel } from '../wetTissue/WetTissuePanel'
 import { PouchPanel } from '../pouch/PouchPanel'
 import { FinishPanel } from '../finish/FinishPanel'
 import type { FinishKind } from '../finish/finishTypes'
@@ -37,6 +39,7 @@ import type {
   PouchClosure,
   PouchFace,
   PouchState,
+  WetTissueArtworkSlot,
 } from './types'
 
 export function App() {
@@ -59,6 +62,7 @@ export function App() {
     Partial<Record<HangingTissueFace, string>>
   >({})
   const [faceTissueError, setFaceTissueError] = useState<string>()
+  const [wetTissueErrors, setWetTissueErrors] = useState<Partial<Record<WetTissueArtworkSlot, string>>>({})
   const [finishErrors, setFinishErrors] = useState<Partial<Record<FinishKind, Partial<Record<BoxFace, string>>>>>({})
   const [pouchFinishErrors, setPouchFinishErrors] = useState<Partial<Record<FinishKind, Partial<Record<PouchFace, string>>>>>({})
   const [cameraCommand, setCameraCommand] = useState<{
@@ -212,6 +216,22 @@ export function App() {
     }
   }
 
+  async function handleWetTissueUpload(slot: WetTissueArtworkSlot, file: File) {
+    try {
+      const metadata = await validateImage(file)
+      const previewUrl = await readImageDataUrl(file)
+      commit({ type: 'commit', action: {
+        type: 'wet-tissue/artwork-set', slot,
+        asset: { id: crypto.randomUUID(), name: file.name, previewUrl, ...metadata },
+      } })
+      setWetTissueErrors((current) => ({ ...current, [slot]: undefined }))
+    } catch (error) {
+      setWetTissueErrors((current) => ({
+        ...current, [slot]: error instanceof Error ? error.message : '图片读取失败',
+      }))
+    }
+  }
+
   async function handleFinishMaskUpload(kind: FinishKind, face: BoxFace, file: File) {
     try {
       const metadata = await validateImage(file)
@@ -294,6 +314,11 @@ export function App() {
     setFaceTissueError(undefined)
   }
 
+  function handleWetTissueRemove(slot: WetTissueArtworkSlot) {
+    commit({ type: 'commit', action: { type: 'wet-tissue/artwork-remove', slot } })
+    setWetTissueErrors((current) => ({ ...current, [slot]: undefined }))
+  }
+
   function handlePouchSettingChange(
     key: Exclude<keyof PouchState, 'faces'>,
     value: number | boolean | PouchClosure,
@@ -350,6 +375,7 @@ export function App() {
       setInnerPackaging2Errors({})
       setHangingTissueErrors({})
       setFaceTissueError(undefined)
+      setWetTissueErrors({})
       setFinishErrors({})
       setPouchFinishErrors({})
     } catch (error) {
@@ -385,6 +411,7 @@ export function App() {
             setInnerPackaging2Errors({})
             setHangingTissueErrors({})
             setFaceTissueError(undefined)
+            setWetTissueErrors({})
             setFinishErrors({})
             setPouchFinishErrors({})
           }
@@ -433,7 +460,9 @@ export function App() {
                       ? '内包装2印刷贴图'
                       : project.packagingType === 'face-tissue'
                         ? '面纸印刷贴图'
-                        : '悬挂抽纸印刷贴图'}</h1>
+                        : project.packagingType === 'wet-tissue'
+                          ? '湿纸巾印刷贴图'
+                          : '悬挂抽纸印刷贴图'}</h1>
               <p className="panel-description">
                 {project.packagingType === 'box'
                   ? '分别上传前、后、左、右、上、下六个面的设计图。'
@@ -444,8 +473,10 @@ export function App() {
                       : project.packagingType === 'inner-packaging-2'
                         ? '分别上传正面和背面设计图；图片按模型原生 UV 映射。'
                         : project.packagingType === 'face-tissue'
-                          ? '上传一张按照原始 UV 模板制作的完整贴图，覆盖前、后、上、下主体面。'
-                          : '分别上传正面、背面、左侧、右侧设计图；图片按模型实际表面自动贴合。'}
+                        ? '上传一张按照原始 UV 模板制作的完整贴图，覆盖前、后、上、下主体面。'
+                          : project.packagingType === 'wet-tissue'
+                            ? '上传纸盒和盖子两张完整 UV 贴图；图片按模型原始 UV 自动贴合。'
+                            : '分别上传正面、背面、左侧、右侧设计图；图片按模型实际表面自动贴合。'}
               </p>
               {project.packagingType === 'box' ? (
                 <FaceGrid
@@ -520,6 +551,16 @@ export function App() {
                     action: { type: 'face-tissue/transform-reset' },
                   })}
                 />
+              ) : project.packagingType === 'wet-tissue' ? (
+                <WetTissueArtworkUploader
+                  value={project.wetTissue}
+                  errors={wetTissueErrors}
+                  onUpload={handleWetTissueUpload}
+                  onRemove={handleWetTissueRemove}
+                  onSelectArtwork={(slot) => commit({ type: 'commit', action: { type: 'wet-tissue/select-artwork', slot } })}
+                  onTransformChange={(slot, key, value) => commit({ type: 'commit', action: { type: 'wet-tissue/transform-set', slot, key, value } })}
+                  onTransformReset={(slot) => commit({ type: 'commit', action: { type: 'wet-tissue/transform-reset', slot } })}
+                />
               ) : (
                 <HangingTissueArtworkUploader
                   value={project.hangingTissue}
@@ -590,6 +631,14 @@ export function App() {
                     action: { type: 'face-tissue/set-top-sheet', value },
                   })}
                 />
+              ) : project.packagingType === 'wet-tissue' ? (
+                <WetTissuePanel
+                  value={project.wetTissue}
+                  onChange={(key, value) => commit({ type: 'commit', action: { type: 'wet-tissue/set', key, value } })}
+                  onRotationChange={(value) => commit({ type: 'commit', action: { type: 'wet-tissue/rotation-set', value } })}
+                  onModelStateChange={(value) => commit({ type: 'commit', action: { type: 'wet-tissue/set-model-state', value } })}
+                  onTopSheetChange={(value) => commit({ type: 'commit', action: { type: 'wet-tissue/set-top-sheet', value } })}
+                />
               ) : (
                 <HangingTissuePanel
                   value={project.hangingTissue}
@@ -637,6 +686,8 @@ export function App() {
                     ? '内包装2暂不支持表面工艺。'
                     : project.packagingType === 'face-tissue'
                       ? '面纸暂不支持表面工艺。'
+                      : project.packagingType === 'wet-tissue'
+                        ? '湿纸巾暂不支持表面工艺。'
                       : '悬挂抽纸暂不支持表面工艺。'}
               </p>
             </div>
@@ -648,8 +699,8 @@ export function App() {
           <section className="help-dialog" role="dialog" aria-modal="true" aria-label="使用帮助">
             <p className="eyebrow">QUICK GUIDE</p>
             <h2>使用帮助</h2>
-            <p>六面盒型上传六张图；自立袋和内包装2上传正背面；悬挂抽纸上传正背左右；内包装1和面纸上传一张完整 UV 图。左侧可拖拽旋转并用滚轮缩放。</p>
-            <p>保存会下载包含六种包装状态的本地项目文件；导出会下载当前 3D 画面的 PNG。</p>
+            <p>六面盒型上传六张图；自立袋和内包装2上传正背面；悬挂抽纸上传正背左右；内包装1和面纸上传一张完整 UV 图；湿纸巾上传纸盒和盖子两张完整 UV 图。左侧可拖拽旋转并用滚轮缩放。</p>
+            <p>保存会下载包含当前全部包装状态的本地项目文件；导出会下载当前 3D 画面的 PNG。</p>
             <button type="button" onClick={() => setShowHelp(false)}>知道了</button>
           </section>
         </div>
@@ -675,6 +726,7 @@ function PackagingTypeSwitch({
         ['inner-packaging-2', '内包装2'],
         ['hanging-tissue', '悬挂抽纸'],
         ['face-tissue', '面纸'],
+        ['wet-tissue', '湿纸巾'],
       ] as const).map(([type, label]) => (
         <label key={type}>
           <input

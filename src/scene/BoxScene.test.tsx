@@ -27,6 +27,9 @@ vi.mock('../hangingTissue/PrintedHangingTissue', () => ({
 vi.mock('../faceTissue/PrintedFaceTissue', () => ({
   PrintedFaceTissue: () => <div data-testid="printed-face-tissue" />,
 }))
+vi.mock('../wetTissue/PrintedWetTissue', () => ({
+  PrintedWetTissue: () => <div data-testid="printed-wet-tissue" />,
+}))
 vi.mock('./StudioEnvironment', () => ({ StudioEnvironment: () => null }))
 
 import { BoxScene } from './BoxScene'
@@ -54,5 +57,14 @@ describe('BoxScene', () => {
     render(<BoxScene project={project} command={null} />)
 
     expect(screen.getByTestId('printed-face-tissue')).toBeInTheDocument()
+  })
+
+  it('renders the wet tissue model for the wet tissue packaging type', () => {
+    const project = createInitialProject()
+    project.packagingType = 'wet-tissue'
+
+    render(<BoxScene project={project} command={null} />)
+
+    expect(screen.getByTestId('printed-wet-tissue')).toBeInTheDocument()
   })
 })

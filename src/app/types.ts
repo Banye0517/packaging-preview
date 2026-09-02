@@ -11,7 +11,7 @@ export type BoxFace = (typeof BOX_FACES)[number]
 export type PouchFace = 'front' | 'back'
 export const HANGING_TISSUE_FACES = ['front', 'back', 'left', 'right'] as const
 export type HangingTissueFace = (typeof HANGING_TISSUE_FACES)[number]
-export type PackagingType = 'box' | 'pouch' | 'inner-packaging-1' | 'inner-packaging-2' | 'hanging-tissue' | 'face-tissue'
+export type PackagingType = 'box' | 'pouch' | 'inner-packaging-1' | 'inner-packaging-2' | 'hanging-tissue' | 'face-tissue' | 'wet-tissue'
 export type PouchClosure = 'none' | 'zipper' | 'spout'
 export type InnerPackagingModelRotation = 0 | 90 | 180
 export type ImageMimeType = 'image/png' | 'image/jpeg' | 'image/webp'
@@ -102,6 +102,28 @@ export interface FaceTissueState {
   showTopSheet: boolean
 }
 
+export type WetTissueArtworkSlot = 'body' | 'lid'
+export type WetTissueModelState = 'open' | 'closed'
+
+export interface WetTissueDimensions {
+  width: number
+  height: number
+  thickness: number
+}
+
+export interface WetTissueState {
+  artworks: Record<WetTissueArtworkSlot, ArtworkAsset | null>
+  artworkReferenceDimensions: Record<WetTissueArtworkSlot, WetTissueDimensions | null>
+  transforms: Record<WetTissueArtworkSlot, ArtworkTransform>
+  selectedArtwork: WetTissueArtworkSlot
+  width: number
+  height: number
+  thickness: number
+  modelState: WetTissueModelState
+  modelRotation: InnerPackagingModelRotation
+  showTopSheet: boolean
+}
+
 export interface ProjectState {
   version: 16
   name: string
@@ -119,6 +141,7 @@ export interface ProjectState {
   innerPackaging2: InnerPackaging2State
   hangingTissue: HangingTissueState
   faceTissue: FaceTissueState
+  wetTissue: WetTissueState
   boxFinish: import('../finish/finishTypes').BoxFinishState
   pouchFinish: import('../finish/finishTypes').PouchFinishState
   camera: {

@@ -225,4 +225,27 @@ describe('App', () => {
     await user.click(screen.getByRole('checkbox', { name: '顶部抽纸' }))
     expect(screen.getByRole('checkbox', { name: '顶部抽纸' })).not.toBeChecked()
   })
+
+  it('switches to wet tissue with two full-UV uploads and open/closed controls', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('tab', { name: '盒型' }))
+    await user.click(screen.getByRole('radio', { name: '湿纸巾' }))
+    expect(screen.getByTestId('packaging-scene')).toHaveAttribute('data-type', 'wet-tissue')
+    expect(screen.getByRole('radio', { name: '打开' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: '顶部纸张' })).toBeChecked()
+    expect(screen.getByRole('spinbutton', { name: '盒身厚度（毫米）' })).toHaveValue(80)
+
+    await user.click(screen.getByRole('tab', { name: '贴图' }))
+    expect(screen.getByRole('heading', { name: '湿纸巾印刷贴图' })).toBeInTheDocument()
+    expect(screen.getAllByLabelText(/^上传.+印刷图$/)).toHaveLength(2)
+    expect(screen.getByLabelText('上传纸盒贴纸（完整 UV）印刷图')).toBeInTheDocument()
+    expect(screen.getByLabelText('上传盖子贴纸（完整 UV）印刷图')).toBeInTheDocument()
+    expect(screen.getByText('高级调整').closest('details')).not.toHaveAttribute('open')
+
+    await user.click(screen.getByRole('tab', { name: '盒型' }))
+    await user.click(screen.getByRole('radio', { name: '关闭' }))
+    expect(screen.getByRole('radio', { name: '关闭' })).toBeChecked()
+  })
 })

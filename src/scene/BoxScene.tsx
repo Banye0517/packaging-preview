@@ -10,6 +10,7 @@ import { PrintedInnerPackaging1 } from '../innerPackaging/PrintedInnerPackaging1
 import { PrintedInnerPackaging2 } from '../innerPackaging/PrintedInnerPackaging2'
 import { PrintedHangingTissue } from '../hangingTissue/PrintedHangingTissue'
 import { PrintedFaceTissue } from '../faceTissue/PrintedFaceTissue'
+import { PrintedWetTissue } from '../wetTissue/PrintedWetTissue'
 import { PrintedPouch } from '../pouch/PrintedPouch'
 import { PrintedBox } from './PrintedBox'
 import { CAMERA_POLAR_LIMITS, CAMERA_POSITIONS } from './cameraLimits'
@@ -67,6 +68,8 @@ export const BoxScene = forwardRef<BoxSceneHandle, BoxSceneProps>(function BoxSc
           <PrintedInnerPackaging2 value={project.innerPackaging2} />
         ) : project.packagingType === 'hanging-tissue' ? (
           <PrintedHangingTissue value={project.hangingTissue} />
+        ) : project.packagingType === 'wet-tissue' ? (
+          <PrintedWetTissue value={project.wetTissue} />
         ) : (
           <PrintedFaceTissue value={project.faceTissue} />
         )}

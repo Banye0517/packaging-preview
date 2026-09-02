@@ -70,6 +70,26 @@ describe('project codec', () => {
     expect(decodeProject(encodeProject(project))).toEqual(project)
   })
 
+  it('round-trips wet tissue artwork, transforms, model state, and paper visibility', () => {
+    const project = createInitialProject()
+    project.packagingType = 'wet-tissue'
+    project.wetTissue.modelState = 'closed'
+    project.wetTissue.showTopSheet = false
+    project.wetTissue.transforms.lid.rotation = 42
+    project.wetTissue.artworkReferenceDimensions.body = { width: 160, height: 205, thickness: 80 }
+
+    expect(decodeProject(encodeProject(project)).wetTissue).toEqual(project.wetTissue)
+  })
+
+  it('adds default wet tissue state to version 16 projects created before this packaging type', () => {
+    const project = JSON.parse(JSON.stringify(createInitialProject())) as Record<string, unknown>
+    delete project.wetTissue
+
+    const decoded = decodeProject(JSON.stringify(project))
+
+    expect(decoded.wetTissue).toEqual(createInitialProject().wetTissue)
+  })
+
   it('migrates version 13 artwork references from current hanging tissue dimensions', () => {
     const current = createInitialProject()
     current.hangingTissue.faces.front = {

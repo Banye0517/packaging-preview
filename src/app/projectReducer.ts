@@ -5,6 +5,7 @@ import {
   type BoxFace,
   type HangingTissueFace,
   type FaceTissueState,
+  type WetTissueArtworkSlot,
   type PackagingType,
   type InnerPackagingModelRotation,
   type PouchClosure,
@@ -98,6 +99,15 @@ export type ProjectAction =
   | { type: 'face-tissue/rotation-set'; value: InnerPackagingModelRotation | number }
   | { type: 'face-tissue/set'; key: 'width' | 'height' | 'thickness' | 'radius'; value: number }
   | { type: 'face-tissue/set-top-sheet'; value: boolean }
+  | { type: 'wet-tissue/artwork-set'; slot: WetTissueArtworkSlot; asset: ArtworkAsset }
+  | { type: 'wet-tissue/artwork-remove'; slot: WetTissueArtworkSlot }
+  | { type: 'wet-tissue/select-artwork'; slot: WetTissueArtworkSlot }
+  | { type: 'wet-tissue/transform-set'; slot: WetTissueArtworkSlot; key: keyof ArtworkTransform; value: number }
+  | { type: 'wet-tissue/transform-reset'; slot: WetTissueArtworkSlot }
+  | { type: 'wet-tissue/rotation-set'; value: InnerPackagingModelRotation | number }
+  | { type: 'wet-tissue/set'; key: 'width' | 'height' | 'thickness'; value: number }
+  | { type: 'wet-tissue/set-model-state'; value: 'open' | 'closed' }
+  | { type: 'wet-tissue/set-top-sheet'; value: boolean }
   | { type: 'camera/autoRotate'; value: boolean }
   | { type: 'box-finish/select-kind'; kind: FinishKind }
   | { type: 'box-finish/select-face'; face: BoxFace }
@@ -180,6 +190,24 @@ export function createDefaultFaceTissue(): FaceTissueState {
   }
 }
 
+export function createDefaultWetTissue(): ProjectState['wetTissue'] {
+  return {
+    artworks: { body: null, lid: null },
+    artworkReferenceDimensions: { body: null, lid: null },
+    transforms: {
+      body: { ...DEFAULT_ARTWORK_TRANSFORM },
+      lid: { ...DEFAULT_ARTWORK_TRANSFORM },
+    },
+    selectedArtwork: 'body',
+    width: 160,
+    height: 205,
+    thickness: 80,
+    modelState: 'open',
+    modelRotation: 0,
+    showTopSheet: true,
+  }
+}
+
 export function createInitialProject(): ProjectState {
   return {
     version: 16,
@@ -212,6 +240,7 @@ export function createInitialProject(): ProjectState {
     innerPackaging2: createDefaultInnerPackaging2(),
     hangingTissue: createDefaultHangingTissue(),
     faceTissue: createDefaultFaceTissue(),
+    wetTissue: createDefaultWetTissue(),
     boxFinish: createDefaultBoxFinish(),
     pouchFinish: createDefaultPouchFinish(),
     camera: { autoRotate: false },
@@ -522,6 +551,69 @@ export function projectReducer(
       return { ...state, faceTissue: { ...state.faceTissue, [action.key]: action.value } }
     case 'face-tissue/set-top-sheet':
       return { ...state, faceTissue: { ...state.faceTissue, showTopSheet: action.value } }
+    case 'wet-tissue/artwork-set':
+      return {
+        ...state,
+        wetTissue: {
+          ...state.wetTissue,
+          artworks: { ...state.wetTissue.artworks, [action.slot]: action.asset },
+          artworkReferenceDimensions: {
+            ...state.wetTissue.artworkReferenceDimensions,
+            [action.slot]: {
+              width: state.wetTissue.width,
+              height: state.wetTissue.height,
+              thickness: state.wetTissue.thickness,
+            },
+          },
+          selectedArtwork: action.slot,
+        },
+      }
+    case 'wet-tissue/artwork-remove':
+      return {
+        ...state,
+        wetTissue: {
+          ...state.wetTissue,
+          artworks: { ...state.wetTissue.artworks, [action.slot]: null },
+          artworkReferenceDimensions: { ...state.wetTissue.artworkReferenceDimensions, [action.slot]: null },
+        },
+      }
+    case 'wet-tissue/select-artwork':
+      return { ...state, wetTissue: { ...state.wetTissue, selectedArtwork: action.slot } }
+    case 'wet-tissue/transform-set': {
+      const isScale = ['scale', 'stretchX', 'stretchY'].includes(action.key)
+      const isRotation = action.key === 'rotation'
+      const min = isScale ? 50 : isRotation ? -180 : -100
+      const max = isScale ? 300 : isRotation ? 180 : 100
+      if (!Number.isFinite(action.value) || action.value < min || action.value > max) return state
+      return {
+        ...state,
+        wetTissue: {
+          ...state.wetTissue,
+          transforms: {
+            ...state.wetTissue.transforms,
+            [action.slot]: { ...state.wetTissue.transforms[action.slot], [action.key]: action.value },
+          },
+        },
+      }
+    }
+    case 'wet-tissue/transform-reset':
+      return {
+        ...state,
+        wetTissue: {
+          ...state.wetTissue,
+          transforms: { ...state.wetTissue.transforms, [action.slot]: { ...DEFAULT_ARTWORK_TRANSFORM } },
+        },
+      }
+    case 'wet-tissue/rotation-set':
+      if (![0, 90, 180].includes(action.value)) return state
+      return { ...state, wetTissue: { ...state.wetTissue, modelRotation: action.value as InnerPackagingModelRotation } }
+    case 'wet-tissue/set':
+      if (!Number.isFinite(action.value) || action.value < 30 || action.value > 1000) return state
+      return { ...state, wetTissue: { ...state.wetTissue, [action.key]: action.value } }
+    case 'wet-tissue/set-model-state':
+      return { ...state, wetTissue: { ...state.wetTissue, modelState: action.value } }
+    case 'wet-tissue/set-top-sheet':
+      return { ...state, wetTissue: { ...state.wetTissue, showTopSheet: action.value } }
     case 'camera/autoRotate':
       return { ...state, camera: { ...state.camera, autoRotate: action.value } }
     case 'box-finish/select-kind':

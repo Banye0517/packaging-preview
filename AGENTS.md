@@ -12,12 +12,12 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 
 - Keep exactly four settings areas: 贴图、工艺、盒型、相机。
 - Do not add a 场景 or AI area.
-- Artwork input is six explicit face uploads only; do not add dieline splitting or automatic face assignment.
+- Box artwork input remains six explicit face uploads; other packaging types use their explicitly defined upload counts. Do not add dieline splitting or automatic face assignment.
 
 ## Durable Packaging Decisions
 
 - All ordinary uploaded artwork for every current and future packaging type uses direct sRGB color rendering: a pure-white `MeshBasicMaterial` base with `toneMapped={false}`. Artwork color must not be altered by scene lights, environment reflections, exposure, or tone mapping. Apply this only to faces that actually have uploaded artwork; every unuploaded printable face, unprinted structure, shadow, and surface-finish material remains physically lit so the blank model retains its form.
-- Keep five independent packaging types: `box`, `pouch`, `inner-packaging-1`, `inner-packaging-2`, and `hanging-tissue`.
+- Keep seven independent packaging types: `box`, `pouch`, `inner-packaging-1`, `inner-packaging-2`, `hanging-tissue`, `face-tissue`, and `wet-tissue`.
 - “内包装1” uses the supplied glTF main bag mesh and excludes the helper mesh named “大概尺寸”.
 - “内包装1” has one full-UV artwork upload and width/height controls only. Use the glTF's authored UVs and preserve the model's native depth, bottom, seals, and bulge; do not reuse pouch structure controls.
 - “内包装1” full-UV artwork supports 50%–300% scale, horizontal/vertical -100%–100% offsets, and reset. Exposed texture areas are white; never tile or edge-stretch the artwork.
@@ -32,6 +32,7 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Each hanging-tissue face stores the body dimensions at upload time. Later width, height, or depth changes must inverse-compensate that face in atlas space so its physical artwork size and aspect remain fixed: larger bodies expose white space and smaller bodies crop; never stretch the artwork with geometry.
 - “悬挂抽纸”不提供盒身圆角控制。保留供稿的直角四面结构与独立正、背、左、右印刷面，禁止通过圆角或跨面几何让侧面贴图进入正面。
 - “面纸”保留 supplied GLTF 的原始 UV，不替换为独立 RoundedBoxGeometry；盒身圆角默认 0，增加圆角时沿原 UV 将单张完整图稿延伸到圆角表面。图稿上传时记录宽、高、厚度，后续尺寸变化按前后/上下 UV 面反补偿，保持已贴图稿的物理比例并在需要时露出白边或裁切。
+- “湿纸巾”使用 supplied GLTF 内的 `湿巾纸开` / `湿巾纸` 根节点作为开关，不重复加载两个内容相同的资产；只提供纸盒完整 UV 和盖子完整 UV 两张贴图，分别映射 `袋子` 与 `1` 网格。默认打开并显示 `纸.1`，关闭状态自动隐藏纸张；两张贴图独立支持 50%–300% 缩放、-100%–100% 位移、-180°–180° 旋转和 50%–300% 横纵拉伸，高级调整默认收起。尺寸调整记录上传时宽高厚并做贴图反补偿，未上传结构保持受灯光影响。
 - The supplied hanging-tissue front and right UV islands overlap by about five pixels in the 2048 atlas. Draw left/right artwork before back/front artwork so the main front/back panels own every overlap; never hide side materials or deform geometry to mask this UV issue.
 
 ## Box Finish Rules
