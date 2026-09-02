@@ -457,13 +457,26 @@ function isVersion14ProjectState(value: unknown): value is Version14ProjectState
 }
 
 function hasFaceTissueFields(project: Partial<ProjectState>) {
-  const faceTissue = project.faceTissue
+  const faceTissue = project.faceTissue as (Partial<ProjectState['faceTissue']> & {
+    radius?: unknown
+    artworkReferenceDimensions?: unknown
+  }) | undefined
   if (!faceTissue || !isArtworkAsset(faceTissue.artwork)) return false
   if (![faceTissue.width, faceTissue.height, faceTissue.thickness].every((value) =>
     typeof value === 'number' && Number.isFinite(value) && value > 0,
   )) return false
-  if (![0, 90, 180].includes(faceTissue.modelRotation) ||
+  if (![0, 90, 180].includes(faceTissue.modelRotation ?? -1) ||
     typeof faceTissue.showTopSheet !== 'boolean') return false
+  if (faceTissue.radius !== undefined &&
+    (typeof faceTissue.radius !== 'number' || !Number.isFinite(faceTissue.radius) ||
+      faceTissue.radius < 0 || faceTissue.radius > 40)) return false
+  if (faceTissue.artworkReferenceDimensions !== undefined &&
+    faceTissue.artworkReferenceDimensions !== null) {
+    const reference = faceTissue.artworkReferenceDimensions as unknown as Record<string, unknown>
+    if (![reference.width, reference.height, reference.thickness].every((value) =>
+      typeof value === 'number' && Number.isFinite(value) && value > 0,
+    )) return false
+  }
   const transform = faceTissue.artworkTransform
   return !!transform &&
     transform.scale >= 50 && transform.scale <= 300 &&
@@ -544,7 +557,18 @@ export function decodeProject(source: string): ProjectState {
     if (isProjectState(value)) {
       const hangingTissue = { ...value.hangingTissue } as ProjectState['hangingTissue'] & { radius?: unknown }
       delete hangingTissue.radius
-      return { ...value, hangingTissue }
+      const faceTissue = {
+        ...value.faceTissue,
+        radius: value.faceTissue.radius ?? 0,
+        artworkReferenceDimensions: value.faceTissue.artworkReferenceDimensions ?? (
+          value.faceTissue.artwork ? {
+            width: value.faceTissue.width,
+            height: value.faceTissue.height,
+            thickness: value.faceTissue.thickness,
+          } : null
+        ),
+      }
+      return { ...value, hangingTissue, faceTissue }
     }
     if (isVersion15ProjectState(value)) {
       return {

@@ -96,7 +96,7 @@ export type ProjectAction =
   | { type: 'face-tissue/transform-set'; key: keyof ArtworkTransform; value: number }
   | { type: 'face-tissue/transform-reset' }
   | { type: 'face-tissue/rotation-set'; value: InnerPackagingModelRotation | number }
-  | { type: 'face-tissue/set'; key: 'width' | 'height' | 'thickness'; value: number }
+  | { type: 'face-tissue/set'; key: 'width' | 'height' | 'thickness' | 'radius'; value: number }
   | { type: 'face-tissue/set-top-sheet'; value: boolean }
   | { type: 'camera/autoRotate'; value: boolean }
   | { type: 'box-finish/select-kind'; kind: FinishKind }
@@ -172,6 +172,8 @@ export function createDefaultFaceTissue(): FaceTissueState {
     width: 160,
     height: 205,
     thickness: 80,
+    radius: 0,
+    artworkReferenceDimensions: null,
     artworkTransform: { ...DEFAULT_ARTWORK_TRANSFORM },
     modelRotation: 0,
     showTopSheet: true,
@@ -461,9 +463,27 @@ export function projectReducer(
     case 'hanging-tissue/set-pulled-sheet':
       return { ...state, hangingTissue: { ...state.hangingTissue, showPulledSheet: action.value } }
     case 'face-tissue/artwork-set':
-      return { ...state, faceTissue: { ...state.faceTissue, artwork: action.asset } }
+      return {
+        ...state,
+        faceTissue: {
+          ...state.faceTissue,
+          artwork: action.asset,
+          artworkReferenceDimensions: {
+            width: state.faceTissue.width,
+            height: state.faceTissue.height,
+            thickness: state.faceTissue.thickness,
+          },
+        },
+      }
     case 'face-tissue/artwork-remove':
-      return { ...state, faceTissue: { ...state.faceTissue, artwork: null } }
+      return {
+        ...state,
+        faceTissue: {
+          ...state.faceTissue,
+          artwork: null,
+          artworkReferenceDimensions: null,
+        },
+      }
     case 'face-tissue/transform-set': {
       const isScale = ['scale', 'stretchX', 'stretchY'].includes(action.key)
       const isRotation = action.key === 'rotation'
@@ -496,7 +516,9 @@ export function projectReducer(
         },
       }
     case 'face-tissue/set':
-      if (!Number.isFinite(action.value) || action.value <= 0) return state
+      if (!Number.isFinite(action.value)) return state
+      if (action.key === 'radius' && (action.value < 0 || action.value > 40)) return state
+      if (action.key !== 'radius' && (action.value < 30 || action.value > 1000)) return state
       return { ...state, faceTissue: { ...state.faceTissue, [action.key]: action.value } }
     case 'face-tissue/set-top-sheet':
       return { ...state, faceTissue: { ...state.faceTissue, showTopSheet: action.value } }

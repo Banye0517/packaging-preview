@@ -31,6 +31,7 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Hanging-tissue artwork is a transparent direct-color overlay on top of an always-present lit base mesh, while retaining its required `BackSide` rendering. Never fill uncovered atlas pixels with white: handles, margins, transparent artwork pixels, and every other uncovered region must reveal the lit base material. Apply the same base color, roughness, and metalness to the independent pulled-paper node so it does not appear darker than the package.
 - Each hanging-tissue face stores the body dimensions at upload time. Later width, height, or depth changes must inverse-compensate that face in atlas space so its physical artwork size and aspect remain fixed: larger bodies expose white space and smaller bodies crop; never stretch the artwork with geometry.
 - “悬挂抽纸”不提供盒身圆角控制。保留供稿的直角四面结构与独立正、背、左、右印刷面，禁止通过圆角或跨面几何让侧面贴图进入正面。
+- “面纸”保留 supplied GLTF 的原始 UV，不替换为独立 RoundedBoxGeometry；盒身圆角默认 0，增加圆角时沿原 UV 将单张完整图稿延伸到圆角表面。图稿上传时记录宽、高、厚度，后续尺寸变化按前后/上下 UV 面反补偿，保持已贴图稿的物理比例并在需要时露出白边或裁切。
 - The supplied hanging-tissue front and right UV islands overlap by about five pixels in the 2048 atlas. Draw left/right artwork before back/front artwork so the main front/back panels own every overlap; never hide side materials or deform geometry to mask this UV issue.
 
 ## Box Finish Rules

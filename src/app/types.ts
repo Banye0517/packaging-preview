@@ -84,11 +84,19 @@ export interface HangingTissueState {
   showPulledSheet: boolean
 }
 
+export interface FaceTissueDimensions {
+  width: number
+  height: number
+  thickness: number
+}
+
 export interface FaceTissueState {
   artwork: ArtworkAsset | null
   width: number
   height: number
   thickness: number
+  radius: number
+  artworkReferenceDimensions: FaceTissueDimensions | null
   artworkTransform: ArtworkTransform
   modelRotation: InnerPackagingModelRotation
   showTopSheet: boolean

@@ -13,6 +13,8 @@ describe('projectReducer', () => {
       width: 160,
       height: 205,
       thickness: 80,
+      radius: 0,
+      artworkReferenceDimensions: null,
       artworkTransform: {
         scale: 100,
         offsetX: 0,
@@ -43,7 +45,13 @@ describe('projectReducer', () => {
     const changed = projectReducer(uploaded, {
       type: 'face-tissue/set', key: 'thickness', value: 96,
     })
-    const transformed = projectReducer(changed, {
+    expect(uploaded.faceTissue.artworkReferenceDimensions).toEqual({
+      width: 160, height: 205, thickness: 80,
+    })
+    const rounded = projectReducer(changed, {
+      type: 'face-tissue/set', key: 'radius', value: 12,
+    })
+    const transformed = projectReducer(rounded, {
       type: 'face-tissue/transform-set', key: 'rotation', value: 45,
     })
     const rotated = projectReducer(transformed, {
@@ -55,6 +63,7 @@ describe('projectReducer', () => {
 
     expect(hidden.faceTissue.artwork).toEqual(asset)
     expect(hidden.faceTissue.thickness).toBe(96)
+    expect(hidden.faceTissue.radius).toBe(12)
     expect(hidden.faceTissue.artworkTransform.rotation).toBe(45)
     expect(hidden.faceTissue.modelRotation).toBe(90)
     expect(hidden.faceTissue.showTopSheet).toBe(false)
@@ -63,6 +72,12 @@ describe('projectReducer', () => {
     })).toBe(hidden)
     expect(projectReducer(hidden, {
       type: 'face-tissue/set', key: 'width', value: 0,
+    })).toBe(hidden)
+    expect(projectReducer(hidden, {
+      type: 'face-tissue/set', key: 'radius', value: -1,
+    })).toBe(hidden)
+    expect(projectReducer(hidden, {
+      type: 'face-tissue/set', key: 'radius', value: 41,
     })).toBe(hidden)
   })
 

@@ -39,6 +39,7 @@ describe('face tissue body deformation', () => {
       width: 8,
       height: 6,
       thickness: 4,
+      radius: 0,
     })
     const position = result.getAttribute('position')
 
@@ -58,6 +59,7 @@ describe('face tissue body deformation', () => {
       width: 8,
       height: 6,
       thickness: 4,
+      radius: 0,
     })
 
     expect(Array.from(result.getAttribute('uv').array)).toEqual(sourceUvs)
@@ -72,5 +74,22 @@ describe('face tissue body deformation', () => {
     )
 
     expect(anchor).toEqual({ y: 2 })
+  })
+
+  it('rounds body corners while retaining the authored UVs', () => {
+    const source = createFixture()
+    const result = deformFaceTissueGeometry(source, {
+      sourceBounds,
+      width: 8,
+      height: 6,
+      thickness: 4,
+      radius: 1,
+    })
+    const position = result.getAttribute('position')
+
+    expect(position.getX(1)).toBeLessThan(4)
+    expect(position.getY(2)).toBeLessThan(6)
+    expect(position.getZ(1)).toBeLessThan(2)
+    expect(Array.from(result.getAttribute('uv').array)).toEqual([0, 0, 1, 0, 1, 1])
   })
 })

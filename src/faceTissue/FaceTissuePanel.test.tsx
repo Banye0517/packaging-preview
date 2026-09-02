@@ -17,6 +17,7 @@ describe('FaceTissuePanel', () => {
 
     expect(screen.getByText('面纸设置')).toBeInTheDocument()
     expect(screen.getByText('盒身厚度（毫米）')).toBeInTheDocument()
+    expect(screen.getByLabelText('圆角（毫米）')).toHaveValue(0)
     expect(screen.getByRole('checkbox', { name: '顶部抽纸' })).toBeChecked()
     expect(screen.getByRole('radio', { name: '0°' })).toBeChecked()
     expect(screen.getByRole('radio', { name: '90°' })).toBeInTheDocument()

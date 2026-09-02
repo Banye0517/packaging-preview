@@ -30,6 +30,7 @@ import {
   findFaceTissueMesh,
   isFaceTissueMesh,
 } from './faceTissueModel'
+import { drawFaceTissueAtlas } from './faceTissueTexture'
 
 const DEFAULT_DIMENSIONS = { width: 160, height: 205, thickness: 80 }
 const LOCAL_GROUND_Y = -1.87
@@ -125,26 +126,26 @@ function createModelData(scene: Group): FaceTissueModelData {
   }
 }
 
-function createArtworkTexture(image: HTMLImageElement, transform: FaceTissueState['artworkTransform']) {
+function createArtworkTexture(
+  image: HTMLImageElement,
+  transform: FaceTissueState['artworkTransform'],
+  currentDimensions: Pick<FaceTissueState, 'width' | 'height' | 'thickness'>,
+  referenceDimensions: FaceTissueState['artworkReferenceDimensions'],
+) {
   const size = 2048
   const canvas = document.createElement('canvas')
   canvas.width = size
   canvas.height = size
   const context = canvas.getContext('2d')
   if (!context) return null
-  context.fillStyle = '#ffffff'
-  context.fillRect(0, 0, size, size)
-  const scale = transform.scale / 100
-  const drawWidth = size * scale * transform.stretchX / 100
-  const drawHeight = size * scale * transform.stretchY / 100
-  context.save()
-  context.translate(
-    size / 2 + transform.offsetX / 100 * size,
-    size / 2 - transform.offsetY / 100 * size,
+  drawFaceTissueAtlas(
+    context,
+    size,
+    image,
+    transform,
+    currentDimensions,
+    referenceDimensions ?? currentDimensions,
   )
-  context.rotate(transform.rotation * Math.PI / 180)
-  context.drawImage(image, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight)
-  context.restore()
   const texture = new CanvasTexture(canvas)
   texture.colorSpace = SRGBColorSpace
   texture.flipY = false
@@ -160,8 +161,13 @@ export function PrintedFaceTissue({ value }: { value: FaceTissueState }) {
   const model = useMemo(() => createModelData(scene), [scene])
   const image = useLoadedImage(value.artwork?.previewUrl)
   const texture = useMemo(
-    () => image ? createArtworkTexture(image, value.artworkTransform) : null,
-    [image, value.artworkTransform],
+    () => image ? createArtworkTexture(
+      image,
+      value.artworkTransform,
+      { width: value.width, height: value.height, thickness: value.thickness },
+      value.artworkReferenceDimensions,
+    ) : null,
+    [image, value.artworkReferenceDimensions, value.artworkTransform, value.height, value.thickness, value.width],
   )
   const bodyMaterial = useMemo<Material>(
     () => texture ? createArtworkMaterial(texture, DoubleSide) : createBaseMaterial(),
@@ -179,13 +185,15 @@ export function PrintedFaceTissue({ value }: { value: FaceTissueState }) {
     width: (model.sourceBounds.maxX - model.sourceBounds.minX) * value.width / DEFAULT_DIMENSIONS.width,
     height: (model.sourceBounds.maxY - model.sourceBounds.minY) * value.height / DEFAULT_DIMENSIONS.height,
     thickness: (model.sourceBounds.maxZ - model.sourceBounds.minZ) * value.thickness / DEFAULT_DIMENSIONS.thickness,
-  }), [model.bodyGeometry, model.sourceBounds, value.height, value.thickness, value.width])
+    radius: value.radius * (model.sourceBounds.maxY - model.sourceBounds.minY) / DEFAULT_DIMENSIONS.height,
+  }), [model.bodyGeometry, model.sourceBounds, value.height, value.radius, value.thickness, value.width])
   const deformedSide = useMemo(() => deformFaceTissueGeometry(model.sideGeometry, {
     sourceBounds: model.sourceBounds,
     width: (model.sourceBounds.maxX - model.sourceBounds.minX) * value.width / DEFAULT_DIMENSIONS.width,
     height: (model.sourceBounds.maxY - model.sourceBounds.minY) * value.height / DEFAULT_DIMENSIONS.height,
     thickness: (model.sourceBounds.maxZ - model.sourceBounds.minZ) * value.thickness / DEFAULT_DIMENSIONS.thickness,
-  }), [model.sideGeometry, model.sourceBounds, value.height, value.thickness, value.width])
+    radius: value.radius * (model.sourceBounds.maxY - model.sourceBounds.minY) / DEFAULT_DIMENSIONS.height,
+  }), [model.sideGeometry, model.sourceBounds, value.height, value.radius, value.thickness, value.width])
   const topSheetAnchor = calculateTopSheetAnchor(
     { minY: model.sourceBounds.minY, maxY: model.sourceBounds.maxY },
     targetBodyBounds,

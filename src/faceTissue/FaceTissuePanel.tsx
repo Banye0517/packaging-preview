@@ -2,7 +2,7 @@ import type { FaceTissueState, InnerPackagingModelRotation } from '../app/types'
 
 interface FaceTissuePanelProps {
   value: FaceTissueState
-  onChange: (key: 'width' | 'height' | 'thickness', value: number) => void
+  onChange: (key: 'width' | 'height' | 'thickness' | 'radius', value: number) => void
   onRotationChange: (value: InnerPackagingModelRotation) => void
   onTopSheetChange: (value: boolean) => void
 }
@@ -20,13 +20,14 @@ export function FaceTissuePanel({
           ['width', '盒身宽度（毫米）'],
           ['height', '盒身高度（毫米）'],
           ['thickness', '盒身厚度（毫米）'],
+          ['radius', '圆角（毫米）'],
         ] as const).map(([key, label]) => (
           <label className="field-row" key={key}>
             <span>{label}</span>
             <input
               type="number"
-              min={30}
-              max={1000}
+              min={key === 'radius' ? 0 : 30}
+              max={key === 'radius' ? 40 : 1000}
               value={value[key]}
               onChange={(event) => onChange(key, event.currentTarget.valueAsNumber)}
             />
