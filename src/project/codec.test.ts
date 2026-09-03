@@ -4,6 +4,26 @@ import { createInitialProject } from '../app/projectReducer'
 import { decodeProject, encodeProject } from './codec'
 
 describe('project codec', () => {
+  it('migrates version 16 projects to direct-color lighting by default', () => {
+    const current = createInitialProject()
+    const version16 = JSON.parse(JSON.stringify({ ...current, version: 16 }))
+    delete version16.camera.lightingIntensity
+
+    const decoded = decodeProject(JSON.stringify(version16))
+
+    expect(decoded.version).toBe(17)
+    expect(decoded.camera.lightingIntensity).toBe(0)
+  })
+
+  it('round-trips signed lighting and rejects values outside -100 to 100', () => {
+    const project = createInitialProject()
+    project.camera.lightingIntensity = -65
+    expect(decodeProject(encodeProject(project)).camera.lightingIntensity).toBe(-65)
+
+    project.camera.lightingIntensity = -101
+    expect(() => decodeProject(encodeProject(project))).toThrow('不是有效的 BoxLab 项目文件')
+  })
+
   it('migrates version 15 projects with the default face tissue state', () => {
     const current = createInitialProject()
     const version15 = JSON.parse(JSON.stringify({ ...current, version: 15 }))
@@ -11,7 +31,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version15))
 
-    expect(decoded.version).toBe(16)
+    expect(decoded.version).toBe(17)
     expect(decoded.faceTissue.artwork).toBeNull()
     expect(decoded.faceTissue.showTopSheet).toBe(true)
     expect(decoded.faceTissue.artworkTransform).toEqual({
@@ -31,7 +51,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version15))
 
-    expect(decoded.version).toBe(16)
+    expect(decoded.version).toBe(17)
     expect('radius' in decoded.hangingTissue).toBe(false)
   })
 
@@ -42,7 +62,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version11))
 
-    expect(decoded.version).toBe(16)
+    expect(decoded.version).toBe(17)
     expect(decoded.hangingTissue.faces).toEqual({
       front: null, back: null, left: null, right: null,
     })
@@ -56,7 +76,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version12))
 
-    expect(decoded.version).toBe(16)
+    expect(decoded.version).toBe(17)
     expect(decoded.hangingTissue.depth).toBe(80)
     expect(decoded.hangingTissue.faces).toEqual(current.hangingTissue.faces)
     expect(decoded.hangingTissue.width).toBe(current.hangingTissue.width)
@@ -121,7 +141,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version13))
 
-    expect(decoded.version).toBe(16)
+    expect(decoded.version).toBe(17)
     expect(decoded.hangingTissue.artworkReferenceDimensions.front).toEqual({
       width: 160, height: 205, depth: 80,
     })
@@ -138,7 +158,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version10))
 
-    expect(decoded.version).toBe(16)
+    expect(decoded.version).toBe(17)
     expect(decoded.innerPackaging2.transforms.front).toMatchObject({
       stretchX: 100,
       stretchY: 100,
@@ -166,7 +186,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version8))
 
-    expect(decoded.version).toBe(16)
+    expect(decoded.version).toBe(17)
     expect(Object.keys(decoded.pouchFinish.layers['gold-foil'].masks)).toEqual(['front', 'back'])
   })
 
@@ -203,7 +223,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(legacy))
 
-    expect(decoded.version).toBe(16)
+    expect(decoded.version).toBe(17)
     expect(decoded.packagingType).toBe('box')
     expect(decoded.pouch.faces).toEqual({ front: null, back: null })
     expect(decoded.faces).toEqual(legacy.faces)
@@ -228,7 +248,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version2))
 
-    expect(decoded.version).toBe(16)
+    expect(decoded.version).toBe(17)
     expect(decoded.innerPackaging1.artwork).toBeNull()
   })
 
@@ -254,7 +274,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version3))
 
-    expect(decoded.version).toBe(16)
+    expect(decoded.version).toBe(17)
     expect(decoded.innerPackaging1.artwork).toEqual(artwork)
   })
 
@@ -272,7 +292,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version4))
 
-    expect(decoded.version).toBe(16)
+    expect(decoded.version).toBe(17)
     expect(decoded.innerPackaging1).toMatchObject({
       artworkScale: 100,
       artworkOffsetX: 0,
@@ -300,7 +320,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version5))
 
-    expect(decoded.version).toBe(16)
+    expect(decoded.version).toBe(17)
     expect(decoded.innerPackaging1).toMatchObject({
       artworkScale: 120,
       artworkOffsetX: 10,
@@ -319,7 +339,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version6))
 
-    expect(decoded.version).toBe(16)
+    expect(decoded.version).toBe(17)
     expect(decoded.innerPackaging1.modelRotation).toBe(0)
   })
 
@@ -330,7 +350,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version7))
 
-    expect(decoded.version).toBe(16)
+    expect(decoded.version).toBe(17)
     expect(decoded.boxFinish.selectedKind).toBe('gold-foil')
     expect(decoded.boxFinish.layers['gold-foil'].masks.front).toBeNull()
   })
@@ -359,7 +379,7 @@ describe('project codec', () => {
 
     const decoded = decodeProject(JSON.stringify(version9))
 
-    expect(decoded.version).toBe(16)
+    expect(decoded.version).toBe(17)
     expect(decoded.innerPackaging2.faces).toEqual({ front: null, back: null })
     expect(decoded.innerPackaging2.transforms.front).toEqual({
       scale: 100, offsetX: 0, offsetY: 0, rotation: 0, stretchX: 100, stretchY: 100,

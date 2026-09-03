@@ -125,7 +125,7 @@ export interface WetTissueState {
 }
 
 export interface ProjectState {
-  version: 16
+  version: 17
   name: string
   activeTab: 'artwork' | 'finish' | 'box' | 'camera'
   packagingType: PackagingType
@@ -147,5 +147,6 @@ export interface ProjectState {
   pouchFinish: import('../finish/finishTypes').PouchFinishState
   camera: {
     autoRotate: boolean
+    lightingIntensity: number
   }
 }

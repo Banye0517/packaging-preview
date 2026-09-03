@@ -11,6 +11,7 @@ interface FaceTissueArtworkUploaderProps {
   label?: string
   transformAriaLabel?: string
   transformTitle?: string
+  defaultOpen?: boolean
 }
 
 const CONTROLS = [
@@ -32,6 +33,7 @@ export function FaceTissueArtworkUploader({
   label = '面纸图稿（完整 UV）',
   transformAriaLabel = '面纸贴图变换',
   transformTitle = '面纸贴图调整',
+  defaultOpen = false,
 }: FaceTissueArtworkUploaderProps) {
   return (
     <>
@@ -45,7 +47,7 @@ export function FaceTissueArtworkUploader({
           onRemove={() => onRemove()}
         />
       </div>
-      <details className="texture-transform-disclosure">
+      <details className="texture-transform-disclosure" open={defaultOpen}>
         <summary>高级调整</summary>
         <section className="texture-transform-controls" aria-label={transformAriaLabel}>
           <div className="texture-transform-heading">

@@ -17,6 +17,7 @@ import { PrintedBox } from './PrintedBox'
 import { CAMERA_POLAR_LIMITS, CAMERA_POSITIONS } from './cameraLimits'
 import type { CameraCommand } from './PreviewControls'
 import { StudioEnvironment } from './StudioEnvironment'
+import { getStudioLighting } from './studioLighting'
 
 export interface CameraCommandRequest {
   type: CameraCommand
@@ -41,6 +42,7 @@ export const BoxScene = forwardRef<BoxSceneHandle, BoxSceneProps>(function BoxSc
   { project, command },
   ref,
 ) {
+  const lighting = getStudioLighting(project.camera.lightingIntensity)
   return (
     <Canvas
       className="box-canvas"
@@ -48,16 +50,16 @@ export const BoxScene = forwardRef<BoxSceneHandle, BoxSceneProps>(function BoxSc
       camera={{ position: [6.4, 5.2, 8.8], fov: 38 }}
       gl={{ antialias: true, alpha: true, preserveDrawingBuffer: true }}
     >
-      <ambientLight intensity={0.65} />
-      <hemisphereLight args={['#ffffff', '#cad4e2', 1.1]} />
+      <ambientLight intensity={lighting.ambientIntensity} />
+      <hemisphereLight args={['#ffffff', '#cad4e2', lighting.hemisphereIntensity]} />
       <directionalLight
         castShadow
-        intensity={2.2}
-        position={[4, 7, 6]}
+        intensity={lighting.keyIntensity}
+        position={lighting.keyPosition}
         shadow-mapSize={[2048, 2048]}
       />
-      <directionalLight intensity={0.8} position={[-5, 2, -3]} />
-      <StudioEnvironment />
+      <directionalLight intensity={lighting.fillIntensity} position={lighting.fillPosition} />
+      <StudioEnvironment intensityScale={lighting.environmentScale} />
       <group position={[0, 0.2, 0]}>
         {project.packagingType === 'box' ? (
           <PrintedBox faces={project.faces} box={project.box} finish={project.boxFinish} />

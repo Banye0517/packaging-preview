@@ -217,15 +217,15 @@ export function PrintedFaceTissue({ value }: { value: FaceTissueState }) {
       rotation={[0, 0, value.modelRotation * Math.PI / 180]}
       scale={baseScale}
     >
-      <mesh geometry={deformedBody} material={bodyMaterial} castShadow receiveShadow />
-      <mesh geometry={deformedSide} material={sideMaterial} castShadow receiveShadow />
+      <mesh geometry={deformedBody} material={bodyMaterial} castShadow receiveShadow={false} />
+      <mesh geometry={deformedSide} material={sideMaterial} castShadow receiveShadow={false} />
       <mesh
         geometry={model.topSheetGeometry}
         material={topSheetMaterial}
         position={[0, topSheetAnchor.y, 0]}
         visible={value.showTopSheet}
         castShadow
-        receiveShadow
+        receiveShadow={false}
       />
     </group>
   )

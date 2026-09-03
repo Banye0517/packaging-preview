@@ -118,7 +118,10 @@ export function PrintedWashTissue({ value }: { value: FaceTissueState }) {
   const { scene } = useGLTF(WASH_TISSUE_MODEL_URL)
   const image = useLoadedImage(value.artwork?.previewUrl)
   const texture = useMemo(() => image ? createArtworkTexture(image, value) : null, [image, value])
-  const model = useMemo(() => createModel(scene, value, texture), [scene, texture, value])
+  const model = useMemo(
+    () => createModel(scene, value, texture),
+    [scene, texture, value],
+  )
 
   useEffect(() => () => texture?.dispose(), [texture])
   useEffect(() => () => {

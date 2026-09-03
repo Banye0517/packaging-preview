@@ -116,6 +116,7 @@ export type ProjectAction =
   | { type: 'wet-tissue/set-model-state'; value: 'open' | 'closed' }
   | { type: 'wet-tissue/set-top-sheet'; value: boolean }
   | { type: 'camera/autoRotate'; value: boolean }
+  | { type: 'camera/lightingIntensity'; value: number }
   | { type: 'box-finish/select-kind'; kind: FinishKind }
   | { type: 'box-finish/select-face'; face: BoxFace }
   | { type: 'box-finish/enabled-set'; kind: FinishKind; value: boolean }
@@ -221,7 +222,7 @@ export function createDefaultWashTissue(): FaceTissueState {
 
 export function createInitialProject(): ProjectState {
   return {
-    version: 16,
+    version: 17,
     name: '未命名包装',
     activeTab: 'artwork',
     packagingType: 'box',
@@ -255,7 +256,7 @@ export function createInitialProject(): ProjectState {
     washTissue: createDefaultWashTissue(),
     boxFinish: createDefaultBoxFinish(),
     pouchFinish: createDefaultPouchFinish(),
-    camera: { autoRotate: false },
+    camera: { autoRotate: false, lightingIntensity: 0 },
   }
 }
 
@@ -670,6 +671,9 @@ export function projectReducer(
       return { ...state, wetTissue: { ...state.wetTissue, showTopSheet: action.value } }
     case 'camera/autoRotate':
       return { ...state, camera: { ...state.camera, autoRotate: action.value } }
+    case 'camera/lightingIntensity':
+      if (!Number.isFinite(action.value) || action.value < -100 || action.value > 100) return state
+      return { ...state, camera: { ...state.camera, lightingIntensity: action.value } }
     case 'box-finish/select-kind':
       return { ...state, boxFinish: { ...state.boxFinish, selectedKind: action.kind } }
     case 'box-finish/select-face':

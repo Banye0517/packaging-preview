@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
-  MeshBasicMaterial,
   SRGBColorSpace,
   Texture,
   TextureLoader,
@@ -10,7 +9,7 @@ import type { ProjectState } from '../app/types'
 import { FinishOverlay } from '../finish/FinishOverlay'
 import { BOX_MATERIAL_FACE_ORDER, DEFAULT_BOX_ROTATION } from './faceMaterials'
 import { createRoundedBoxGeometry } from './roundedBoxGeometry'
-import { applyTextureMap } from './textureMaterial'
+import { ArtworkMaterial } from './artworkLighting'
 
 interface PrintedBoxProps {
   faces: ProjectState['faces']
@@ -57,7 +56,6 @@ function FaceMaterial({ index, source }: { index: number; source: string | null 
 
 function LoadedFaceMaterial({ index, source }: { index: number; source: string }) {
   const [texture, setTexture] = useState<Texture | null>(null)
-  const materialRef = useRef<MeshBasicMaterial>(null)
 
   useEffect(() => {
     let active = true
@@ -72,17 +70,5 @@ function LoadedFaceMaterial({ index, source }: { index: number; source: string }
     }
   }, [source])
 
-  useEffect(() => {
-    if (materialRef.current) applyTextureMap(materialRef.current, texture)
-  }, [texture])
-
-  return (
-    <meshBasicMaterial
-      ref={materialRef}
-      attach={`material-${index}`}
-      map={texture}
-      color="#ffffff"
-      toneMapped={false}
-    />
-  )
+  return <ArtworkMaterial attach={`material-${index}`} texture={texture} />
 }

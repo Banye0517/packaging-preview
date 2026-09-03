@@ -69,17 +69,23 @@ function createModel(scene: Group) {
     const baseFaceMeshes = Object.fromEntries(FACES.map((face) => {
       const baseFaceMesh = printableBody.clone()
       baseFaceMesh.geometry = geometrySet.faces[face]
+      baseFaceMesh.castShadow = true
+      baseFaceMesh.receiveShadow = false
       printableBody.parent!.add(baseFaceMesh)
       return [face, baseFaceMesh]
     })) as Record<(typeof FACES)[number], Mesh>
     const faceMeshes = Object.fromEntries(FACES.map((face) => {
       const faceMesh = printableBody.clone()
       faceMesh.geometry = geometrySet.faces[face]
+      faceMesh.castShadow = true
+      faceMesh.receiveShadow = false
       printableBody.parent!.add(faceMesh)
       return [face, faceMesh]
     })) as Record<(typeof FACES)[number], Mesh>
     const remainderMesh = printableBody.clone()
     remainderMesh.geometry = geometrySet.remainder
+    remainderMesh.castShadow = true
+    remainderMesh.receiveShadow = false
     printableBody.parent!.add(remainderMesh)
     printableBody.visible = false
     return { baseFaceMeshes, faceMeshes, remainderMesh, uvRegions, sourceGeometrySet: geometrySet }

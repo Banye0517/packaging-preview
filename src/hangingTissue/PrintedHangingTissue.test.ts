@@ -12,6 +12,7 @@ import {
   findModelNode,
   isPrintableBodyMesh,
 } from './hangingTissueModel'
+import source from './PrintedHangingTissue.tsx?raw'
 
 describe('PrintedHangingTissue', () => {
   it('uses the supplied hanging tissue model asset', () => {
@@ -45,5 +46,11 @@ describe('PrintedHangingTissue', () => {
     root.add(body)
 
     expect(findModelNode(root, '悬挂抽纸155-材质.2')).toBe(body)
+  })
+
+  it('casts shadows from package body clones without receiving self-shadow maps', () => {
+    expect(source).toContain('baseFaceMesh.receiveShadow = false')
+    expect(source).toContain('faceMesh.receiveShadow = false')
+    expect(source).toContain('remainderMesh.receiveShadow = false')
   })
 })

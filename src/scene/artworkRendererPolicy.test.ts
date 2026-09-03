@@ -10,13 +10,15 @@ import pouchSource from '../pouch/PrintedPouch.tsx?raw'
 import boxSource from './PrintedBox.tsx?raw'
 
 describe('packaging artwork renderer policy', () => {
-  it('uses direct-color materials for every ordinary uploaded artwork renderer', () => {
-    expect(boxSource).toContain('<meshBasicMaterial')
-    expect(pouchSource).toContain('<meshBasicMaterial')
-    expect(inner1Source).toContain('<meshBasicMaterial')
-    expect(inner2Source).toContain('<meshBasicMaterial')
+  it('uses the shared adjustable lighting material for every ordinary artwork renderer', () => {
+    expect(boxSource).toContain('<ArtworkMaterial')
+    expect(pouchSource).toContain('<ArtworkMaterial')
+    expect(inner1Source).toContain('<ArtworkMaterial')
+    expect(inner2Source).toContain('<ArtworkMaterial')
     expect(hangingSource).toContain('createArtworkMaterial')
     expect(faceTissueSource).toContain('createArtworkMaterial')
+    expect(wetTissueSource).toContain('createArtworkMaterial')
+    expect(washTissueSource).toContain('createArtworkMaterial')
     expect(hangingSource).not.toContain('emissiveMap')
   })
 

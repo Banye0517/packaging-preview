@@ -16,9 +16,12 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 
 ## Durable Packaging Decisions
 
-- All ordinary uploaded artwork for every current and future packaging type uses direct sRGB color rendering: a pure-white `MeshBasicMaterial` base with `toneMapped={false}`. Artwork color must not be altered by scene lights, environment reflections, exposure, or tone mapping. Apply this only to faces that actually have uploaded artwork; every unuploaded printable face, unprinted structure, shadow, and surface-finish material remains physically lit so the blank model retains its form.
+- “相机”区域提供全局打光强度 -100%–100%。0% 是标准柔和棚拍光，-100% 保持左上灯位不变并减弱真实光能，100% 增强同一盏左上主光；负值不得反转灯光方向，也不得退化为整张贴图统一压暗。默认和旧项目迁移值均为 0%，透明 PNG 导出必须复用当前强度。
+- All ordinary uploaded artwork for every current and future packaging type uses a pure-white `MeshPhysicalMaterial` with its sRGB artwork map, zero metalness, soft roughness, and subtle clearcoat. Product highlights and shadows must come from the model normals and the fixed upper-left studio lights, not from uniform texture brightness multiplication. Every unuploaded printable face, unprinted structure, shadow, and surface-finish material remains physically lit.
 - Keep seven independent packaging types: `box`, `pouch`, `inner-packaging-1`, `inner-packaging-2`, `hanging-tissue`, `face-tissue`, and `wet-tissue`.
 - “内包装1” uses the supplied glTF main bag mesh and excludes the helper mesh named “大概尺寸”.
+- “内包装1”默认绕竖直轴水平旋转 180°，让供稿模型的正面朝向相机。该高密度单网格保留受真实灯光影响和向地面投影，但不接收方向灯阴影贴图，避免贴图后出现与三角剖分一致的自阴影条纹。
+- 自立袋、内包装1、内包装2、面纸和悬挂抽纸的高密度网格统一保留物理受光与 `castShadow`，但关闭 `receiveShadow`，防止方向灯阴影贴图产生与三角剖分一致的 self-shadow 纹路。面纸顶部的独立纸巾同样属于高密度网格，必须应用此规则；其他独立结构需按真实网格密度判断。
 - “内包装1” has one full-UV artwork upload and width/height controls only. Use the glTF's authored UVs and preserve the model's native depth, bottom, seals, and bulge; do not reuse pouch structure controls.
 - “内包装1” full-UV artwork supports 50%–300% scale, horizontal/vertical -100%–100% offsets, and reset. Exposed texture areas are white; never tile or edge-stretch the artwork.
 - “内包装1” full-UV artwork also supports -180°–180° rotation and independent 50%–300% horizontal/vertical stretch. Reset restores 0° rotation and 100% stretch.
@@ -31,7 +34,7 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Hanging-tissue artwork is a transparent direct-color overlay on top of an always-present lit base mesh, while retaining its required `BackSide` rendering. Never fill uncovered atlas pixels with white: handles, margins, transparent artwork pixels, and every other uncovered region must reveal the lit base material. Apply the same base color, roughness, and metalness to the independent pulled-paper node so it does not appear darker than the package.
 - Each hanging-tissue face stores the body dimensions at upload time. Later width, height, or depth changes must inverse-compensate that face in atlas space so its physical artwork size and aspect remain fixed: larger bodies expose white space and smaller bodies crop; never stretch the artwork with geometry.
 - “悬挂抽纸”不提供盒身圆角控制。保留供稿的直角四面结构与独立正、背、左、右印刷面，禁止通过圆角或跨面几何让侧面贴图进入正面。
-- “面纸”保留 supplied GLTF 的原始 UV，不替换为独立 RoundedBoxGeometry；盒身圆角默认 0，增加圆角时沿原 UV 将单张完整图稿延伸到圆角表面。图稿上传时记录宽、高、厚度，后续尺寸变化按前后/上下 UV 面反补偿，保持已贴图稿的物理比例并在需要时露出白边或裁切。
+- “面纸”保留 supplied GLTF 的原始 UV，不替换为独立 RoundedBoxGeometry；盒身圆角默认 0，增加圆角时沿原 UV 将单张完整图稿延伸到圆角表面。图稿上传时记录宽、高、厚度，后续尺寸变化按前后/上下 UV 面反补偿，保持已贴图稿的物理比例并在需要时露出白边或裁切。高级调整中的水平/垂直拉伸以图稿头部为锚点，只向尾部增加或减少覆盖；垂直位置跨过 UV 环向接缝时必须保持同一张图稿首尾连续显示，不得整张消失或在转角断开。
 - “湿纸巾”使用 supplied GLTF 内的 `湿巾纸开` / `湿巾纸` 根节点作为开关，不重复加载两个内容相同的资产；只提供纸盒完整 UV 和盖子完整 UV 两张贴图，分别映射 `袋子` 与 `1` 网格。默认打开并显示 `纸.1`，关闭状态自动隐藏纸张；两张贴图独立支持 50%–300% 缩放、-100%–100% 位移、-180°–180° 旋转和 50%–300% 横纵拉伸，高级调整默认收起。尺寸调整记录上传时宽高厚并做贴图反补偿，未上传结构保持受灯光影响。
 - “洗脸巾”使用 supplied `洗脸巾1开` 根节点和原始 UV；只提供一张完整主体 UV 图稿映射 `洗脸巾`，`平面` 保持结构材质，`纸` 受顶部纸张开关控制。默认显示纸张；贴图支持同面纸的尺寸记忆/反补偿与旋转、缩放、位移、横纵拉伸，高级调整默认收起。
 - The supplied hanging-tissue front and right UV islands overlap by about five pixels in the 2048 atlas. Draw left/right artwork before back/front artwork so the main front/back panels own every overlap; never hide side materials or deform geometry to mask this UV issue.

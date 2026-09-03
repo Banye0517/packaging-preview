@@ -219,7 +219,7 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: '面纸印刷贴图' })).toBeInTheDocument()
     expect(screen.getAllByLabelText(/^上传.+印刷图$/)).toHaveLength(1)
     expect(screen.getByLabelText('上传面纸图稿（完整 UV）印刷图')).toBeInTheDocument()
-    expect(screen.getByText('高级调整').closest('details')).not.toHaveAttribute('open')
+    expect(screen.getByText('高级调整').closest('details')).toHaveAttribute('open')
 
     await user.click(screen.getByRole('tab', { name: '盒型' }))
     await user.click(screen.getByRole('checkbox', { name: '顶部抽纸' }))

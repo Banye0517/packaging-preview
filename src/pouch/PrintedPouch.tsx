@@ -6,6 +6,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import type { ArtworkAsset, PouchState } from '../app/types'
 import { PouchFinishOverlay } from '../finish/PouchFinishOverlay'
 import type { PouchFinishState } from '../finish/finishTypes'
+import { ArtworkMaterial } from '../scene/artworkLighting'
 import { fitPouchGeometry, partitionPouchGeometry } from './pouchModelGeometry'
 
 interface PrintedPouchProps {
@@ -64,13 +65,13 @@ export function PrintedPouch({ pouch, finish }: PrintedPouchProps) {
 
   return (
     <group>
-      <mesh geometry={geometry.front} castShadow receiveShadow>
+      <mesh geometry={geometry.front} castShadow receiveShadow={false}>
         <PanelMaterial asset={pouch.faces.front} />
       </mesh>
-      <mesh geometry={geometry.back} castShadow receiveShadow>
+      <mesh geometry={geometry.back} castShadow receiveShadow={false}>
         <PanelMaterial asset={pouch.faces.back} />
       </mesh>
-      <mesh geometry={geometry.structure} castShadow receiveShadow>
+      <mesh geometry={geometry.structure} castShadow receiveShadow={false}>
         <meshStandardMaterial color={SEAL_COLOR} roughness={0.46} />
       </mesh>
       <PouchFinishOverlay
@@ -118,14 +119,7 @@ function LoadedPanelMaterial({ source }: { source: string }) {
 
   useEffect(() => () => texture.dispose(), [texture])
 
-  return (
-    <meshBasicMaterial
-      map={texture}
-      color="#ffffff"
-      toneMapped={false}
-      side={2}
-    />
-  )
+  return <ArtworkMaterial texture={texture} side={2} />
 }
 
 function ZipperRail({ width, y, z }: { width: number; y: number; z: number }) {

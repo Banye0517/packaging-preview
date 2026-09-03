@@ -566,6 +566,7 @@ export function App() {
                 <FaceTissueArtworkUploader
                   value={project.faceTissue}
                   error={faceTissueError}
+                  defaultOpen
                   onUpload={handleFaceTissueArtworkUpload}
                   onRemove={handleFaceTissueArtworkRemove}
                   onTransformChange={(key: keyof ArtworkTransform, value) => commit({
@@ -717,10 +718,17 @@ export function App() {
           ) : activeTab === 'camera' ? (
             <CameraPanel
               autoRotate={project.camera.autoRotate}
+              lightingIntensity={project.camera.lightingIntensity}
               onAutoRotateChange={(value) =>
                 commit({
                   type: 'commit',
                   action: { type: 'camera/autoRotate', value },
+                })
+              }
+              onLightingIntensityChange={(value) =>
+                commit({
+                  type: 'commit',
+                  action: { type: 'camera/lightingIntensity', value },
                 })
               }
             />

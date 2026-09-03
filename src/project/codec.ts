@@ -95,6 +95,11 @@ interface Version9ProjectState extends Omit<ProjectState, 'version' | 'innerPack
   version: 9
 }
 
+interface Version16ProjectState extends Omit<ProjectState, 'version' | 'camera'> {
+  version: 16
+  camera: { autoRotate: boolean }
+}
+
 function hasSharedProjectFields(project: Partial<Omit<ProjectState, 'version'>>) {
   return (
     typeof project.name === 'string' &&
@@ -555,8 +560,12 @@ function hasWashTissueFields(project: Partial<ProjectState>) {
 function isCurrentProjectState(value: unknown): value is ProjectState {
   if (!value || typeof value !== 'object') return false
   const project = value as Partial<ProjectState>
-  return project.version === 16 &&
+  return project.version === 17 &&
     hasSharedProjectFields(project) &&
+    typeof project.camera?.lightingIntensity === 'number' &&
+    Number.isFinite(project.camera.lightingIntensity) &&
+    project.camera.lightingIntensity >= -100 &&
+    project.camera.lightingIntensity <= 100 &&
     ['box', 'pouch', 'inner-packaging-1', 'inner-packaging-2', 'hanging-tissue', 'face-tissue', 'wet-tissue', 'wash-tissue'].includes(project.packagingType ?? '') &&
     hasPouchFields(project) &&
     hasVersion6InnerPackagingFields(project) &&
@@ -571,6 +580,17 @@ function isCurrentProjectState(value: unknown): value is ProjectState {
 
 function isProjectState(value: unknown): value is ProjectState {
   return isCurrentProjectState(value)
+}
+
+function isVersion16ProjectState(value: unknown): value is Version16ProjectState {
+  if (!value || typeof value !== 'object') return false
+  const project = value as Version16ProjectState
+  return project.version === 16 &&
+    isCurrentProjectState({
+      ...project,
+      version: 17,
+      camera: { ...project.camera, lightingIntensity: 0 },
+    })
 }
 
 function addHangingTissueArtworkReferences(
@@ -600,7 +620,8 @@ function addInnerPackaging2Stretch(value: Record<string, unknown>): ProjectState
   const project = value as unknown as Omit<ProjectState, 'version'> & { version: 10 }
   return {
     ...project,
-    version: 16,
+    version: 17,
+    camera: { ...project.camera, lightingIntensity: 0 },
     innerPackaging2: {
       ...project.innerPackaging2,
       transforms: {
@@ -644,10 +665,20 @@ export function decodeProject(source: string): ProjectState {
         washTissue: value.washTissue ?? createDefaultWashTissue(),
       }
     }
+    if (isVersion16ProjectState(value)) {
+      return {
+        ...value,
+        version: 17,
+        camera: { ...value.camera, lightingIntensity: 0 },
+        wetTissue: value.wetTissue ?? createDefaultWetTissue(),
+        washTissue: value.washTissue ?? createDefaultWashTissue(),
+      }
+    }
     if (isVersion15ProjectState(value)) {
       return {
         ...value,
-        version: 16,
+        version: 17,
+        camera: { ...value.camera, lightingIntensity: 0 },
         faceTissue: createDefaultFaceTissue(),
         wetTissue: createDefaultWetTissue(),
         washTissue: createDefaultWashTissue(),
@@ -656,7 +687,8 @@ export function decodeProject(source: string): ProjectState {
     if (isVersion14ProjectState(value)) {
       return {
         ...value,
-        version: 16,
+        version: 17,
+        camera: { ...value.camera, lightingIntensity: 0 },
         hangingTissue: value.hangingTissue,
         faceTissue: createDefaultFaceTissue(),
         wetTissue: createDefaultWetTissue(),
@@ -666,7 +698,8 @@ export function decodeProject(source: string): ProjectState {
     if (isVersion13ProjectState(value)) {
       return {
         ...value,
-        version: 16,
+        version: 17,
+        camera: { ...value.camera, lightingIntensity: 0 },
         hangingTissue: addHangingTissueArtworkReferences(value.hangingTissue),
         faceTissue: createDefaultFaceTissue(),
         wetTissue: createDefaultWetTissue(),
@@ -677,7 +710,8 @@ export function decodeProject(source: string): ProjectState {
       const hangingTissue = { ...value.hangingTissue, depth: 80 }
       return {
         ...value,
-        version: 16,
+        version: 17,
+        camera: { ...value.camera, lightingIntensity: 0 },
         hangingTissue: addHangingTissueArtworkReferences(hangingTissue),
         faceTissue: createDefaultFaceTissue(),
         wetTissue: createDefaultWetTissue(),
@@ -685,18 +719,19 @@ export function decodeProject(source: string): ProjectState {
       }
     }
     if (isVersion11ProjectState(value)) {
-      return { ...value, version: 16, hangingTissue: createDefaultHangingTissue(), faceTissue: createDefaultFaceTissue(), wetTissue: createDefaultWetTissue(), washTissue: createDefaultWashTissue() }
+      return { ...value, version: 17, camera: { ...value.camera, lightingIntensity: 0 }, hangingTissue: createDefaultHangingTissue(), faceTissue: createDefaultFaceTissue(), wetTissue: createDefaultWetTissue(), washTissue: createDefaultWashTissue() }
     }
     if (isVersion10ProjectState(value)) {
       return addInnerPackaging2Stretch(value as Record<string, unknown>)
     }
     if (isVersion9ProjectState(value)) {
-      return { ...value, version: 16, innerPackaging2: createDefaultInnerPackaging2(), hangingTissue: createDefaultHangingTissue(), faceTissue: createDefaultFaceTissue(), wetTissue: createDefaultWetTissue(), washTissue: createDefaultWashTissue() }
+      return { ...value, version: 17, camera: { ...value.camera, lightingIntensity: 0 }, innerPackaging2: createDefaultInnerPackaging2(), hangingTissue: createDefaultHangingTissue(), faceTissue: createDefaultFaceTissue(), wetTissue: createDefaultWetTissue(), washTissue: createDefaultWashTissue() }
     }
     if (isVersion8ProjectState(value)) {
       return {
         ...value,
-        version: 16,
+        version: 17,
+        camera: { ...value.camera, lightingIntensity: 0 },
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
         hangingTissue: createDefaultHangingTissue(),
@@ -708,7 +743,8 @@ export function decodeProject(source: string): ProjectState {
     if (isVersion7ProjectState(value)) {
       return {
         ...value,
-        version: 16,
+        version: 17,
+        camera: { ...value.camera, lightingIntensity: 0 },
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -721,7 +757,8 @@ export function decodeProject(source: string): ProjectState {
     if (isVersion6ProjectState(value)) {
       return {
         ...value,
-        version: 16,
+        version: 17,
+        camera: { ...value.camera, lightingIntensity: 0 },
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -738,7 +775,8 @@ export function decodeProject(source: string): ProjectState {
     if (isVersion5ProjectState(value)) {
       return {
         ...value,
-        version: 16,
+        version: 17,
+        camera: { ...value.camera, lightingIntensity: 0 },
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -758,7 +796,8 @@ export function decodeProject(source: string): ProjectState {
     if (isVersion4ProjectState(value)) {
       return {
         ...value,
-        version: 16,
+        version: 17,
+        camera: { ...value.camera, lightingIntensity: 0 },
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -782,7 +821,8 @@ export function decodeProject(source: string): ProjectState {
       const initial = createInitialProject()
       return {
         ...value,
-        version: 16,
+        version: 17,
+        camera: { ...value.camera, lightingIntensity: 0 },
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -810,7 +850,8 @@ export function decodeProject(source: string): ProjectState {
       const initial = createInitialProject()
       return {
         ...value,
-        version: 16,
+        version: 17,
+        camera: { ...value.camera, lightingIntensity: 0 },
         boxFinish: createDefaultBoxFinish(),
         pouchFinish: createDefaultPouchFinish(),
         innerPackaging2: createDefaultInnerPackaging2(),
@@ -829,7 +870,7 @@ export function decodeProject(source: string): ProjectState {
         activeTab: value.activeTab,
         faces: value.faces,
         box: value.box,
-        camera: value.camera,
+        camera: { ...value.camera, lightingIntensity: 0 },
       }
     }
   } catch {

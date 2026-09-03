@@ -4,10 +4,28 @@ import { createInitialProject, projectReducer } from './projectReducer'
 import type { ArtworkAsset } from './types'
 
 describe('projectReducer', () => {
+  it('initializes and bounds the global artwork lighting intensity', () => {
+    const initial = createInitialProject()
+
+    expect(initial.camera.lightingIntensity).toBe(0)
+    expect(projectReducer(initial, {
+      type: 'camera/lightingIntensity', value: 64,
+    }).camera.lightingIntensity).toBe(64)
+    expect(projectReducer(initial, {
+      type: 'camera/lightingIntensity', value: -100,
+    }).camera.lightingIntensity).toBe(-100)
+    expect(projectReducer(initial, {
+      type: 'camera/lightingIntensity', value: -101,
+    })).toBe(initial)
+    expect(projectReducer(initial, {
+      type: 'camera/lightingIntensity', value: 101,
+    })).toBe(initial)
+  })
+
   it('initializes face tissue with one artwork, editable dimensions, and a visible top sheet', () => {
     const initial = createInitialProject()
 
-    expect(initial.version).toBe(16)
+    expect(initial.version).toBe(17)
     expect(initial.faceTissue).toEqual({
       artwork: null,
       width: 160,
@@ -119,7 +137,7 @@ describe('projectReducer', () => {
   it('initializes hanging tissue with four independent faces and a visible pulled sheet', () => {
     const initial = createInitialProject()
 
-    expect(initial.version).toBe(16)
+    expect(initial.version).toBe(17)
     expect(initial.hangingTissue).toEqual({
       faces: { front: null, back: null, left: null, right: null },
       artworkReferenceDimensions: { front: null, back: null, left: null, right: null },
@@ -193,7 +211,7 @@ describe('projectReducer', () => {
   it('initializes inner packaging 2 with independent front and back transforms', () => {
     const initial = createInitialProject()
 
-    expect(initial.version).toBe(16)
+    expect(initial.version).toBe(17)
     expect(initial.innerPackaging2).toEqual({
       faces: { front: null, back: null },
       transforms: {

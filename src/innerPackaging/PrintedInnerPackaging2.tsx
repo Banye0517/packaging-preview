@@ -1,17 +1,16 @@
 import { useGLTF } from '@react-three/drei'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   CanvasTexture,
   Matrix4,
   Mesh,
-  MeshBasicMaterial,
   SRGBColorSpace,
   type BufferGeometry,
 } from 'three'
 
 import type { InnerPackaging2State } from '../app/types'
 import { fitPouchGeometry } from '../pouch/pouchModelGeometry'
-import { applyTextureMap } from '../scene/textureMaterial'
+import { ArtworkMaterial } from '../scene/artworkLighting'
 import {
   drawInnerPackaging2Atlas,
   extractInnerPackaging2UvRegions,
@@ -80,7 +79,7 @@ export function PrintedInnerPackaging2({ value }: { value: InnerPackaging2State 
 
   return (
     <group rotation={[0, 0, value.modelRotation * Math.PI / 180]}>
-      <mesh geometry={fittedGeometry} castShadow receiveShadow>
+      <mesh geometry={fittedGeometry} castShadow receiveShadow={false}>
         <InnerPackaging2Material value={value} uvRegions={uvRegions} />
       </mesh>
     </group>
@@ -96,7 +95,6 @@ function InnerPackaging2Material({
 }) {
   const frontImage = useLoadedImage(value.faces.front?.previewUrl)
   const backImage = useLoadedImage(value.faces.back?.previewUrl)
-  const materialRef = useRef<MeshBasicMaterial>(null)
   const texture = useMemo(() => {
     if (!frontImage && !backImage) return null
     const size = 1024
@@ -116,9 +114,6 @@ function InnerPackaging2Material({
   }, [backImage, frontImage, uvRegions, value.transforms.back, value.transforms.front])
 
   useEffect(() => () => texture?.dispose(), [texture])
-  useEffect(() => {
-    if (materialRef.current) applyTextureMap(materialRef.current, texture)
-  }, [texture])
 
   if (!frontImage && !backImage) {
     return (
@@ -131,15 +126,7 @@ function InnerPackaging2Material({
     )
   }
 
-  return (
-    <meshBasicMaterial
-      ref={materialRef}
-      map={texture}
-      color="#ffffff"
-      toneMapped={false}
-      side={2}
-    />
-  )
+  return <ArtworkMaterial texture={texture} side={2} />
 }
 
 useGLTF.preload(INNER_PACKAGING_2_MODEL_URL)

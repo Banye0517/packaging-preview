@@ -1,17 +1,16 @@
 import { useGLTF } from '@react-three/drei'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   CanvasTexture,
   Matrix4,
   Mesh,
-  MeshBasicMaterial,
   SRGBColorSpace,
   type BufferGeometry,
 } from 'three'
 
 import type { ArtworkAsset, InnerPackaging1State } from '../app/types'
 import { fitPouchGeometry } from '../pouch/pouchModelGeometry'
-import { applyTextureMap } from '../scene/textureMaterial'
+import { ArtworkMaterial } from '../scene/artworkLighting'
 
 const MODEL_URL = '/models/inner-packaging-1.gltf'
 const FILM_COLOR = '#f8fafc'
@@ -51,10 +50,12 @@ export function PrintedInnerPackaging1({ value }: { value: InnerPackaging1State 
   useEffect(() => () => fittedGeometry.dispose(), [fittedGeometry])
 
   return (
-    <group rotation={[0, 0, value.modelRotation * Math.PI / 180]}>
-      <mesh geometry={fittedGeometry} castShadow receiveShadow>
-        <PanelMaterial asset={value.artwork} transform={value} />
-      </mesh>
+    <group rotation={[0, Math.PI, 0]}>
+      <group rotation={[0, 0, value.modelRotation * Math.PI / 180]}>
+        <mesh geometry={fittedGeometry} castShadow receiveShadow={false}>
+          <PanelMaterial asset={value.artwork} transform={value} />
+        </mesh>
+      </group>
     </group>
   )
 }
@@ -98,7 +99,6 @@ function LoadedPanelMaterial({
   >
 }) {
   const [image, setImage] = useState<HTMLImageElement | null>(null)
-  const materialRef = useRef<MeshBasicMaterial>(null)
 
   useEffect(() => {
     const loaded = new Image()
@@ -149,17 +149,12 @@ function LoadedPanelMaterial({
   ])
 
   useEffect(() => () => texture?.dispose(), [texture])
-  useEffect(() => {
-    if (materialRef.current) applyTextureMap(materialRef.current, texture)
-  }, [texture])
-
   return (
-    <meshBasicMaterial
-      ref={materialRef}
-      map={texture}
-      color="#ffffff"
-      toneMapped={false}
+    <ArtworkMaterial
+      texture={texture}
       side={2}
+      roughness={0.92}
+      clearcoat={0}
     />
   )
 }

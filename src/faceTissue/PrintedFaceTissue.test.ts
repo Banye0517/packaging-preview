@@ -12,4 +12,10 @@ describe('PrintedFaceTissue renderer', () => {
     expect(source).toContain('value.showTopSheet')
     expect(source).toContain('modelRotation * Math.PI / 180')
   })
+
+  it('keeps directional shadow maps off the dense supplied package meshes', () => {
+    expect(source).toContain('material={bodyMaterial} castShadow receiveShadow={false}')
+    expect(source).toContain('material={sideMaterial} castShadow receiveShadow={false}')
+    expect(source).toMatch(/material=\{topSheetMaterial\}[\s\S]*castShadow[\s\S]*receiveShadow=\{false\}/)
+  })
 })

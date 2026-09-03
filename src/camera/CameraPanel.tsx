@@ -1,9 +1,16 @@
 interface CameraPanelProps {
   autoRotate: boolean
+  lightingIntensity: number
   onAutoRotateChange: (enabled: boolean) => void
+  onLightingIntensityChange: (value: number) => void
 }
 
-export function CameraPanel({ autoRotate, onAutoRotateChange }: CameraPanelProps) {
+export function CameraPanel({
+  autoRotate,
+  lightingIntensity,
+  onAutoRotateChange,
+  onLightingIntensityChange,
+}: CameraPanelProps) {
   return (
     <>
       <p className="eyebrow">CAMERA</p>
@@ -16,6 +23,37 @@ export function CameraPanel({ autoRotate, onAutoRotateChange }: CameraPanelProps
           checked={autoRotate}
           onChange={(event) => onAutoRotateChange(event.currentTarget.checked)}
         />
+      </label>
+      <label className="lighting-control">
+        <span className="lighting-control__header">
+          <span>打光强度</span>
+          <span className="lighting-control__number">
+            <input
+              aria-label="打光强度数值"
+              type="number"
+              min="-100"
+              max="100"
+              step="1"
+              value={lightingIntensity}
+              onChange={(event) => onLightingIntensityChange(Number(event.currentTarget.value))}
+            />
+            <span aria-hidden="true">%</span>
+          </span>
+        </span>
+        <input
+          aria-label="打光强度"
+          type="range"
+          min="-100"
+          max="100"
+          step="1"
+          value={lightingIntensity}
+          onChange={(event) => onLightingIntensityChange(Number(event.currentTarget.value))}
+        />
+        <span className="lighting-control__limits" aria-hidden="true">
+          <span>减弱</span>
+          <span>标准</span>
+          <span>增强</span>
+        </span>
       </label>
     </>
   )
