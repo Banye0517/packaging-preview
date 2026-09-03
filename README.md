@@ -13,9 +13,9 @@
 
 ## 产品演示
 
-[![包装预览产品演示](assets/packaging-preview-demo-poster.jpg)](https://raw.githubusercontent.com/Banye0517/packaging-preview/cc7857e148769c70918b1150f9f8e779a521feff/assets/packaging-preview-demo.mp4)
+[![包装预览产品演示](assets/packaging-preview-demo-poster.jpg)](https://packaging-preview.winstedlason269.chatgpt.site/media/packaging-preview-demo.mp4)
 
-点击上方封面播放 35 秒产品演示，也可以[直接打开演示视频](https://raw.githubusercontent.com/Banye0517/packaging-preview/cc7857e148769c70918b1150f9f8e779a521feff/assets/packaging-preview-demo.mp4)。
+点击上方封面播放 35 秒产品演示，也可以[直接打开演示视频](https://packaging-preview.winstedlason269.chatgpt.site/media/packaging-preview-demo.mp4)。
 
 在线预览：<https://packaging-preview.winstedlason269.chatgpt.site>
 
