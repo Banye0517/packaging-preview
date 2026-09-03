@@ -13,9 +13,9 @@
 
 ## 产品演示
 
-<video controls preload="metadata" width="100%" src="assets/packaging-preview-demo.mp4"></video>
+[![包装预览产品演示](assets/packaging-preview-demo-poster.jpg)](assets/packaging-preview-demo.mp4)
 
-如果当前页面不支持内嵌播放，可以[直接打开演示视频](assets/packaging-preview-demo.mp4)。
+点击上方封面播放 35 秒产品演示，也可以[直接打开演示视频](assets/packaging-preview-demo.mp4)。
 
 在线预览：<https://packaging-preview.winstedlason269.chatgpt.site>
 
