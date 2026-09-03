@@ -1,35 +1,49 @@
-# Packaging Preview
+# 包装预览 Packaging Preview
 
-Packaging Preview is a browser-based 3D packaging mockup tool for packaging designers. It maps uploaded artwork onto real package geometry so a design can be checked from multiple angles before production.
+包装预览是一款面向包装设计师的浏览器 3D 包装效果预览工具。它把平面设计稿映射到真实的包装结构上，让你在打样或反复导出渲染之前，快速检查不同角度下的贴图、尺寸、光照和表面工艺效果。
+
+## 它解决什么问题
+
+传统包装提案通常需要在 Photoshop、3D 软件和打样之间反复切换：改一处贴图就要重新渲染，盒装、自立袋、纸巾等不同结构也要分别处理。包装预览把这些检查集中到一个浏览器工具里，适合在设计评审、客户提案和打样前快速确认：
+
+- 设计稿是否正确贴合包装的真实结构和多个面
+- 尺寸、视角、光照变化后，整体效果是否仍然成立
+- 烫金、银色、镭射、局部 UV、压凹凸等工艺蒙版的位置是否准确
+- 是否需要在进入正式 3D 渲染或实物打样前先发现问题
+
+## 产品演示
+
+<video controls preload="metadata" width="100%" src="assets/packaging-preview-demo.mp4"></video>
+
+如果当前页面不支持内嵌播放，可以[直接打开演示视频](assets/packaging-preview-demo.mp4)。
 
 在线预览：<https://packaging-preview.winstedlason269.chatgpt.site>
 
-## Features
+## 功能
 
-- Six independent artwork uploads for box packaging.
-- Front and back artwork for stand-up pouches and inner packaging.
-- Full-UV artwork controls for inner packaging 1.
-- Front, back, left, and right artwork for hanging tissue packaging.
-- Separate artwork and finish state for box and pouch packaging.
-- Five stackable finishes: gold foil, silver foil, holographic, spot UV, and emboss/deboss.
-- Camera orbit, zoom, auto-rotate, and global upper-left studio-light intensity control.
-- Local project save/load and transparent PNG export presets.
-- Browser-local image processing; uploaded artwork is not sent to a server by the application.
+- 盒装支持前、后、左、右、上、下六面独立上传贴图
+- 自立袋和内包装 2 支持正面、背面贴图；内包装 1 支持完整 UV 图稿
+- 悬挂抽纸支持正、背、左、右四面贴图
+- 盒装和自立袋拥有独立的工艺状态
+- 支持烫金、银色、镭射、局部 UV、压凹凸五种可叠加工艺
+- 支持相机旋转、缩放、自动旋转和全局棚拍光强控制
+- 支持本地项目保存/加载和透明 PNG 导出
+- 上传图片在当前浏览器本地处理，不会由应用发送到服务器
 
-## Supported packaging types
+## 支持的包装类型
 
-The current prototype includes box, stand-up pouch, inner packaging 1, inner packaging 2, hanging tissue, face tissue, and wet tissue.
+盒装、自立袋、内包装 1、内包装 2、悬挂抽纸、面纸和湿纸巾。
 
-## Local development
+## 本地运行
 
-Requirements: Node.js 20 or newer.
+环境要求：Node.js 20 或更高版本。
 
 ```bash
 npm install
 npm run dev
 ```
 
-Production checks:
+生产检查：
 
 ```bash
 npm run typecheck
@@ -39,10 +53,10 @@ npm run build
 npm run test:sites
 ```
 
-## Scope and privacy
+## 范围与隐私
 
-This is a local-first prototype. It does not provide accounts, cloud project storage, AI recognition, dieline splitting, or automatic face assignment. Artwork is kept in browser memory or IndexedDB for local project workflows.
+这是一个 local-first 原型，不提供账号、云端项目存储、AI 识别、刀模拆分或自动面分配。设计稿只保存在当前浏览器内存或 IndexedDB 中，用于本地项目操作。
 
-## License
+## 许可证
 
-Source code and documentation are released under the [MIT License](LICENSE). The supplied model and image assets under `public/models/` are project inputs; verify their redistribution and commercial-use rights independently before reusing them.
+源代码和文档采用 [MIT License](LICENSE)。`public/models/` 下的模型和图片是本项目使用的输入素材，本仓库不声明其再分发或商业使用权；复用前请独立确认每项素材的授权范围。
