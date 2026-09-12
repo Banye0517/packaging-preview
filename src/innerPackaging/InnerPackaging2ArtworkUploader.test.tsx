@@ -2,13 +2,13 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { createInitialProject } from '../app/projectReducer'
+import { createInitialProject, getSelectedInstance } from '../app/projectReducer'
 import { InnerPackaging2ArtworkUploader } from './InnerPackaging2ArtworkUploader'
 
 describe('InnerPackaging2ArtworkUploader', () => {
   it('shows two face uploads and edits only the selected face transform', async () => {
     const user = userEvent.setup()
-    const value = createInitialProject().innerPackaging2
+    const value = getSelectedInstance(createInitialProject()).innerPackaging2
     const onSelectFace = vi.fn()
     const onTransformChange = vi.fn()
     const onTransformReset = vi.fn()

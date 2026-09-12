@@ -916,6 +916,7 @@ function decodeLegacyProjectValue(value: unknown): Version17ProjectState | null 
 
 function migrateVersion17(project: Version17ProjectState): ProjectState {
   const { version: _version, name, activeTab, camera, ...packageFields } = project
+  void _version
   return {
     version: 18,
     name,

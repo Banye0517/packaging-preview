@@ -38,4 +38,14 @@ describe('fitCompositionCamera', () => {
     expect(result.near).toBeGreaterThan(0)
     expect(result.far).toBeGreaterThan(result.near)
   })
+
+  it('keeps clipping planes safe while the user orbits around the composition', () => {
+    const result = fitCompositionCamera({ bounds: [-8, 0, -5, 8, 6, 5], fov: 38, aspect: 1.7 })
+    const radius = Math.hypot(8, 3, 5)
+    const horizontalFov = 2 * Math.atan(Math.tan(38 * Math.PI / 360) * 1.7)
+    const orbitSafeDistance = radius / Math.sin(Math.min(38 * Math.PI / 180, horizontalFov) / 2) * 1.12
+    expect(result.near).toBe(0.01)
+    expect(result.far).toBeGreaterThanOrEqual(result.distance + radius * 2)
+    expect(result.distance).toBeGreaterThanOrEqual(orbitSafeDistance)
+  })
 })

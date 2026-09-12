@@ -62,7 +62,16 @@ export function fitCompositionCamera(options: FitCompositionCameraOptions): FitC
   const verticalDistance = halfHeight / Math.tan(verticalFov / 2)
   const horizontalFov = 2 * Math.atan(Math.tan(verticalFov / 2) * aspect)
   const horizontalDistance = halfWidth / Math.tan(horizontalFov / 2)
-  const unclampedDistance = Math.max(verticalDistance, horizontalDistance) * MARGIN + halfDepth
+  const radius = Math.hypot(
+    (max[0] - min[0]) / 2,
+    (max[1] - min[1]) / 2,
+    (max[2] - min[2]) / 2,
+  )
+  const orbitSafeDistance = radius / Math.sin(Math.min(verticalFov, horizontalFov) / 2) * MARGIN
+  const unclampedDistance = Math.max(
+    Math.max(verticalDistance, horizontalDistance) * MARGIN + halfDepth,
+    orbitSafeDistance,
+  )
   const limits = options.distanceLimits ?? CAMERA_DISTANCE_LIMITS
   const distance = Math.min(Math.max(unclampedDistance, limits.min), limits.max)
   const position: Vec3Tuple = [target[0] - direction[0] * distance, target[1] - direction[1] * distance, target[2] - direction[2] * distance]
@@ -70,8 +79,8 @@ export function fitCompositionCamera(options: FitCompositionCameraOptions): FitC
     position,
     target,
     distance,
-    near: Math.max(0.01, distance - halfDepth - 1),
-    far: Math.max(distance + halfDepth + 1, distance + 1),
+    near: 0.01,
+    far: Math.max(distance + radius * 2, distance + 1),
   }
 }
 

@@ -3,8 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('../scene/BoxScene', () => ({
-  BoxScene: ({ project }: { project: { packagingType: string } }) => (
-    <div data-testid="packaging-scene" data-type={project.packagingType} />
+  BoxScene: ({ project }: { project: { instances: Array<{ id: string; packagingType: string }>; selectedInstanceId: string } }) => (
+    <div data-testid="packaging-scene" data-type={project.instances.find((instance) => instance.id === project.selectedInstanceId)?.packagingType} />
   ),
 }))
 
@@ -60,7 +60,7 @@ describe('App', () => {
     render(<App />)
 
     await user.click(screen.getByRole('tab', { name: '盒型' }))
-    await user.click(screen.getByRole('radio', { name: '自立袋' }))
+    await user.click(screen.getByRole('button', { name: '添加自立袋' }))
     expect(screen.getByTestId('packaging-scene')).toHaveAttribute('data-type', 'pouch')
     expect(screen.getByRole('spinbutton', { name: '袋体厚度（毫米）' })).toHaveValue(16)
 
@@ -73,8 +73,8 @@ describe('App', () => {
     render(<App />)
 
     await user.click(screen.getByRole('tab', { name: '盒型' }))
-    await user.click(screen.getByRole('radio', { name: '自立袋' }))
-    await user.click(screen.getByRole('radio', { name: '六面盒型' }))
+    await user.click(screen.getByRole('button', { name: '添加自立袋' }))
+    await user.click(screen.getByRole('button', { name: '六面盒型 1' }))
     await user.click(screen.getByRole('tab', { name: '贴图' }))
 
     expect(screen.getAllByLabelText(/^上传.+印刷图$/)).toHaveLength(6)
@@ -86,7 +86,7 @@ describe('App', () => {
     render(<App />)
 
     await user.click(screen.getByRole('tab', { name: '盒型' }))
-    await user.click(screen.getByRole('radio', { name: '内包装1' }))
+    await user.click(screen.getByRole('button', { name: '添加内包装1' }))
 
     expect(screen.getByTestId('packaging-scene')).toHaveAttribute(
       'data-type',
@@ -114,7 +114,7 @@ describe('App', () => {
     render(<App />)
 
     await user.click(screen.getByRole('tab', { name: '盒型' }))
-    await user.click(screen.getByRole('radio', { name: '内包装1' }))
+    await user.click(screen.getByRole('button', { name: '添加内包装1' }))
     await user.click(screen.getByRole('tab', { name: '贴图' }))
 
     fireEvent.change(screen.getByRole('slider', { name: '贴图缩放' }), {
@@ -161,7 +161,7 @@ describe('App', () => {
     expect(screen.getAllByLabelText(/^上传.+烫金蒙版$/)).toHaveLength(6)
 
     await user.click(screen.getByRole('tab', { name: '盒型' }))
-    await user.click(screen.getByRole('radio', { name: '自立袋' }))
+    await user.click(screen.getByRole('button', { name: '添加自立袋' }))
     await user.click(screen.getByRole('tab', { name: '工艺' }))
     expect(screen.getByRole('heading', { name: '表面工艺' })).toBeInTheDocument()
     expect(screen.getAllByLabelText(/^上传.+烫金蒙版$/)).toHaveLength(2)
@@ -172,7 +172,7 @@ describe('App', () => {
     render(<App />)
 
     await user.click(screen.getByRole('tab', { name: '盒型' }))
-    await user.click(screen.getByRole('radio', { name: '内包装2' }))
+    await user.click(screen.getByRole('button', { name: '添加内包装2' }))
     expect(screen.getByTestId('packaging-scene')).toHaveAttribute(
       'data-type',
       'inner-packaging-2',
@@ -194,7 +194,7 @@ describe('App', () => {
     render(<App />)
 
     await user.click(screen.getByRole('tab', { name: '盒型' }))
-    await user.click(screen.getByRole('radio', { name: '悬挂抽纸' }))
+    await user.click(screen.getByRole('button', { name: '添加悬挂抽纸' }))
     expect(screen.getByTestId('packaging-scene')).toHaveAttribute('data-type', 'hanging-tissue')
     expect(screen.getByRole('checkbox', { name: '显示抽纸' })).toBeChecked()
 
@@ -210,7 +210,7 @@ describe('App', () => {
     render(<App />)
 
     await user.click(screen.getByRole('tab', { name: '盒型' }))
-    await user.click(screen.getByRole('radio', { name: '面纸' }))
+    await user.click(screen.getByRole('button', { name: '添加面纸' }))
     expect(screen.getByTestId('packaging-scene')).toHaveAttribute('data-type', 'face-tissue')
     expect(screen.getByRole('spinbutton', { name: '盒身厚度（毫米）' })).toHaveValue(80)
     expect(screen.getByRole('checkbox', { name: '顶部抽纸' })).toBeChecked()
@@ -231,7 +231,7 @@ describe('App', () => {
     render(<App />)
 
     await user.click(screen.getByRole('tab', { name: '盒型' }))
-    await user.click(screen.getByRole('radio', { name: '湿纸巾' }))
+    await user.click(screen.getByRole('button', { name: '添加湿纸巾' }))
     expect(screen.getByTestId('packaging-scene')).toHaveAttribute('data-type', 'wet-tissue')
     expect(screen.getByRole('radio', { name: '打开' })).toBeChecked()
     expect(screen.getByRole('checkbox', { name: '顶部纸张' })).toBeChecked()
@@ -254,7 +254,7 @@ describe('App', () => {
     render(<App />)
 
     await user.click(screen.getByRole('tab', { name: '盒型' }))
-    await user.click(screen.getByRole('radio', { name: '洗脸巾' }))
+    await user.click(screen.getByRole('button', { name: '添加洗脸巾' }))
     expect(screen.getByTestId('packaging-scene')).toHaveAttribute('data-type', 'wash-tissue')
     expect(screen.getByRole('heading', { name: '洗脸巾设置' })).toBeInTheDocument()
     expect(screen.getByRole('checkbox', { name: '顶部纸张' })).toBeChecked()

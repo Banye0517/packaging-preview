@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { createInitialProject } from '../app/projectReducer'
+import { createInitialProject, getSelectedInstance } from '../app/projectReducer'
 import { PouchPanel } from './PouchPanel'
 
 describe('PouchPanel', () => {
@@ -11,7 +11,7 @@ describe('PouchPanel', () => {
     const onChange = vi.fn()
 
     render(
-      <PouchPanel pouch={createInitialProject().pouch} onChange={onChange} />,
+      <PouchPanel pouch={getSelectedInstance(createInitialProject()).pouch} onChange={onChange} />,
     )
 
     expect(screen.getAllByRole('radio')).toHaveLength(3)

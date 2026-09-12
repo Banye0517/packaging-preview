@@ -2,14 +2,14 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { createInitialProject } from '../app/projectReducer'
+import { createInitialProject, getSelectedInstance } from '../app/projectReducer'
 import { InnerPackagingArtworkUploader } from './InnerPackagingArtworkUploader'
 
 describe('InnerPackagingArtworkUploader', () => {
   it('allows typing a texture transform value directly', async () => {
     const user = userEvent.setup()
     const onTransformChange = vi.fn()
-    const value = createInitialProject().innerPackaging1
+    const value = getSelectedInstance(createInitialProject()).innerPackaging1
 
     render(
       <InnerPackagingArtworkUploader

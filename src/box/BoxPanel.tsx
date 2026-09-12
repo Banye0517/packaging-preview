@@ -1,9 +1,9 @@
-import type { ProjectState } from '../app/types'
+import type { PackageInstance } from '../app/types'
 
-type BoxKey = keyof ProjectState['box']
+type BoxKey = keyof PackageInstance['box']
 
 interface BoxPanelProps {
-  box: ProjectState['box']
+  box: PackageInstance['box']
   onChange: (key: BoxKey, value: number) => void
 }
 

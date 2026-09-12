@@ -18,8 +18,6 @@ import { clonePackageForAdd, createPackageInstance } from './packageFactory'
 import {
   DEFAULT_FINISH_PARAMETERS,
   DEFAULT_FINISH_TRANSFORM,
-  createDefaultBoxFinish,
-  createDefaultPouchFinish,
   isValidFinishParameter,
   type FinishKind,
   type FinishParameterKey,

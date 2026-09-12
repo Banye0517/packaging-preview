@@ -1,4 +1,4 @@
-import type { ArtworkAsset, BoxFace, ProjectState } from '../app/types'
+import type { ArtworkAsset, BoxFace, PackageInstance } from '../app/types'
 import { FaceUploader } from './FaceUploader'
 
 const FACE_LABELS: ReadonlyArray<{ face: BoxFace; label: string }> = [
@@ -11,7 +11,7 @@ const FACE_LABELS: ReadonlyArray<{ face: BoxFace; label: string }> = [
 ]
 
 interface FaceGridProps {
-  faces: ProjectState['faces']
+  faces: PackageInstance['faces']
   errors: Partial<Record<BoxFace, string>>
   onUpload: (face: BoxFace, file: File) => void
   onRemove: (face: BoxFace) => void

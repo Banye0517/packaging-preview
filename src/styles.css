@@ -894,6 +894,62 @@ input:focus-visible {
   cursor: pointer;
 }
 
+.composition-controls {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.composition-instances,
+.composition-adders,
+.composition-layouts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.composition-instance {
+  display: flex;
+}
+
+.composition-instance button,
+.composition-adders button,
+.composition-layouts label {
+  min-height: 44px;
+}
+
+.composition-instance button[aria-pressed="true"] {
+  color: white;
+  background: #172233;
+}
+
+.composition-adders button span {
+  margin-left: 6px;
+}
+
+.composition-layouts {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #dce4ef;
+  border-radius: 12px;
+}
+
+.composition-layouts legend {
+  padding-inline: 6px;
+}
+
+.composition-layouts label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.composition-limit {
+  margin: 0;
+  color: #657084;
+  font-size: 13px;
+}
+
 @media (max-width: 760px) {
   body {
     position: static;

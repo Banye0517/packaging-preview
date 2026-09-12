@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { createInitialProject } from '../app/projectReducer'
+import { createInitialProject, getSelectedInstance } from '../app/projectReducer'
 import { InnerPackaging1Panel } from './InnerPackaging1Panel'
 
 describe('InnerPackaging1Panel', () => {
@@ -12,7 +12,7 @@ describe('InnerPackaging1Panel', () => {
 
     render(
       <InnerPackaging1Panel
-        value={createInitialProject().innerPackaging1}
+        value={getSelectedInstance(createInitialProject()).innerPackaging1}
         onChange={vi.fn()}
         onRotationChange={onRotationChange}
       />,
@@ -24,7 +24,7 @@ describe('InnerPackaging1Panel', () => {
   })
 
   it('supports inner packaging 2 title without changing the default copy', () => {
-    const value = createInitialProject().innerPackaging1
+    const value = getSelectedInstance(createInitialProject()).innerPackaging1
     const { rerender } = render(
       <InnerPackaging1Panel
         value={value}

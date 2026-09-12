@@ -2,10 +2,10 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { ProjectState } from '../app/types'
+import type { PackageInstance } from '../app/types'
 import { FaceGrid } from './FaceGrid'
 
-const emptyFaces: ProjectState['faces'] = {
+const emptyFaces: PackageInstance['faces'] = {
   top: null,
   left: null,
   front: null,

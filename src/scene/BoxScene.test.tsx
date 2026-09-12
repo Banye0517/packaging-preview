@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { createInitialProject } from '../app/projectReducer'
+import { createInitialProject, getSelectedInstance } from '../app/projectReducer'
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -9,7 +9,8 @@ vi.mock('@react-three/fiber', () => ({
     gl: object
     scene: object
     camera: object
-  }) => unknown) => selector({ gl: {}, scene: {}, camera: {} }),
+    size: { width: number; height: number }
+  }) => unknown) => selector({ gl: {}, scene: {}, camera: {}, size: { width: 1000, height: 1000 } }),
 }))
 
 vi.mock('@react-three/drei', () => ({
@@ -33,6 +34,17 @@ vi.mock('../wetTissue/PrintedWetTissue', () => ({
 vi.mock('../washTissue/PrintedWashTissue', () => ({
   PrintedWashTissue: () => <div data-testid="printed-wash-tissue" />,
 }))
+vi.mock('../composition/PackageInstanceView', () => ({
+  PackageInstanceView: ({ instance }: { instance: { packagingType: string } }) => {
+    const testId = {
+      'hanging-tissue': 'printed-hanging-tissue',
+      'face-tissue': 'printed-face-tissue',
+      'wet-tissue': 'printed-wet-tissue',
+      'wash-tissue': 'printed-wash-tissue',
+    }[instance.packagingType]
+    return testId ? <div data-testid={testId} /> : null
+  },
+}))
 vi.mock('./StudioEnvironment', () => ({ StudioEnvironment: () => null }))
 
 import { BoxScene } from './BoxScene'
@@ -46,7 +58,7 @@ describe('BoxScene', () => {
 
   it('renders the hanging tissue model for the hanging tissue packaging type', () => {
     const project = createInitialProject()
-    project.packagingType = 'hanging-tissue'
+    getSelectedInstance(project).packagingType = 'hanging-tissue'
 
     render(<BoxScene project={project} command={null} />)
 
@@ -55,7 +67,7 @@ describe('BoxScene', () => {
 
   it('renders the face tissue model for the face tissue packaging type', () => {
     const project = createInitialProject()
-    project.packagingType = 'face-tissue'
+    getSelectedInstance(project).packagingType = 'face-tissue'
 
     render(<BoxScene project={project} command={null} />)
 
@@ -64,7 +76,7 @@ describe('BoxScene', () => {
 
   it('renders the wet tissue model for the wet tissue packaging type', () => {
     const project = createInitialProject()
-    project.packagingType = 'wet-tissue'
+    getSelectedInstance(project).packagingType = 'wet-tissue'
 
     render(<BoxScene project={project} command={null} />)
 
@@ -73,7 +85,7 @@ describe('BoxScene', () => {
 
   it('renders the wash tissue model for the wash tissue packaging type', () => {
     const project = createInitialProject()
-    project.packagingType = 'wash-tissue'
+    getSelectedInstance(project).packagingType = 'wash-tissue'
 
     render(<BoxScene project={project} command={null} />)
 

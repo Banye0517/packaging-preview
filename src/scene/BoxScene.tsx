@@ -1,23 +1,19 @@
 import { ContactShadows, OrbitControls } from '@react-three/drei'
 import { Canvas, useThree } from '@react-three/fiber'
-import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
+import { forwardRef, Suspense, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import type { PerspectiveCamera } from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 
-import type { ProjectState } from '../app/types'
+import type { PackageInstance, ProjectState } from '../app/types'
 import { renderTransparentPng, type PngExportSize } from '../export/transparentPng'
-import { PrintedInnerPackaging1 } from '../innerPackaging/PrintedInnerPackaging1'
-import { PrintedInnerPackaging2 } from '../innerPackaging/PrintedInnerPackaging2'
-import { PrintedHangingTissue } from '../hangingTissue/PrintedHangingTissue'
-import { PrintedFaceTissue } from '../faceTissue/PrintedFaceTissue'
-import { PrintedWetTissue } from '../wetTissue/PrintedWetTissue'
-import { PrintedWashTissue } from '../washTissue/PrintedWashTissue'
-import { PrintedPouch } from '../pouch/PrintedPouch'
-import { PrintedBox } from './PrintedBox'
+import { PackageInstanceView } from '../composition/PackageInstanceView'
+import { PackageModelErrorBoundary } from '../composition/PackageModelErrorBoundary'
+import { calculateCompositionLayout, type LayoutBounds } from '../composition/layout'
 import { CAMERA_POLAR_LIMITS, CAMERA_POSITIONS } from './cameraLimits'
 import type { CameraCommand } from './PreviewControls'
 import { StudioEnvironment } from './StudioEnvironment'
 import { getStudioLighting } from './studioLighting'
+import { fitCompositionCamera } from './fitCompositionCamera'
 
 export interface CameraCommandRequest {
   type: CameraCommand
@@ -27,6 +23,7 @@ export interface CameraCommandRequest {
 interface BoxSceneProps {
   project: ProjectState
   command: CameraCommandRequest | null
+  onSelectInstance?: (id: string) => void
 }
 
 export interface BoxSceneHandle {
@@ -38,11 +35,43 @@ export interface PngExportRequest {
   includeShadow: boolean
 }
 
+function approximateBounds(instance: PackageInstance): LayoutBounds {
+  let width: number
+  let height: number
+  let depth = 80
+  if (instance.packagingType === 'box') ({ width, height, depth } = instance.box)
+  else if (instance.packagingType === 'pouch') ({ width, height, thickness: depth } = instance.pouch)
+  else if (instance.packagingType === 'inner-packaging-1') ({ width, height } = instance.innerPackaging1)
+  else if (instance.packagingType === 'inner-packaging-2') ({ width, height } = instance.innerPackaging2)
+  else if (instance.packagingType === 'hanging-tissue') ({ width, height, depth } = instance.hangingTissue)
+  else if (instance.packagingType === 'wet-tissue') ({ width, height, thickness: depth } = instance.wetTissue)
+  else if (instance.packagingType === 'wash-tissue') ({ width, height, thickness: depth } = instance.washTissue)
+  else ({ width, height, thickness: depth } = instance.faceTissue)
+  const scale = 3.6 / 220
+  return {
+    id: instance.id,
+    min: [-width * scale / 2, -height * scale / 2, -depth * scale / 2],
+    max: [width * scale / 2, height * scale / 2, depth * scale / 2],
+  }
+}
+
 export const BoxScene = forwardRef<BoxSceneHandle, BoxSceneProps>(function BoxScene(
-  { project, command },
+  { project, command, onSelectInstance = () => undefined },
   ref,
 ) {
   const lighting = getStudioLighting(project.camera.lightingIntensity)
+  const [measuredBounds, setMeasuredBounds] = useState<Record<string, LayoutBounds>>({})
+  const [failedIds, setFailedIds] = useState<Set<string>>(() => new Set())
+  const handleBounds = useCallback((id: string, bounds: LayoutBounds) => {
+    setMeasuredBounds((current) => current[id] === bounds ? current : { ...current, [id]: bounds })
+  }, [])
+  const layout = useMemo(() => calculateCompositionLayout(
+    project.instances.filter((instance) => !failedIds.has(instance.id)).map((instance) => measuredBounds[instance.id] ?? approximateBounds(instance)),
+    project.layout,
+    project.heroInstanceId,
+  ), [failedIds, measuredBounds, project.heroInstanceId, project.instances, project.layout])
+  const positions = new Map(layout.items.map((item) => [item.id, item]))
+  const span = Math.max(8, layout.bounds.max[0] - layout.bounds.min[0] + 2, layout.bounds.max[2] - layout.bounds.min[2] + 2)
   return (
     <Canvas
       className="box-canvas"
@@ -60,35 +89,35 @@ export const BoxScene = forwardRef<BoxSceneHandle, BoxSceneProps>(function BoxSc
       />
       <directionalLight intensity={lighting.fillIntensity} position={lighting.fillPosition} />
       <StudioEnvironment intensityScale={lighting.environmentScale} />
-      <group position={[0, 0.2, 0]}>
-        {project.packagingType === 'box' ? (
-          <PrintedBox faces={project.faces} box={project.box} finish={project.boxFinish} />
-        ) : project.packagingType === 'pouch' ? (
-          <PrintedPouch pouch={project.pouch} finish={project.pouchFinish} />
-        ) : project.packagingType === 'inner-packaging-1' ? (
-          <PrintedInnerPackaging1 value={project.innerPackaging1} />
-        ) : project.packagingType === 'inner-packaging-2' ? (
-          <PrintedInnerPackaging2 value={project.innerPackaging2} />
-        ) : project.packagingType === 'hanging-tissue' ? (
-          <PrintedHangingTissue value={project.hangingTissue} />
-        ) : project.packagingType === 'wet-tissue' ? (
-          <PrintedWetTissue value={project.wetTissue} />
-        ) : project.packagingType === 'wash-tissue' ? (
-          <PrintedWashTissue value={project.washTissue} />
-        ) : (
-          <PrintedFaceTissue value={project.faceTissue} />
-        )}
-      </group>
+      {project.instances.map((instance) => {
+        const placement = positions.get(instance.id)
+        return placement ? (
+          <group key={instance.id}>
+            <PackageModelErrorBoundary onError={() => setFailedIds((current) => new Set(current).add(instance.id))}>
+              <Suspense fallback={null}>
+                <PackageInstanceView
+                  instance={instance}
+                  position={placement.position}
+                  rotationY={placement.rotationY}
+                  selected={instance.id === project.selectedInstanceId}
+                  onSelect={onSelectInstance}
+                  onBounds={handleBounds}
+                />
+              </Suspense>
+            </PackageModelErrorBoundary>
+          </group>
+        ) : null
+      })}
       <group name="product-contact-shadow">
         <ContactShadows
-          position={[0, -1.67, 0]}
+          position={[0, 0, 0]}
           opacity={0.26}
-          scale={8}
+          scale={span}
           blur={2.4}
           far={4}
         />
       </group>
-      <CameraControls autoRotate={project.camera.autoRotate} command={command} />
+      <CameraControls autoRotate={project.camera.autoRotate} command={command} bounds={layout.bounds} />
       <ExportController ref={ref} />
     </Canvas>
   )
@@ -115,22 +144,64 @@ const ExportController = forwardRef<BoxSceneHandle>(function ExportController(_,
 function CameraControls({
   autoRotate,
   command,
+  bounds,
 }: {
   autoRotate: boolean
   command: CameraCommandRequest | null
+  bounds: { min: [number, number, number]; max: [number, number, number] }
 }) {
   const controls = useRef<OrbitControlsImpl>(null)
   const camera = useThree((state) => state.camera)
+  const size = useThree((state) => state.size)
 
+  // Three.js camera objects are intentionally mutated by the scene controller.
+  // eslint-disable-next-line react-hooks/immutability
+  useEffect(() => {
+    if (!controls.current || !('isPerspectiveCamera' in camera)) return
+    const target = controls.current.target
+    const direction: [number, number, number] = [
+      target.x - camera.position.x,
+      target.y - camera.position.y,
+      target.z - camera.position.z,
+    ]
+    const fit = fitCompositionCamera({
+      bounds,
+      fov: (camera as PerspectiveCamera).fov,
+      aspect: Math.max(size.width / Math.max(size.height, 1), 0.1),
+      viewDirection: direction,
+    })
+    camera.position.set(...fit.position)
+    // eslint-disable-next-line react-hooks/immutability
+    camera.near = fit.near
+    camera.far = fit.far
+    camera.updateProjectionMatrix()
+    target.set(...fit.target)
+    controls.current.update()
+  }, [bounds, camera, size.height, size.width])
+
+  // Three.js camera objects are intentionally mutated by the scene controller.
+  // eslint-disable-next-line react-hooks/immutability
   useEffect(() => {
     if (!command || !controls.current) return
     const target = controls.current.target
-
-    const position = CAMERA_POSITIONS[command.type]
-    camera.position.set(position[0], position[1], position[2])
-    target.set(0, 0.2, 0)
+    const preset = CAMERA_POSITIONS[command.type]
+    const viewDirection: [number, number, number] = command.type === 'front'
+      ? [0, 0, -1]
+      : [-preset[0], -preset[1], -preset[2]]
+    const fit = fitCompositionCamera({
+      bounds,
+      fov: (camera as PerspectiveCamera).fov,
+      aspect: Math.max(size.width / Math.max(size.height, 1), 0.1),
+      viewDirection,
+    })
+    camera.position.set(...fit.position)
+    // eslint-disable-next-line react-hooks/immutability
+    camera.near = fit.near
+    camera.far = fit.far
+    camera.updateProjectionMatrix()
+    target.set(...fit.target)
     controls.current.update()
-  }, [camera, command])
+  }, [bounds, camera, command, size.height, size.width])
 
   return (
     <OrbitControls
@@ -140,7 +211,7 @@ function CameraControls({
       autoRotateSpeed={1.4}
       enableDamping
       minDistance={4.5}
-      maxDistance={15}
+      maxDistance={40}
       minPolarAngle={CAMERA_POLAR_LIMITS.min}
       maxPolarAngle={CAMERA_POLAR_LIMITS.max}
     />

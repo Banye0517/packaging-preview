@@ -5,16 +5,16 @@ import {
   TextureLoader,
 } from 'three'
 
-import type { ProjectState } from '../app/types'
+import type { PackageInstance } from '../app/types'
 import { FinishOverlay } from '../finish/FinishOverlay'
 import { BOX_MATERIAL_FACE_ORDER, DEFAULT_BOX_ROTATION } from './faceMaterials'
 import { createRoundedBoxGeometry } from './roundedBoxGeometry'
 import { ArtworkMaterial } from './artworkLighting'
 
 interface PrintedBoxProps {
-  faces: ProjectState['faces']
-  box: ProjectState['box']
-  finish: ProjectState['boxFinish']
+  faces: PackageInstance['faces']
+  box: PackageInstance['box']
+  finish: PackageInstance['boxFinish']
 }
 
 export function PrintedBox({ faces, box, finish }: PrintedBoxProps) {

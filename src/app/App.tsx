@@ -29,13 +29,14 @@ import { WetTissueArtworkUploader } from '../wetTissue/WetTissueArtworkUploader'
 import { WetTissuePanel } from '../wetTissue/WetTissuePanel'
 import { PouchPanel } from '../pouch/PouchPanel'
 import { FinishPanel } from '../finish/FinishPanel'
+import { CompositionControls } from '../composition/CompositionControls'
 import type { FinishKind } from '../finish/finishTypes'
 import { createProjectHistory, projectHistoryReducer } from './projectHistory'
+import { getSelectedInstance } from './projectReducer'
 import type {
   BoxFace,
   HangingTissueFace,
   ArtworkTransform,
-  PackagingType,
   PouchClosure,
   PouchFace,
   PouchState,
@@ -73,7 +74,9 @@ export function App() {
   const [showHelp, setShowHelp] = useState(false)
   const openInputRef = useRef<HTMLInputElement>(null)
   const boxSceneRef = useRef<BoxSceneHandle>(null)
-  const project = history.present
+  const rootProject = history.present
+  const selectedInstance = getSelectedInstance(rootProject)
+  const project = { ...rootProject, ...selectedInstance }
 
   function commit(action: Parameters<typeof projectHistoryReducer>[1] & { type: 'commit' }) {
     historyDispatch(action)
@@ -377,7 +380,7 @@ export function App() {
   }
 
   function handleSave() {
-    const savedProject = { ...project, name }
+    const savedProject = { ...rootProject, name }
     downloadFile(
       new Blob([encodeProject(savedProject)], { type: 'application/json' }),
       `${name || '未命名包装'}.boxlab.json`,
@@ -459,8 +462,9 @@ export function App() {
         <section className="preview-stage" aria-label="包装盒三维预览区">
           <BoxScene
             ref={boxSceneRef}
-            project={project}
+            project={rootProject}
             command={cameraCommand}
+            onSelectInstance={(id) => commit({ type: 'commit', action: { type: 'instance/select', id } })}
           />
           <div className="preview-copy preview-copy--overlay">
             <span>3D PREVIEW</span>
@@ -469,6 +473,15 @@ export function App() {
           <PreviewControls onCommand={handleCameraCommand} />
         </section>
         <SettingsPanel activeTab={activeTab} onTabChange={setActiveTab}>
+          <CompositionControls
+            instances={rootProject.instances}
+            selectedId={rootProject.selectedInstanceId}
+            layout={rootProject.layout}
+            onAdd={(packagingType) => commit({ type: 'commit', action: { type: 'instance/add', packagingType, id: crypto.randomUUID() } })}
+            onSelect={(id) => commit({ type: 'commit', action: { type: 'instance/select', id } })}
+            onRemove={(id) => commit({ type: 'commit', action: { type: 'instance/remove', id } })}
+            onLayout={(value) => commit({ type: 'commit', action: { type: 'layout/set', value } })}
+          />
           {activeTab === 'artwork' ? (
             <>
               <p className="eyebrow">PRINT LAYERS</p>
@@ -620,12 +633,6 @@ export function App() {
             </>
           ) : activeTab === 'box' ? (
             <>
-              <PackagingTypeSwitch
-                value={project.packagingType}
-                onChange={(value) =>
-                  commit({ type: 'commit', action: { type: 'packaging/type', value } })
-                }
-              />
               {project.packagingType === 'box' ? (
                 <BoxPanel
                   box={project.box}
@@ -782,40 +789,5 @@ export function App() {
         </div>
       ) : null}
     </div>
-  )
-}
-
-function PackagingTypeSwitch({
-  value,
-  onChange,
-}: {
-  value: PackagingType
-  onChange: (value: PackagingType) => void
-}) {
-  return (
-    <fieldset className="packaging-type-switch">
-      <legend>包装类型</legend>
-      {([
-        ['box', '六面盒型'],
-        ['pouch', '自立袋'],
-        ['inner-packaging-1', '内包装1'],
-        ['inner-packaging-2', '内包装2'],
-        ['hanging-tissue', '悬挂抽纸'],
-        ['face-tissue', '面纸'],
-        ['wet-tissue', '湿纸巾'],
-        ['wash-tissue', '洗脸巾'],
-      ] as const).map(([type, label]) => (
-        <label key={type}>
-          <input
-            type="radio"
-            name="packaging-type"
-            value={type}
-            checked={value === type}
-            onChange={() => onChange(type)}
-          />
-          <span>{label}</span>
-        </label>
-      ))}
-    </fieldset>
   )
 }

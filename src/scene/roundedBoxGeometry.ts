@@ -1,11 +1,11 @@
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 
-import type { ProjectState } from '../app/types'
+import type { PackageInstance } from '../app/types'
 
 const NORMALIZED_HEIGHT = 3.6
 const CORNER_SEGMENTS = 6
 
-export function getRoundedBoxDimensions(box: ProjectState['box']) {
+export function getRoundedBoxDimensions(box: PackageInstance['box']) {
   const scale = NORMALIZED_HEIGHT / box.height
   return {
     width: box.width * scale,
@@ -15,7 +15,7 @@ export function getRoundedBoxDimensions(box: ProjectState['box']) {
   }
 }
 
-export function createRoundedBoxGeometry(box: ProjectState['box']) {
+export function createRoundedBoxGeometry(box: PackageInstance['box']) {
   const dimensions = getRoundedBoxDimensions(box)
   return new RoundedBoxGeometry(
     dimensions.width,

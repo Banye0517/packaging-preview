@@ -30,21 +30,27 @@ interface PreparedItem extends LayoutBounds {
 }
 
 function rotateBounds(item: LayoutBounds, rotationY: number): PreparedItem {
-  const width = item.max[0] - item.min[0]
   const height = item.max[1] - item.min[1]
-  const depth = item.max[2] - item.min[2]
-  const cosine = Math.abs(Math.cos(rotationY))
-  const sine = Math.abs(Math.sin(rotationY))
-  const rotatedWidth = width * cosine + depth * sine
-  const rotatedDepth = width * sine + depth * cosine
+  const cosine = Math.cos(rotationY)
+  const sine = Math.sin(rotationY)
+  const corners = [
+    [item.min[0], item.min[2]], [item.min[0], item.max[2]],
+    [item.max[0], item.min[2]], [item.max[0], item.max[2]],
+  ]
+  const rotatedX = corners.map(([x, z]) => x * cosine + z * sine)
+  const rotatedZ = corners.map(([x, z]) => -x * sine + z * cosine)
+  const minX = Math.min(...rotatedX)
+  const maxX = Math.max(...rotatedX)
+  const minZ = Math.min(...rotatedZ)
+  const maxZ = Math.max(...rotatedZ)
 
   return {
     ...item,
-    min: [-rotatedWidth / 2, item.min[1], -rotatedDepth / 2],
-    max: [rotatedWidth / 2, item.max[1], rotatedDepth / 2],
-    width: rotatedWidth,
+    min: [minX, item.min[1], minZ],
+    max: [maxX, item.max[1], maxZ],
+    width: maxX - minX,
     height,
-    depth: rotatedDepth,
+    depth: maxZ - minZ,
     rotationY,
   }
 }
@@ -60,9 +66,11 @@ function packRow(items: PreparedItem[], z: number, gap: number) {
 }
 
 function placeItem(item: PreparedItem, x: number, z: number): PlacedLayoutItem {
+  const centerX = (item.min[0] + item.max[0]) / 2
+  const centerZ = (item.min[2] + item.max[2]) / 2
   return {
     id: item.id,
-    position: [x, -item.min[1], z],
+    position: [x - centerX, -item.min[1], z - centerZ],
     rotationY: item.rotationY,
     scale: [1, 1, 1],
     rotatedBounds: {
@@ -83,7 +91,7 @@ function layoutCluster(items: LayoutBounds[], gap: number) {
   const maximumDepth = Math.max(...prepared.map((item) => item.depth))
   return placed.map((item, index) => ({
     ...item,
-    position: [item.position[0], item.position[1], (index % 2 === 0 ? 0.08 : -0.08) * maximumDepth] as Vec3Tuple,
+    position: [item.position[0], item.position[1], item.position[2] + (index % 2 === 0 ? 0.08 : -0.08) * maximumDepth] as Vec3Tuple,
   }))
 }
 
@@ -107,18 +115,29 @@ function layoutHero(items: LayoutBounds[], heroId: string | null, gap: number) {
   const others = items
     .filter((_, index) => index !== heroIndex)
     .map((item, index) => rotateBounds(item, index % 2 === 0 ? 0.1 : -0.1))
+  if (items.length === 2) {
+    const other = others[0]
+    const distance = hero.depth / 2 + other.depth / 2 + gap
+    const byId = new Map([
+      placeItem(hero, 0, distance / 2),
+      placeItem(other, 0, -distance / 2),
+    ].map((item) => [item.id, item]))
+    return items.map((item) => byId.get(item.id)!)
+  }
   const left = others.filter((_, index) => index % 2 === 0).reverse()
   const right = others.filter((_, index) => index % 2 === 1)
   const leftPlaced = packRow(left, 0, gap)
   const rightPlaced = packRow(right, 0, gap)
   let leftCursor = -hero.width / 2 - gap
   for (const item of leftPlaced.reverse()) {
-    item.position[0] = leftCursor - (item.rotatedBounds.max[0] - item.rotatedBounds.min[0]) / 2
+    const localCenter = (item.rotatedBounds.min[0] + item.rotatedBounds.max[0]) / 2
+    item.position[0] = leftCursor - (item.rotatedBounds.max[0] - item.rotatedBounds.min[0]) / 2 - localCenter
     leftCursor = item.position[0] - (item.rotatedBounds.max[0] - item.rotatedBounds.min[0]) / 2 - gap
   }
   let rightCursor = hero.width / 2 + gap
   for (const item of rightPlaced) {
-    item.position[0] = rightCursor + (item.rotatedBounds.max[0] - item.rotatedBounds.min[0]) / 2
+    const localCenter = (item.rotatedBounds.min[0] + item.rotatedBounds.max[0]) / 2
+    item.position[0] = rightCursor + (item.rotatedBounds.max[0] - item.rotatedBounds.min[0]) / 2 - localCenter
     rightCursor = item.position[0] + (item.rotatedBounds.max[0] - item.rotatedBounds.min[0]) / 2 + gap
   }
   if (leftPlaced.length > 0 && rightPlaced.length > 0) {

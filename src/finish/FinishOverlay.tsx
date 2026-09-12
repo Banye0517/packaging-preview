@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { SRGBColorSpace, TextureLoader, type Texture } from 'three'
 
-import type { BoxFace, ProjectState } from '../app/types'
+import type { BoxFace, PackageInstance } from '../app/types'
 import { BOX_MATERIAL_FACE_ORDER } from '../scene/faceMaterials'
 import { createRoundedBoxGeometry } from '../scene/roundedBoxGeometry'
 import { createHolographicFilmTexture, createMetalFilmTexture, loadInvertedFinishMask } from './finishTexture'
@@ -14,9 +14,9 @@ import {
 } from './finishTypes'
 
 export function FinishOverlay({ box, finish, faces }: {
-  box: ProjectState['box']
+  box: PackageInstance['box']
   finish: BoxFinishState
-  faces: ProjectState['faces']
+  faces: PackageInstance['faces']
 }) {
   const { width, height, depth, radius } = box
   const geometry = useMemo(
