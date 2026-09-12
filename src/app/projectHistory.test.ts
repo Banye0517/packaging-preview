@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { createProjectHistory, projectHistoryReducer } from './projectHistory'
+import { getSelectedInstance } from './projectReducer'
 
 describe('projectHistoryReducer', () => {
   it('undoes and redoes a committed box change', () => {
@@ -12,9 +13,9 @@ describe('projectHistoryReducer', () => {
     const undone = projectHistoryReducer(changed, { type: 'undo' })
     const redone = projectHistoryReducer(undone, { type: 'redo' })
 
-    expect(changed.present.box.width).toBe(240)
-    expect(undone.present.box.width).toBe(initial.present.box.width)
-    expect(redone.present.box.width).toBe(240)
+    expect(getSelectedInstance(changed.present).box.width).toBe(240)
+    expect(getSelectedInstance(undone.present).box.width).toBe(getSelectedInstance(initial.present).box.width)
+    expect(getSelectedInstance(redone.present).box.width).toBe(240)
   })
 
   it('resets the project and preserves the previous state for undo', () => {
@@ -24,7 +25,7 @@ describe('projectHistoryReducer', () => {
     })
     const reset = projectHistoryReducer(changed, { type: 'reset' })
 
-    expect(reset.present.box.height).toBe(220)
-    expect(reset.past.at(-1)?.box.height).toBe(310)
+    expect(getSelectedInstance(reset.present).box.height).toBe(220)
+    expect(getSelectedInstance(reset.past.at(-1)!).box.height).toBe(310)
   })
 })

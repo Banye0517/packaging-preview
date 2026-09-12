@@ -10,8 +10,11 @@ import {
   type InnerPackagingModelRotation,
   type PouchClosure,
   type PouchFace,
+  type PackageInstance,
+  type CompositionLayout,
   type ProjectState,
 } from './types'
+import { clonePackageForAdd, createPackageInstance } from './packageFactory'
 import {
   DEFAULT_FINISH_PARAMETERS,
   DEFAULT_FINISH_TRANSFORM,
@@ -23,11 +26,10 @@ import {
   type FinishTransformKey,
 } from '../finish/finishTypes'
 
-export type ProjectAction =
+export type PackageAction =
   | { type: 'face/set'; face: BoxFace; asset: ArtworkAsset }
   | { type: 'face/remove'; face: BoxFace }
-  | { type: 'box/set'; key: keyof ProjectState['box']; value: number }
-  | { type: 'packaging/type'; value: PackagingType }
+  | { type: 'box/set'; key: keyof PackageInstance['box']; value: number }
   | { type: 'pouch/face-set'; face: PouchFace; asset: ArtworkAsset }
   | { type: 'pouch/face-remove'; face: PouchFace }
   | {
@@ -83,7 +85,7 @@ export type ProjectAction =
       type: 'hanging-tissue/face-set'
       face: HangingTissueFace
       asset: ArtworkAsset
-      referenceDimensions: ProjectState['hangingTissue']['artworkReferenceDimensions'][HangingTissueFace]
+      referenceDimensions: PackageInstance['hangingTissue']['artworkReferenceDimensions'][HangingTissueFace]
     }
   | { type: 'hanging-tissue/face-remove'; face: HangingTissueFace }
   | { type: 'hanging-tissue/select-face'; face: HangingTissueFace }
@@ -115,8 +117,6 @@ export type ProjectAction =
   | { type: 'wet-tissue/set'; key: 'width' | 'height' | 'thickness'; value: number }
   | { type: 'wet-tissue/set-model-state'; value: 'open' | 'closed' }
   | { type: 'wet-tissue/set-top-sheet'; value: boolean }
-  | { type: 'camera/autoRotate'; value: boolean }
-  | { type: 'camera/lightingIntensity'; value: number }
   | { type: 'box-finish/select-kind'; kind: FinishKind }
   | { type: 'box-finish/select-face'; face: BoxFace }
   | { type: 'box-finish/enabled-set'; kind: FinishKind; value: boolean }
@@ -138,10 +138,6 @@ export type ProjectAction =
   | { type: 'pouch-finish/mask-transform-set'; kind: FinishKind; face: PouchFace; key: FinishTransformKey; value: number }
   | { type: 'pouch-finish/mask-transform-reset'; kind: FinishKind; face: PouchFace }
 
-function createEmptyFaces(): ProjectState['faces'] {
-  return Object.fromEntries(BOX_FACES.map((face) => [face, null])) as ProjectState['faces']
-}
-
 const DEFAULT_ARTWORK_TRANSFORM: ArtworkTransform = {
   scale: 100,
   offsetX: 0,
@@ -151,7 +147,7 @@ const DEFAULT_ARTWORK_TRANSFORM: ArtworkTransform = {
   stretchY: 100,
 }
 
-export function createDefaultInnerPackaging2(): ProjectState['innerPackaging2'] {
+export function createDefaultInnerPackaging2(): PackageInstance['innerPackaging2'] {
   return {
     faces: { front: null, back: null },
     transforms: {
@@ -165,7 +161,7 @@ export function createDefaultInnerPackaging2(): ProjectState['innerPackaging2'] 
   }
 }
 
-export function createDefaultHangingTissue(): ProjectState['hangingTissue'] {
+export function createDefaultHangingTissue(): PackageInstance['hangingTissue'] {
   return {
     faces: { front: null, back: null, left: null, right: null },
     artworkReferenceDimensions: { front: null, back: null, left: null, right: null },
@@ -198,7 +194,7 @@ export function createDefaultFaceTissue(): FaceTissueState {
   }
 }
 
-export function createDefaultWetTissue(): ProjectState['wetTissue'] {
+export function createDefaultWetTissue(): PackageInstance['wetTissue'] {
   return {
     artworks: { body: null, lid: null },
     artworkReferenceDimensions: { body: null, lid: null },
@@ -221,49 +217,110 @@ export function createDefaultWashTissue(): FaceTissueState {
 }
 
 export function createInitialProject(): ProjectState {
+  const instance = createPackageInstance('box', 'package-1')
   return {
-    version: 17,
+    version: 18,
     name: '未命名包装',
     activeTab: 'artwork',
-    packagingType: 'box',
-    faces: createEmptyFaces(),
-    box: { width: 160, height: 220, depth: 70, radius: 4 },
-    pouch: {
-      faces: { front: null, back: null },
-      width: 160,
-      height: 240,
-      thickness: 16,
-      gussetDepth: 70,
-      roundedCorners: true,
-      closure: 'none',
-    },
-    innerPackaging1: {
-      artwork: null,
-      width: 160,
-      height: 205,
-      artworkScale: 100,
-      artworkOffsetX: 0,
-      artworkOffsetY: 0,
-      artworkRotation: 0,
-      artworkStretchX: 100,
-      artworkStretchY: 100,
-      modelRotation: 0,
-    },
-    innerPackaging2: createDefaultInnerPackaging2(),
-    hangingTissue: createDefaultHangingTissue(),
-    faceTissue: createDefaultFaceTissue(),
-    wetTissue: createDefaultWetTissue(),
-    washTissue: createDefaultWashTissue(),
-    boxFinish: createDefaultBoxFinish(),
-    pouchFinish: createDefaultPouchFinish(),
+    instances: [instance],
+    selectedInstanceId: instance.id,
+    layout: 'family',
+    heroInstanceId: null,
     camera: { autoRotate: false, lightingIntensity: 0 },
   }
 }
 
-export function projectReducer(
-  state: ProjectState,
-  action: ProjectAction,
-): ProjectState {
+export type ProjectAction =
+  | PackageAction
+  | { type: 'instance/add'; packagingType: PackagingType; id: string }
+  | { type: 'instance/select'; id: string }
+  | { type: 'instance/remove'; id: string }
+  | { type: 'layout/set'; value: CompositionLayout }
+  | { type: 'package/edit'; action: PackageAction }
+  | { type: 'camera/autoRotate'; value: boolean }
+  | { type: 'camera/lightingIntensity'; value: number }
+
+export function recommendedLayout(count: number): CompositionLayout {
+  if (count <= 2) return 'family'
+  if (count <= 4) return 'cluster'
+  return 'grid'
+}
+
+export function getSelectedInstance(project: ProjectState): PackageInstance {
+  return project.instances.find((instance) => instance.id === project.selectedInstanceId)
+    ?? project.instances[0]
+}
+
+export function projectReducer(state: ProjectState, action: ProjectAction): ProjectState {
+  switch (action.type) {
+    case 'instance/add': {
+      if (state.instances.length >= 6 || state.instances.some((item) => item.id === action.id)) return state
+      const source = [...state.instances].reverse().find((item) => item.packagingType === action.packagingType)
+      const instance = source
+        ? clonePackageForAdd(source, action.id)
+        : createPackageInstance(action.packagingType, action.id)
+      const instances = [...state.instances, instance]
+      return {
+        ...state,
+        instances,
+        selectedInstanceId: instance.id,
+        layout: recommendedLayout(instances.length),
+        heroInstanceId: null,
+      }
+    }
+    case 'instance/select':
+      return state.instances.some((item) => item.id === action.id)
+        ? { ...state, selectedInstanceId: action.id }
+        : state
+    case 'instance/remove': {
+      if (state.instances.length === 1) return state
+      const removedIndex = state.instances.findIndex((item) => item.id === action.id)
+      if (removedIndex < 0) return state
+      const instances = state.instances.filter((item) => item.id !== action.id)
+      const selectedInstanceId = state.selectedInstanceId === action.id
+        ? instances[Math.min(removedIndex, instances.length - 1)].id
+        : state.selectedInstanceId
+      return {
+        ...state,
+        instances,
+        selectedInstanceId,
+        layout: recommendedLayout(instances.length),
+        heroInstanceId: state.heroInstanceId === action.id ? null : state.heroInstanceId,
+      }
+    }
+    case 'layout/set':
+      return {
+        ...state,
+        layout: action.value,
+        heroInstanceId: action.value === 'hero' ? state.selectedInstanceId : state.heroInstanceId,
+      }
+    case 'package/edit': {
+      const selectedIndex = state.instances.findIndex((item) => item.id === state.selectedInstanceId)
+      if (selectedIndex < 0) return state
+      const instance = reducePackage(state.instances[selectedIndex], action.action)
+      if (instance === state.instances[selectedIndex]) return state
+      const instances = [...state.instances]
+      instances[selectedIndex] = instance
+      return { ...state, instances }
+    }
+    case 'camera/autoRotate':
+      return { ...state, camera: { ...state.camera, autoRotate: action.value } }
+    case 'camera/lightingIntensity':
+      if (!Number.isFinite(action.value) || action.value < -100 || action.value > 100) return state
+      return { ...state, camera: { ...state.camera, lightingIntensity: action.value } }
+    default: {
+      const selectedIndex = state.instances.findIndex((item) => item.id === state.selectedInstanceId)
+      if (selectedIndex < 0) return state
+      const instance = reducePackage(state.instances[selectedIndex], action)
+      if (instance === state.instances[selectedIndex]) return state
+      const instances = [...state.instances]
+      instances[selectedIndex] = instance
+      return { ...state, instances }
+    }
+  }
+}
+
+function reducePackage(state: PackageInstance, action: PackageAction): PackageInstance {
   switch (action.type) {
     case 'face/set':
       return {
@@ -279,8 +336,6 @@ export function projectReducer(
       return Number.isFinite(action.value)
         ? { ...state, box: { ...state.box, [action.key]: action.value } }
         : state
-    case 'packaging/type':
-      return { ...state, packagingType: action.value }
     case 'pouch/face-set':
       return {
         ...state,
@@ -669,11 +724,6 @@ export function projectReducer(
       return { ...state, wetTissue: { ...state.wetTissue, modelState: action.value } }
     case 'wet-tissue/set-top-sheet':
       return { ...state, wetTissue: { ...state.wetTissue, showTopSheet: action.value } }
-    case 'camera/autoRotate':
-      return { ...state, camera: { ...state.camera, autoRotate: action.value } }
-    case 'camera/lightingIntensity':
-      if (!Number.isFinite(action.value) || action.value < -100 || action.value > 100) return state
-      return { ...state, camera: { ...state.camera, lightingIntensity: action.value } }
     case 'box-finish/select-kind':
       return { ...state, boxFinish: { ...state.boxFinish, selectedKind: action.kind } }
     case 'box-finish/select-face':
@@ -705,7 +755,7 @@ export function projectReducer(
       })
     case 'box-finish/masks-clear':
       return updateFinishLayer(state, action.kind, {
-        masks: Object.fromEntries(BOX_FACES.map((face) => [face, null])) as ProjectState['boxFinish']['layers'][FinishKind]['masks'],
+        masks: Object.fromEntries(BOX_FACES.map((face) => [face, null])) as PackageInstance['boxFinish']['layers'][FinishKind]['masks'],
       })
     case 'box-finish/mask-transform-set': {
       const mask = state.boxFinish.layers[action.kind].masks[action.face]
@@ -800,10 +850,10 @@ export function projectReducer(
 }
 
 function updateFinishLayer(
-  state: ProjectState,
+  state: PackageInstance,
   kind: FinishKind,
-  patch: Partial<ProjectState['boxFinish']['layers'][FinishKind]>,
-): ProjectState {
+  patch: Partial<PackageInstance['boxFinish']['layers'][FinishKind]>,
+): PackageInstance {
   return {
     ...state,
     boxFinish: {
@@ -817,10 +867,10 @@ function updateFinishLayer(
 }
 
 function updatePouchFinishLayer(
-  state: ProjectState,
+  state: PackageInstance,
   kind: FinishKind,
-  patch: Partial<ProjectState['pouchFinish']['layers'][FinishKind]>,
-): ProjectState {
+  patch: Partial<PackageInstance['pouchFinish']['layers'][FinishKind]>,
+): PackageInstance {
   return {
     ...state,
     pouchFinish: {

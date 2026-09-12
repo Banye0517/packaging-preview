@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { createInitialProject, projectReducer } from './projectReducer'
+import { createInitialProject, getSelectedInstance, projectReducer } from './projectReducer'
 import type { ArtworkAsset } from './types'
 
 describe('projectReducer', () => {
@@ -25,8 +25,8 @@ describe('projectReducer', () => {
   it('initializes face tissue with one artwork, editable dimensions, and a visible top sheet', () => {
     const initial = createInitialProject()
 
-    expect(initial.version).toBe(17)
-    expect(initial.faceTissue).toEqual({
+    expect(initial.version).toBe(18)
+    expect(getSelectedInstance(initial).faceTissue).toEqual({
       artwork: null,
       width: 160,
       height: 205,
@@ -63,7 +63,7 @@ describe('projectReducer', () => {
     const changed = projectReducer(uploaded, {
       type: 'face-tissue/set', key: 'thickness', value: 96,
     })
-    expect(uploaded.faceTissue.artworkReferenceDimensions).toEqual({
+    expect(getSelectedInstance(uploaded).faceTissue.artworkReferenceDimensions).toEqual({
       width: 160, height: 205, thickness: 80,
     })
     const rounded = projectReducer(changed, {
@@ -79,12 +79,12 @@ describe('projectReducer', () => {
       type: 'face-tissue/set-top-sheet', value: false,
     })
 
-    expect(hidden.faceTissue.artwork).toEqual(asset)
-    expect(hidden.faceTissue.thickness).toBe(96)
-    expect(hidden.faceTissue.radius).toBe(12)
-    expect(hidden.faceTissue.artworkTransform.rotation).toBe(45)
-    expect(hidden.faceTissue.modelRotation).toBe(90)
-    expect(hidden.faceTissue.showTopSheet).toBe(false)
+    expect(getSelectedInstance(hidden).faceTissue.artwork).toEqual(asset)
+    expect(getSelectedInstance(hidden).faceTissue.thickness).toBe(96)
+    expect(getSelectedInstance(hidden).faceTissue.radius).toBe(12)
+    expect(getSelectedInstance(hidden).faceTissue.artworkTransform.rotation).toBe(45)
+    expect(getSelectedInstance(hidden).faceTissue.modelRotation).toBe(90)
+    expect(getSelectedInstance(hidden).faceTissue.showTopSheet).toBe(false)
     expect(projectReducer(hidden, {
       type: 'face-tissue/transform-set', key: 'scale', value: 301,
     })).toBe(hidden)
@@ -101,7 +101,7 @@ describe('projectReducer', () => {
 
   it('initializes and updates wash tissue by reusing the one-artwork tissue controls', () => {
     const initial = createInitialProject()
-    expect(initial.washTissue).toEqual({
+    expect(getSelectedInstance(initial).washTissue).toEqual({
       artwork: null,
       width: 160,
       height: 205,
@@ -124,12 +124,12 @@ describe('projectReducer', () => {
     const rotated = projectReducer(transformed, { type: 'wash-tissue/rotation-set', value: 90 })
     const hidden = projectReducer(rotated, { type: 'wash-tissue/set-top-sheet', value: false })
 
-    expect(uploaded.washTissue.artwork).toEqual(asset)
-    expect(uploaded.washTissue.artworkReferenceDimensions).toEqual({ width: 160, height: 205, thickness: 80 })
-    expect(hidden.washTissue.thickness).toBe(96)
-    expect(hidden.washTissue.artworkTransform.rotation).toBe(45)
-    expect(hidden.washTissue.modelRotation).toBe(90)
-    expect(hidden.washTissue.showTopSheet).toBe(false)
+    expect(getSelectedInstance(uploaded).washTissue.artwork).toEqual(asset)
+    expect(getSelectedInstance(uploaded).washTissue.artworkReferenceDimensions).toEqual({ width: 160, height: 205, thickness: 80 })
+    expect(getSelectedInstance(hidden).washTissue.thickness).toBe(96)
+    expect(getSelectedInstance(hidden).washTissue.artworkTransform.rotation).toBe(45)
+    expect(getSelectedInstance(hidden).washTissue.modelRotation).toBe(90)
+    expect(getSelectedInstance(hidden).washTissue.showTopSheet).toBe(false)
     expect(projectReducer(hidden, { type: 'wash-tissue/set', key: 'thickness', value: 29 })).toBe(hidden)
     expect(projectReducer(hidden, { type: 'wash-tissue/transform-set', key: 'scale', value: 301 })).toBe(hidden)
   })
@@ -137,8 +137,8 @@ describe('projectReducer', () => {
   it('initializes hanging tissue with four independent faces and a visible pulled sheet', () => {
     const initial = createInitialProject()
 
-    expect(initial.version).toBe(17)
-    expect(initial.hangingTissue).toEqual({
+    expect(initial.version).toBe(18)
+    expect(getSelectedInstance(initial).hangingTissue).toEqual({
       faces: { front: null, back: null, left: null, right: null },
       artworkReferenceDimensions: { front: null, back: null, left: null, right: null },
       transforms: {
@@ -162,7 +162,7 @@ describe('projectReducer', () => {
       type: 'hanging-tissue/set', key: 'depth', value: 96,
     })
 
-    expect(resized.hangingTissue.depth).toBe(96)
+    expect(getSelectedInstance(resized).hangingTissue.depth).toBe(96)
     expect(projectReducer(resized, {
       type: 'hanging-tissue/set', key: 'depth', value: Number.NaN,
     })).toBe(resized)
@@ -194,25 +194,25 @@ describe('projectReducer', () => {
       type: 'hanging-tissue/set-pulled-sheet', value: false,
     })
 
-    expect(uploaded.hangingTissue.faces.left).toEqual(asset)
-    expect(uploaded.hangingTissue.artworkReferenceDimensions.left).toEqual({
+    expect(getSelectedInstance(uploaded).hangingTissue.faces.left).toEqual(asset)
+    expect(getSelectedInstance(uploaded).hangingTissue.artworkReferenceDimensions.left).toEqual({
       width: 160, height: 205, depth: 80,
     })
-    expect(uploaded.hangingTissue.faces.front).toBeNull()
-    expect(hidden.hangingTissue.showPulledSheet).toBe(false)
-    expect(hidden.innerPackaging2).toEqual(initial.innerPackaging2)
+    expect(getSelectedInstance(uploaded).hangingTissue.faces.front).toBeNull()
+    expect(getSelectedInstance(hidden).hangingTissue.showPulledSheet).toBe(false)
+    expect(getSelectedInstance(hidden).innerPackaging2).toEqual(getSelectedInstance(initial).innerPackaging2)
 
     const removed = projectReducer(uploaded, {
       type: 'hanging-tissue/face-remove', face: 'left',
     })
-    expect(removed.hangingTissue.artworkReferenceDimensions.left).toBeNull()
+    expect(getSelectedInstance(removed).hangingTissue.artworkReferenceDimensions.left).toBeNull()
   })
 
   it('initializes inner packaging 2 with independent front and back transforms', () => {
     const initial = createInitialProject()
 
-    expect(initial.version).toBe(17)
-    expect(initial.innerPackaging2).toEqual({
+    expect(initial.version).toBe(18)
+    expect(getSelectedInstance(initial).innerPackaging2).toEqual({
       faces: { front: null, back: null },
       transforms: {
         front: { scale: 100, offsetX: 0, offsetY: 0, rotation: 0, stretchX: 100, stretchY: 100 },
@@ -251,11 +251,11 @@ describe('projectReducer', () => {
       face: 'front',
     })
 
-    expect(uploaded.innerPackaging2.faces.front).toEqual(asset)
-    expect(uploaded.innerPackaging2.faces.back).toBeNull()
-    expect(transformed.innerPackaging2.transforms.front.rotation).toBe(45)
-    expect(transformed.innerPackaging2.transforms.back.rotation).toBe(0)
-    expect(reset.innerPackaging2.transforms.front).toEqual({
+    expect(getSelectedInstance(uploaded).innerPackaging2.faces.front).toEqual(asset)
+    expect(getSelectedInstance(uploaded).innerPackaging2.faces.back).toBeNull()
+    expect(getSelectedInstance(transformed).innerPackaging2.transforms.front.rotation).toBe(45)
+    expect(getSelectedInstance(transformed).innerPackaging2.transforms.back.rotation).toBe(0)
+    expect(getSelectedInstance(reset).innerPackaging2.transforms.front).toEqual({
       scale: 100,
       offsetX: 0,
       offsetY: 0,
@@ -277,9 +277,9 @@ describe('projectReducer', () => {
     expect(projectReducer(initial, {
       type: 'inner-packaging-2/transform-set', face: 'back', key: 'offsetX', value: -101,
     })).toBe(initial)
-    expect(projectReducer(initial, {
+    expect(getSelectedInstance(projectReducer(initial, {
       type: 'inner-packaging-2/transform-set', face: 'front', key: 'stretchX', value: 50,
-    }).innerPackaging2.transforms.front.stretchX).toBe(50)
+    })).innerPackaging2.transforms.front.stretchX).toBe(50)
     expect(projectReducer(initial, {
       type: 'inner-packaging-2/transform-set', face: 'front', key: 'stretchY', value: 301,
     })).toBe(initial)
@@ -305,9 +305,9 @@ describe('projectReducer', () => {
       asset,
     })
 
-    expect(next.faces.front).toEqual(asset)
-    expect(next.faces.back).toBeNull()
-    expect(next.faces.top).toBeNull()
+    expect(getSelectedInstance(next).faces.front).toEqual(asset)
+    expect(getSelectedInstance(next).faces.back).toBeNull()
+    expect(getSelectedInstance(next).faces.top).toBeNull()
   })
 
   it('clears one face without changing the others', () => {
@@ -330,8 +330,8 @@ describe('projectReducer', () => {
       face: 'front',
     })
 
-    expect(next.faces.front).toBeNull()
-    expect(next.faces.back).toBe(populated.faces.back)
+    expect(getSelectedInstance(next).faces.front).toBeNull()
+    expect(getSelectedInstance(next).faces.back).toBe(getSelectedInstance(populated).faces.back)
   })
 
   it('updates one box dimension without changing the other dimensions', () => {
@@ -342,30 +342,26 @@ describe('projectReducer', () => {
       value: 185,
     })
 
-    expect(next.box.width).toBe(185)
-    expect(next.box.height).toBe(initial.box.height)
-    expect(next.box.depth).toBe(initial.box.depth)
+    expect(getSelectedInstance(next).box.width).toBe(185)
+    expect(getSelectedInstance(next).box.height).toBe(getSelectedInstance(initial).box.height)
+    expect(getSelectedInstance(next).box.depth).toBe(getSelectedInstance(initial).box.depth)
   })
 
-  it('keeps box and pouch state independently while switching type', () => {
+  it('adds and selects an independent pouch instance', () => {
     const initial = createInitialProject()
     const pouch = projectReducer(initial, {
-      type: 'packaging/type',
-      value: 'pouch',
+      type: 'instance/add', packagingType: 'pouch', id: 'pouch-1',
     })
     const changed = projectReducer(pouch, {
       type: 'pouch/set',
       key: 'thickness',
       value: 18,
     })
-    const box = projectReducer(changed, {
-      type: 'packaging/type',
-      value: 'box',
-    })
 
-    expect(box.packagingType).toBe('box')
-    expect(box.box).toEqual(initial.box)
-    expect(box.pouch.thickness).toBe(18)
+    expect(changed.selectedInstanceId).toBe('pouch-1')
+    expect(getSelectedInstance(changed).packagingType).toBe('pouch')
+    expect(getSelectedInstance(changed).pouch.thickness).toBe(18)
+    expect(changed.instances[0].pouch.thickness).toBe(getSelectedInstance(initial).pouch.thickness)
   })
 
   it('updates pouch closure as one mutually exclusive value', () => {
@@ -375,7 +371,7 @@ describe('projectReducer', () => {
       value: 'spout',
     })
 
-    expect(next.pouch.closure).toBe('spout')
+    expect(getSelectedInstance(next).pouch.closure).toBe('spout')
   })
 
   it('rejects non-positive pouch dimensions', () => {
@@ -392,8 +388,7 @@ describe('projectReducer', () => {
   it('keeps inner packaging state independent from pouch state', () => {
     const initial = createInitialProject()
     const selected = projectReducer(initial, {
-      type: 'packaging/type',
-      value: 'inner-packaging-1',
+      type: 'instance/add', packagingType: 'inner-packaging-1', id: 'inner-1',
     })
     const changed = projectReducer(selected, {
       type: 'inner-packaging-1/set',
@@ -401,9 +396,9 @@ describe('projectReducer', () => {
       value: 188,
     })
 
-    expect(changed.packagingType).toBe('inner-packaging-1')
-    expect(changed.innerPackaging1.width).toBe(188)
-    expect(changed.pouch.width).toBe(initial.pouch.width)
+    expect(getSelectedInstance(changed).packagingType).toBe('inner-packaging-1')
+    expect(getSelectedInstance(changed).innerPackaging1.width).toBe(188)
+    expect(getSelectedInstance(changed).pouch.width).toBe(getSelectedInstance(initial).pouch.width)
   })
 
   it('stores only supported inner packaging model rotations', () => {
@@ -417,7 +412,7 @@ describe('projectReducer', () => {
       value: 45,
     })
 
-    expect(rotated.innerPackaging1.modelRotation).toBe(90)
+    expect(getSelectedInstance(rotated).innerPackaging1.modelRotation).toBe(90)
     expect(rejected).toBe(rotated)
   })
 
@@ -437,8 +432,8 @@ describe('projectReducer', () => {
       asset,
     })
 
-    expect(next.innerPackaging1.artwork).toEqual(asset)
-    expect(next.pouch.faces).toEqual(initial.pouch.faces)
+    expect(getSelectedInstance(next).innerPackaging1.artwork).toEqual(asset)
+    expect(getSelectedInstance(next).pouch.faces).toEqual(getSelectedInstance(initial).pouch.faces)
   })
 
   it('updates and resets inner packaging artwork transform', () => {
@@ -457,9 +452,9 @@ describe('projectReducer', () => {
       type: 'inner-packaging-1/transform-reset',
     })
 
-    expect(moved.innerPackaging1.artworkScale).toBe(175)
-    expect(moved.innerPackaging1.artworkOffsetX).toBe(-24)
-    expect(reset.innerPackaging1).toMatchObject({
+    expect(getSelectedInstance(moved).innerPackaging1.artworkScale).toBe(175)
+    expect(getSelectedInstance(moved).innerPackaging1.artworkOffsetX).toBe(-24)
+    expect(getSelectedInstance(reset).innerPackaging1).toMatchObject({
       artworkScale: 100,
       artworkOffsetX: 0,
       artworkOffsetY: 0,
@@ -487,7 +482,7 @@ describe('projectReducer', () => {
       value: 75,
     })
 
-    expect(stretchedY.innerPackaging1).toMatchObject({
+    expect(getSelectedInstance(stretchedY).innerPackaging1).toMatchObject({
       artworkRotation: -45,
       artworkStretchX: 140,
       artworkStretchY: 75,
@@ -554,11 +549,11 @@ describe('projectReducer', () => {
       value: 45,
     })
 
-    expect(transformed.boxFinish.layers['gold-foil'].masks.front).toMatchObject({
+    expect(getSelectedInstance(transformed).boxFinish.layers['gold-foil'].masks.front).toMatchObject({
       asset,
       transform: { scale: 100, offsetX: 0, offsetY: 0, rotation: 45 },
     })
-    expect(transformed.boxFinish.layers['gold-foil'].masks.back).toBeNull()
+    expect(getSelectedInstance(transformed).boxFinish.layers['gold-foil'].masks.back).toBeNull()
   })
 
   it('stores a pouch finish mask independently from box masks', () => {
@@ -570,8 +565,8 @@ describe('projectReducer', () => {
       type: 'pouch-finish/mask-set', kind: 'gold-foil', face: 'front', asset,
     })
 
-    expect(next.pouchFinish.layers['gold-foil'].masks.front?.asset).toEqual(asset)
-    expect(next.boxFinish.layers['gold-foil'].masks.front).toBeNull()
+    expect(getSelectedInstance(next).pouchFinish.layers['gold-foil'].masks.front?.asset).toEqual(asset)
+    expect(getSelectedInstance(next).boxFinish.layers['gold-foil'].masks.front).toBeNull()
   })
 
   it('edits and clears pouch finish state independently from box finish state', () => {
@@ -595,11 +590,11 @@ describe('projectReducer', () => {
       type: 'pouch-finish/masks-clear', kind: 'silver-foil',
     })
 
-    expect(transformed.pouchFinish.selectedKind).toBe('silver-foil')
-    expect(transformed.pouchFinish.layers['silver-foil'].masks.back?.transform.rotation).toBe(35)
-    expect(disabled.pouchFinish.layers['silver-foil'].enabled).toBe(false)
-    expect(Object.values(cleared.pouchFinish.layers['silver-foil'].masks)).toEqual([null, null])
-    expect(cleared.boxFinish).toEqual(createInitialProject().boxFinish)
+    expect(getSelectedInstance(transformed).pouchFinish.selectedKind).toBe('silver-foil')
+    expect(getSelectedInstance(transformed).pouchFinish.layers['silver-foil'].masks.back?.transform.rotation).toBe(35)
+    expect(getSelectedInstance(disabled).pouchFinish.layers['silver-foil'].enabled).toBe(false)
+    expect(Object.values(getSelectedInstance(cleared).pouchFinish.layers['silver-foil'].masks)).toEqual([null, null])
+    expect(getSelectedInstance(cleared).boxFinish).toEqual(getSelectedInstance(createInitialProject()).boxFinish)
   })
 
   it('rejects out-of-range finish mask transforms', () => {
