@@ -2,6 +2,7 @@ import {
   BOX_FACES,
   type ArtworkAsset,
   type ImageMimeType,
+  type PackageInstance,
   type PouchFace,
   type ProjectState,
 } from '../app/types'
@@ -11,8 +12,8 @@ import {
   createDefaultFaceTissue,
   createDefaultWetTissue,
   createDefaultWashTissue,
-  createInitialProject,
 } from '../app/projectReducer'
+import { createPackageInstance } from '../app/packageFactory'
 import {
   DEFAULT_FINISH_PARAMETERS,
   FINISH_KINDS,
@@ -45,15 +46,22 @@ function isArtworkAsset(value: unknown): value is ArtworkAsset | null {
   )
 }
 
-interface LegacyProjectState extends Omit<ProjectState, 'version' | 'packagingType' | 'pouch' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue' | 'boxFinish' | 'pouchFinish'> {
+interface Version17ProjectState extends Omit<PackageInstance, 'id' | 'manualTransform'> {
+  version: 17
+  name: string
+  activeTab: ProjectState['activeTab']
+  camera: ProjectState['camera']
+}
+
+interface LegacyProjectState extends Omit<Version17ProjectState, 'version' | 'packagingType' | 'pouch' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue' | 'boxFinish' | 'pouchFinish'> {
   version: 1
 }
 
-interface Version2ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue' | 'boxFinish' | 'pouchFinish'> {
+interface Version2ProjectState extends Omit<Version17ProjectState, 'version' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue' | 'boxFinish' | 'pouchFinish'> {
   version: 2
 }
 
-interface Version3ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue' | 'boxFinish' | 'pouchFinish'> {
+interface Version3ProjectState extends Omit<Version17ProjectState, 'version' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue' | 'boxFinish' | 'pouchFinish'> {
   version: 3
   innerPackaging1: {
     faces: Record<PouchFace, ArtworkAsset | null>
@@ -62,7 +70,7 @@ interface Version3ProjectState extends Omit<ProjectState, 'version' | 'innerPack
   }
 }
 
-interface Version4ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue' | 'boxFinish' | 'pouchFinish'> {
+interface Version4ProjectState extends Omit<Version17ProjectState, 'version' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue' | 'boxFinish' | 'pouchFinish'> {
   version: 4
   innerPackaging1: {
     artwork: ArtworkAsset | null
@@ -71,36 +79,36 @@ interface Version4ProjectState extends Omit<ProjectState, 'version' | 'innerPack
   }
 }
 
-interface Version5ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue' | 'boxFinish' | 'pouchFinish'> {
+interface Version5ProjectState extends Omit<Version17ProjectState, 'version' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue' | 'boxFinish' | 'pouchFinish'> {
   version: 5
   innerPackaging1: Omit<
-    ProjectState['innerPackaging1'],
+    Version17ProjectState['innerPackaging1'],
     'artworkRotation' | 'artworkStretchX' | 'artworkStretchY' | 'modelRotation'
   >
 }
 
-interface Version6ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue' | 'boxFinish' | 'pouchFinish'> {
+interface Version6ProjectState extends Omit<Version17ProjectState, 'version' | 'innerPackaging1' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue' | 'boxFinish' | 'pouchFinish'> {
   version: 6
-  innerPackaging1: Omit<ProjectState['innerPackaging1'], 'modelRotation'>
+  innerPackaging1: Omit<Version17ProjectState['innerPackaging1'], 'modelRotation'>
 }
 
-interface Version7ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue' | 'boxFinish' | 'pouchFinish'> {
+interface Version7ProjectState extends Omit<Version17ProjectState, 'version' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue' | 'boxFinish' | 'pouchFinish'> {
   version: 7
 }
-interface Version8ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue' | 'pouchFinish'> {
+interface Version8ProjectState extends Omit<Version17ProjectState, 'version' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue' | 'pouchFinish'> {
   version: 8
 }
 
-interface Version9ProjectState extends Omit<ProjectState, 'version' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue'> {
+interface Version9ProjectState extends Omit<Version17ProjectState, 'version' | 'innerPackaging2' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue'> {
   version: 9
 }
 
-interface Version16ProjectState extends Omit<ProjectState, 'version' | 'camera'> {
+interface Version16ProjectState extends Omit<Version17ProjectState, 'version' | 'camera'> {
   version: 16
   camera: { autoRotate: boolean }
 }
 
-function hasSharedProjectFields(project: Partial<Omit<ProjectState, 'version'>>) {
+function hasSharedProjectFields(project: Partial<Omit<Version17ProjectState, 'version'>>) {
   return (
     typeof project.name === 'string' &&
     TABS.has(project.activeTab ?? '') &&
@@ -126,11 +134,11 @@ function hasSharedProjectFields(project: Partial<Omit<ProjectState, 'version'>>)
 
 function isLegacyProjectState(value: unknown): value is LegacyProjectState {
   if (!value || typeof value !== 'object') return false
-  const project = value as Partial<ProjectState>
+  const project = value as Partial<Version17ProjectState>
   return (value as { version?: unknown }).version === 1 && hasSharedProjectFields(project)
 }
 
-function hasPouchFields(project: { pouch?: Partial<ProjectState['pouch']> }) {
+function hasPouchFields(project: { pouch?: Partial<Version17ProjectState['pouch']> }) {
   return (
     !!project.pouch &&
     isArtworkAsset(project.pouch.faces?.front) &&
@@ -150,7 +158,7 @@ function hasPouchFields(project: { pouch?: Partial<ProjectState['pouch']> }) {
 
 function isVersion2ProjectState(value: unknown): value is Version2ProjectState {
   if (!value || typeof value !== 'object') return false
-  const project = value as Partial<ProjectState>
+  const project = value as Partial<Version17ProjectState>
   return (
     (value as { version?: unknown }).version === 2 &&
     hasSharedProjectFields(project) &&
@@ -164,7 +172,7 @@ function isVersion3ProjectState(value: unknown): value is Version3ProjectState {
   const project = value as Partial<Version3ProjectState>
   return (
     (value as { version?: unknown }).version === 3 &&
-    hasSharedProjectFields(project as Partial<ProjectState>) &&
+    hasSharedProjectFields(project as Partial<Version17ProjectState>) &&
     ['box', 'pouch', 'inner-packaging-1'].includes(project.packagingType ?? '') &&
     hasPouchFields(project) &&
     !!project.innerPackaging1 &&
@@ -182,7 +190,7 @@ function isVersion4ProjectState(value: unknown): value is Version4ProjectState {
   const project = value as Partial<Version4ProjectState>
   return (
     (value as { version?: unknown }).version === 4 &&
-    hasSharedProjectFields(project as Partial<ProjectState>) &&
+    hasSharedProjectFields(project as Partial<Version17ProjectState>) &&
     ['box', 'pouch', 'inner-packaging-1'].includes(project.packagingType ?? '') &&
     hasPouchFields(project) &&
     !!project.innerPackaging1 &&
@@ -199,7 +207,7 @@ function isVersion5ProjectState(value: unknown): value is Version5ProjectState {
   const project = value as Partial<Version5ProjectState>
   return (
     (value as { version?: unknown }).version === 5 &&
-    hasSharedProjectFields(project as Partial<ProjectState>) &&
+    hasSharedProjectFields(project as Partial<Version17ProjectState>) &&
     ['box', 'pouch', 'inner-packaging-1'].includes(project.packagingType ?? '') &&
     hasPouchFields(project) &&
     !!project.innerPackaging1 &&
@@ -223,7 +231,7 @@ function isVersion5ProjectState(value: unknown): value is Version5ProjectState {
 function hasVersion6InnerPackagingFields(
   project: {
     innerPackaging1?: Partial<
-      Omit<ProjectState['innerPackaging1'], 'modelRotation'>
+      Omit<Version17ProjectState['innerPackaging1'], 'modelRotation'>
     >
   },
 ) {
@@ -260,7 +268,7 @@ function isVersion6ProjectState(value: unknown): value is Version6ProjectState {
   const project = value as Partial<Version6ProjectState>
   return (
     project.version === 6 &&
-    hasSharedProjectFields(project as Partial<ProjectState>) &&
+    hasSharedProjectFields(project as Partial<Version17ProjectState>) &&
     ['box', 'pouch', 'inner-packaging-1'].includes(project.packagingType ?? '') &&
     hasPouchFields(project) &&
     hasVersion6InnerPackagingFields(project)
@@ -272,7 +280,7 @@ function isVersion7ProjectState(value: unknown): value is Version7ProjectState {
   const project = value as Partial<Version7ProjectState>
   return (
     project.version === 7 &&
-    hasSharedProjectFields(project as Partial<ProjectState>) &&
+    hasSharedProjectFields(project as Partial<Version17ProjectState>) &&
     ['box', 'pouch', 'inner-packaging-1'].includes(project.packagingType ?? '') &&
     hasPouchFields(project) &&
     hasVersion6InnerPackagingFields(project) &&
@@ -281,7 +289,7 @@ function isVersion7ProjectState(value: unknown): value is Version7ProjectState {
 }
 
 function hasFinishFields<Face extends string>(
-  finish: ProjectState['boxFinish'] | ProjectState['pouchFinish'] | undefined,
+  finish: Version17ProjectState['boxFinish'] | Version17ProjectState['pouchFinish'] | undefined,
   faces: readonly Face[],
 ) {
   if (!finish || !FINISH_KINDS.includes(finish.selectedKind)) return false
@@ -312,7 +320,7 @@ function hasFinishFields<Face extends string>(
   })
 }
 
-function hasBoxFinishFields(project: Partial<Omit<ProjectState, 'version'>>) {
+function hasBoxFinishFields(project: Partial<Omit<Version17ProjectState, 'version'>>) {
   return hasFinishFields(project.boxFinish, BOX_FACES)
 }
 
@@ -339,7 +347,7 @@ function isVersion9ProjectState(value: unknown): value is Version9ProjectState {
 }
 
 function hasInnerPackaging2Fields(
-  project: Partial<ProjectState>,
+  project: Partial<Version17ProjectState>,
   requireStretch = true,
 ) {
   const inner = project.innerPackaging2
@@ -374,7 +382,7 @@ function hasInnerPackaging2Fields(
 }
 
 function hasHangingTissueFields(
-  project: Partial<ProjectState>,
+  project: Partial<Version17ProjectState>,
   requireDepth = true,
   requireReferences = true,
 ) {
@@ -410,24 +418,24 @@ function hasHangingTissueFields(
   })
 }
 
-type Version11ProjectState = Omit<ProjectState, 'version' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue'> & { version: 11 }
+type Version11ProjectState = Omit<Version17ProjectState, 'version' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue'> & { version: 11 }
 
-type Version12ProjectState = Omit<ProjectState, 'version' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue'> & {
+type Version12ProjectState = Omit<Version17ProjectState, 'version' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue'> & {
   version: 12
-  hangingTissue: Omit<ProjectState['hangingTissue'], 'depth' | 'artworkReferenceDimensions'>
+  hangingTissue: Omit<Version17ProjectState['hangingTissue'], 'depth' | 'artworkReferenceDimensions'>
 }
 
-type Version13ProjectState = Omit<ProjectState, 'version' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue'> & {
+type Version13ProjectState = Omit<Version17ProjectState, 'version' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue'> & {
   version: 13
-  hangingTissue: Omit<ProjectState['hangingTissue'], 'artworkReferenceDimensions'>
+  hangingTissue: Omit<Version17ProjectState['hangingTissue'], 'artworkReferenceDimensions'>
 }
 
-type Version14ProjectState = Omit<ProjectState, 'version' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue'> & {
+type Version14ProjectState = Omit<Version17ProjectState, 'version' | 'hangingTissue' | 'faceTissue' | 'wetTissue' | 'washTissue'> & {
   version: 14
-  hangingTissue: ProjectState['hangingTissue']
+  hangingTissue: Version17ProjectState['hangingTissue']
 }
 
-type Version15ProjectState = Omit<ProjectState, 'version' | 'faceTissue' | 'washTissue'> & {
+type Version15ProjectState = Omit<Version17ProjectState, 'version' | 'faceTissue' | 'washTissue'> & {
   version: 15
 }
 
@@ -436,7 +444,7 @@ function isVersion11ProjectState(value: unknown): value is Version11ProjectState
   const project = value as Partial<Version11ProjectState>
   return project.version === 11 &&
     isVersion9ProjectState({ ...project, version: 9 } as Version9ProjectState) &&
-    hasInnerPackaging2Fields(project as Partial<ProjectState>)
+    hasInnerPackaging2Fields(project as Partial<Version17ProjectState>)
 }
 
 function isVersion12ProjectState(value: unknown): value is Version12ProjectState {
@@ -444,7 +452,7 @@ function isVersion12ProjectState(value: unknown): value is Version12ProjectState
   const project = value as Partial<Version12ProjectState>
   return project.version === 12 &&
     isVersion11ProjectState({ ...project, version: 11 }) &&
-    hasHangingTissueFields(project as Partial<ProjectState>, false, false)
+    hasHangingTissueFields(project as Partial<Version17ProjectState>, false, false)
 }
 
 function isVersion13ProjectState(value: unknown): value is Version13ProjectState {
@@ -452,7 +460,7 @@ function isVersion13ProjectState(value: unknown): value is Version13ProjectState
   const project = value as Partial<Version13ProjectState>
   return project.version === 13 &&
     isVersion12ProjectState({ ...project, version: 12 }) &&
-    hasHangingTissueFields(project as Partial<ProjectState>, true, false)
+    hasHangingTissueFields(project as Partial<Version17ProjectState>, true, false)
 }
 
 function isVersion14ProjectState(value: unknown): value is Version14ProjectState {
@@ -460,11 +468,11 @@ function isVersion14ProjectState(value: unknown): value is Version14ProjectState
   const project = value as Partial<Version14ProjectState>
   return project.version === 14 &&
     isVersion13ProjectState({ ...project, version: 13 }) &&
-    hasHangingTissueFields(project as Partial<ProjectState>, true, true)
+    hasHangingTissueFields(project as Partial<Version17ProjectState>, true, true)
 }
 
-function hasFaceTissueFields(project: Partial<ProjectState>) {
-  const faceTissue = project.faceTissue as (Partial<ProjectState['faceTissue']> & {
+function hasFaceTissueFields(project: Partial<Version17ProjectState>) {
+  const faceTissue = project.faceTissue as (Partial<Version17ProjectState['faceTissue']> & {
     radius?: unknown
     artworkReferenceDimensions?: unknown
   }) | undefined
@@ -505,7 +513,7 @@ function isVersion15ProjectState(value: unknown): value is Version15ProjectState
     isVersion14ProjectState({ ...project, version: 14 })
 }
 
-function hasWetTissueFields(project: Partial<ProjectState>) {
+function hasWetTissueFields(project: Partial<Version17ProjectState>) {
   const tissue = project.wetTissue
   const slots = ['body', 'lid'] as const
   if (!tissue || !slots.includes(tissue.selectedArtwork) ||
@@ -536,7 +544,7 @@ function hasWetTissueFields(project: Partial<ProjectState>) {
   })
 }
 
-function hasWashTissueFields(project: Partial<ProjectState>) {
+function hasWashTissueFields(project: Partial<Version17ProjectState>) {
   const tissue = project.washTissue
   if (!tissue || !isArtworkAsset(tissue.artwork)) return false
   if (![tissue.width, tissue.height, tissue.thickness].every((value) =>
@@ -557,9 +565,9 @@ function hasWashTissueFields(project: Partial<ProjectState>) {
     transform.stretchY >= 50 && transform.stretchY <= 300
 }
 
-function isCurrentProjectState(value: unknown): value is ProjectState {
+function isVersion17ProjectState(value: unknown): value is Version17ProjectState {
   if (!value || typeof value !== 'object') return false
-  const project = value as Partial<ProjectState>
+  const project = value as Partial<Version17ProjectState>
   return project.version === 17 &&
     hasSharedProjectFields(project) &&
     typeof project.camera?.lightingIntensity === 'number' &&
@@ -579,14 +587,33 @@ function isCurrentProjectState(value: unknown): value is ProjectState {
 }
 
 function isProjectState(value: unknown): value is ProjectState {
-  return isCurrentProjectState(value)
+  if (!value || typeof value !== 'object') return false
+  const project = value as Partial<ProjectState>
+  if (project.version !== 18 || typeof project.name !== 'string' || !TABS.has(project.activeTab ?? '')) return false
+  if (!Array.isArray(project.instances) || project.instances.length < 1 || project.instances.length > 6) return false
+  if (!['hero', 'family', 'cluster', 'grid'].includes(project.layout ?? '')) return false
+  if (typeof project.selectedInstanceId !== 'string' || !project.instances.some((item) => item.id === project.selectedInstanceId)) return false
+  if (project.heroInstanceId !== null && !project.instances.some((item) => item.id === project.heroInstanceId)) return false
+  if (new Set(project.instances.map((item) => item.id)).size !== project.instances.length) return false
+  if (typeof project.camera?.autoRotate !== 'boolean' || typeof project.camera.lightingIntensity !== 'number' ||
+      !Number.isFinite(project.camera.lightingIntensity) || project.camera.lightingIntensity < -100 || project.camera.lightingIntensity > 100) return false
+  return project.instances.every((instance) => {
+    if (!instance || typeof instance.id !== 'string' || instance.id.length === 0 || instance.manualTransform !== null) return false
+    return isVersion17ProjectState({
+      ...instance,
+      version: 17,
+      name: project.name!,
+      activeTab: project.activeTab!,
+      camera: project.camera!,
+    })
+  })
 }
 
 function isVersion16ProjectState(value: unknown): value is Version16ProjectState {
   if (!value || typeof value !== 'object') return false
   const project = value as Version16ProjectState
   return project.version === 16 &&
-    isCurrentProjectState({
+    isVersion17ProjectState({
       ...project,
       version: 17,
       camera: { ...project.camera, lightingIntensity: 0 },
@@ -595,7 +622,7 @@ function isVersion16ProjectState(value: unknown): value is Version16ProjectState
 
 function addHangingTissueArtworkReferences(
   tissue: Version13ProjectState['hangingTissue'],
-): ProjectState['hangingTissue'] {
+): Version17ProjectState['hangingTissue'] {
   const dimensions = { width: tissue.width, height: tissue.height, depth: tissue.depth }
   return {
     ...tissue,
@@ -610,14 +637,14 @@ function addHangingTissueArtworkReferences(
 
 function isVersion10ProjectState(value: unknown) {
   if (!value || typeof value !== 'object') return false
-  const project = value as Partial<Omit<ProjectState, 'version'>> & { version?: number }
+  const project = value as Partial<Omit<Version17ProjectState, 'version'>> & { version?: number }
   return project.version === 10 &&
     isVersion9ProjectState({ ...project, version: 9 }) &&
-    hasInnerPackaging2Fields(project as Partial<ProjectState>, false)
+    hasInnerPackaging2Fields(project as Partial<Version17ProjectState>, false)
 }
 
-function addInnerPackaging2Stretch(value: Record<string, unknown>): ProjectState {
-  const project = value as unknown as Omit<ProjectState, 'version'> & { version: 10 }
+function addInnerPackaging2Stretch(value: Record<string, unknown>): Version17ProjectState {
+  const project = value as unknown as Omit<Version17ProjectState, 'version'> & { version: 10 }
   return {
     ...project,
     version: 17,
@@ -640,11 +667,9 @@ export function encodeProject(project: ProjectState): string {
   return JSON.stringify(project, null, 2)
 }
 
-export function decodeProject(source: string): ProjectState {
-  try {
-    const value: unknown = JSON.parse(source)
-    if (isProjectState(value)) {
-      const hangingTissue = { ...value.hangingTissue } as ProjectState['hangingTissue'] & { radius?: unknown }
+function decodeLegacyProjectValue(value: unknown): Version17ProjectState | null {
+    if (isVersion17ProjectState(value)) {
+      const hangingTissue = { ...value.hangingTissue } as Version17ProjectState['hangingTissue'] & { radius?: unknown }
       delete hangingTissue.radius
       const faceTissue = {
         ...value.faceTissue,
@@ -675,10 +700,13 @@ export function decodeProject(source: string): ProjectState {
       }
     }
     if (isVersion15ProjectState(value)) {
+      const hangingTissue = { ...value.hangingTissue } as Version17ProjectState['hangingTissue'] & { radius?: unknown }
+      delete hangingTissue.radius
       return {
         ...value,
         version: 17,
         camera: { ...value.camera, lightingIntensity: 0 },
+        hangingTissue,
         faceTissue: createDefaultFaceTissue(),
         wetTissue: createDefaultWetTissue(),
         washTissue: createDefaultWashTissue(),
@@ -818,7 +846,7 @@ export function decodeProject(source: string): ProjectState {
       }
     }
     if (isVersion3ProjectState(value)) {
-      const initial = createInitialProject()
+      const initial = createPackageInstance('box', 'legacy-default')
       return {
         ...value,
         version: 17,
@@ -847,7 +875,7 @@ export function decodeProject(source: string): ProjectState {
       }
     }
     if (isVersion2ProjectState(value)) {
-      const initial = createInitialProject()
+      const initial = createPackageInstance('box', 'legacy-default')
       return {
         ...value,
         version: 17,
@@ -863,16 +891,53 @@ export function decodeProject(source: string): ProjectState {
       }
     }
     if (isLegacyProjectState(value)) {
-      const initial = createInitialProject()
+      const initial = createPackageInstance('box', 'legacy-default')
       return {
-        ...initial,
+        version: 17,
         name: value.name,
         activeTab: value.activeTab,
+        packagingType: initial.packagingType,
         faces: value.faces,
         box: value.box,
+        pouch: initial.pouch,
+        innerPackaging1: initial.innerPackaging1,
+        innerPackaging2: initial.innerPackaging2,
+        hangingTissue: initial.hangingTissue,
+        faceTissue: initial.faceTissue,
+        wetTissue: initial.wetTissue,
+        washTissue: initial.washTissue,
+        boxFinish: initial.boxFinish,
+        pouchFinish: initial.pouchFinish,
         camera: { ...value.camera, lightingIntensity: 0 },
       }
     }
+    return null
+}
+
+function migrateVersion17(project: Version17ProjectState): ProjectState {
+  const { version: _version, name, activeTab, camera, ...packageFields } = project
+  return {
+    version: 18,
+    name,
+    activeTab,
+    instances: [{
+      id: 'package-1',
+      manualTransform: null,
+      ...packageFields,
+    }],
+    selectedInstanceId: 'package-1',
+    layout: 'family',
+    heroInstanceId: null,
+    camera,
+  }
+}
+
+export function decodeProject(source: string): ProjectState {
+  try {
+    const value: unknown = JSON.parse(source)
+    if (isProjectState(value)) return value
+    const legacy = decodeLegacyProjectValue(value)
+    if (legacy) return migrateVersion17(legacy)
   } catch {
     // Use one user-facing error for malformed and incompatible files.
   }
