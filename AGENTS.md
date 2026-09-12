@@ -16,6 +16,18 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 
 ## Durable Packaging Decisions
 
+### Multi-package composition
+
+- Support a composition of one to six independent packaging instances. Different packaging types and repeated instances of the same type may coexist; every instance owns independent artwork, finish, dimensions, and model state.
+- Add a `+` action beside every packaging-type choice. A new instance copies that type's dimensions and structural settings but starts with empty artwork and finish masks, then becomes the active instance.
+- Keep exactly the existing four settings areas. Users select the active instance either from the 3D preview or from an instance list above those settings; all edits apply only to the active instance.
+- One package uses the existing centered single-product preview and does not show layout controls. For two to six packages, keep four selectable presets: A hero-centered, B family row, C staggered cluster, and D two-row grid. Defaults are B for 2, C for 3–4, and D for 5–6; any count from 2–6 may manually use any preset.
+- Adding or removing an instance reapplies the count-based recommended preset. Editing dimensions keeps the chosen preset and recomputes spacing, grounding, centering, and camera framing.
+- Every layout must preserve each instance's real physical size ratio. Artwork pixel dimensions never resize geometry. Use the transformed world-space bounds to prevent intersection, calculate safe exterior spacing, align every instance's lowest point to one shared ground plane, recenter the complete composition, and frame every package in the camera. No package may float in any preset.
+- The first version has no manual position, elevation, or XYZ controls. Preserve an internal path for future manual transforms without exposing it now.
+- All instances cast shadows. Preserve existing `receiveShadow={false}` rules for high-density meshes to avoid triangulation artifacts; do not add full global illumination, color bleeding, or dynamic inter-object reflections in the first version.
+- The final remaining instance cannot be deleted. At six instances, disable every add action and show the six-package limit. Transparent PNG export and project save/open must include the complete composition and selected layout; legacy projects migrate to a one-instance composition.
+
 - “相机”区域提供全局打光强度 -100%–100%。0% 是标准柔和棚拍光，-100% 保持左上灯位不变并减弱真实光能，100% 增强同一盏左上主光；负值不得反转灯光方向，也不得退化为整张贴图统一压暗。默认和旧项目迁移值均为 0%，透明 PNG 导出必须复用当前强度。
 - All ordinary uploaded artwork for every current and future packaging type uses a pure-white `MeshPhysicalMaterial` with its sRGB artwork map, zero metalness, soft roughness, and subtle clearcoat. Product highlights and shadows must come from the model normals and the fixed upper-left studio lights, not from uniform texture brightness multiplication. Every unuploaded printable face, unprinted structure, shadow, and surface-finish material remains physically lit.
 - Keep seven independent packaging types: `box`, `pouch`, `inner-packaging-1`, `inner-packaging-2`, `hanging-tissue`, `face-tissue`, and `wet-tissue`.
