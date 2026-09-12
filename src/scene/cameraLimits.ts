@@ -3,6 +3,11 @@ export const CAMERA_POLAR_LIMITS = {
   max: Math.PI - 0.03,
 } as const
 
+export const CAMERA_DISTANCE_LIMITS = {
+  min: 2,
+  max: 40,
+} as const
+
 export const CAMERA_POSITIONS = {
   fit: [4.8, 3.8, 6.4],
   front: [0, 0.2, 8.8],
