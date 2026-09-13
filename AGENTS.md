@@ -51,6 +51,18 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - “洗脸巾”使用 supplied `洗脸巾1开` 根节点和原始 UV；只提供一张完整主体 UV 图稿映射 `洗脸巾`，`平面` 保持结构材质，`纸` 受顶部纸张开关控制。默认显示纸张；贴图支持同面纸的尺寸记忆/反补偿与旋转、缩放、位移、横纵拉伸，高级调整默认收起。
 - The supplied hanging-tissue front and right UV islands overlap by about five pixels in the 2048 atlas. Draw left/right artwork before back/front artwork so the main front/back panels own every overlap; never hide side materials or deform geometry to mask this UV issue.
 
+### Pedestal composition
+
+- Support `none`, steps, islands, and horizontal pedestal presets. Pedestals are real grounded 3D geometry and participate in lighting, shadows, camera framing, and PNG export.
+- Keep pedestal controls in the left 3D preview toolbar; do not add a fifth settings area.
+- Pedestal colors are user-selectable: warm white, light gray, white, light yellow, and light pink. One composition uses one pedestal color.
+- A/B/C/D layouts combine freely with all three pedestal presets. Results must be deterministic; do not use random placement.
+- Pedestal width and depth expand from template minimums to fit transformed real-world package bounds. Never shrink packaging to fit a pedestal.
+- Every package must be fully supported by the ground or a pedestal top. Packages, pedestal volumes, and other packages must never intersect; pedestal blocks grow upward from the shared ground and never float.
+- Preserve the hero package as the highest or primary supported item where the selected layout calls for hierarchy. Recenter and camera-fit the union of packages and pedestals after automatic placement.
+- Disabling pedestals restores the existing same-ground A/B/C/D layout. Save pedestal preset and color; legacy projects migrate to no pedestal.
+- The first version has no manual pedestal transforms or package XYZ/rotation/scale controls. Preserve a path for later C4D-style manual transforms.
+
 ## Box Finish Rules
 
 - Surface finishes apply to all six faces of `box` and only the printable `front`/`back` panels of `pouch`; `inner-packaging-1` and `inner-packaging-2` remain unsupported.
