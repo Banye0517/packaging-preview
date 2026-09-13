@@ -1,4 +1,6 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+
+import type { PedestalColor, PedestalPreset, PedestalState } from '../app/types'
 
 import {
   calculateExportFrameRect,
@@ -11,9 +13,33 @@ import {
 interface ExportFrameOverlayProps {
   presetId: ExportPresetId
   onChange: (presetId: ExportPresetId) => void
+  pedestal: PedestalState
+  onPedestalPresetChange: (preset: PedestalPreset) => void
+  onPedestalColorChange: (color: PedestalColor) => void
 }
 
-export function ExportFrameOverlay({ presetId, onChange }: ExportFrameOverlayProps) {
+const PEDESTAL_PRESETS: Array<{ id: PedestalPreset; label: string }> = [
+  { id: 'none', label: '关闭展台' },
+  { id: 'steps', label: '阶梯展台' },
+  { id: 'islands', label: '岛屿展台' },
+  { id: 'horizontal', label: '横向展台' },
+]
+
+const PEDESTAL_COLORS: Array<{ id: PedestalColor; label: string; value: string }> = [
+  { id: 'warm-white', label: '暖白', value: '#eee9df' },
+  { id: 'light-gray', label: '浅灰', value: '#d8d8d5' },
+  { id: 'white', label: '白色', value: '#ffffff' },
+  { id: 'light-yellow', label: '浅黄', value: '#f2e5b9' },
+  { id: 'light-pink', label: '浅粉', value: '#f3dedf' },
+]
+
+export function ExportFrameOverlay({
+  presetId,
+  onChange,
+  pedestal,
+  onPedestalPresetChange,
+  onPedestalColorChange,
+}: ExportFrameOverlayProps) {
   const rootRef = useRef<HTMLDivElement>(null)
   const [viewport, setViewport] = useState({ width: 0, height: 0 })
   const preset = getExportPreset(presetId)
@@ -66,6 +92,35 @@ export function ExportFrameOverlay({ presetId, onChange }: ExportFrameOverlayPro
                 </button>
               )
             })}
+          </div>
+        ) : null}
+      </div>
+      <div className="pedestal-controls" aria-label="展台设置">
+        <div className="pedestal-preset-controls">
+          {PEDESTAL_PRESETS.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              aria-label={option.label}
+              aria-pressed={pedestal.preset === option.id}
+              onClick={() => onPedestalPresetChange(option.id)}
+            >
+              {option.id === 'none' ? '无展台' : option.label.replace('展台', '')}
+            </button>
+          ))}
+        </div>
+        {pedestal.preset !== 'none' ? (
+          <div className="pedestal-color-controls" aria-label="展台颜色">
+            {PEDESTAL_COLORS.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                aria-label={option.label}
+                aria-pressed={pedestal.color === option.id}
+                onClick={() => onPedestalColorChange(option.id)}
+                style={{ '--pedestal-swatch': option.value } as CSSProperties}
+              />
+            ))}
           </div>
         ) : null}
       </div>

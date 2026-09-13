@@ -12,7 +12,9 @@ import {
 import { renderTransparentPng, type PngExportSelection } from '../export/transparentPng'
 import { PackageInstanceView } from '../composition/PackageInstanceView'
 import { PackageModelErrorBoundary } from '../composition/PackageModelErrorBoundary'
-import { calculateCompositionLayout, type LayoutBounds } from '../composition/layout'
+import type { LayoutBounds } from '../composition/layout'
+import { calculatePedestalLayout } from '../pedestal/pedestalLayout'
+import { PedestalStage } from '../pedestal/PedestalStage'
 import { CAMERA_POLAR_LIMITS, CAMERA_POSITIONS } from './cameraLimits'
 import type { CameraCommand } from './PreviewControls'
 import { StudioEnvironment } from './StudioEnvironment'
@@ -29,6 +31,7 @@ interface BoxSceneProps {
   command: CameraCommandRequest | null
   exportPreset: ExportPreset
   onSelectInstance?: (id: string) => void
+  onPedestalFallback?: (message: string | null) => void
 }
 
 export interface BoxSceneHandle {
@@ -60,7 +63,7 @@ function approximateBounds(instance: PackageInstance): LayoutBounds {
 }
 
 export const BoxScene = forwardRef<BoxSceneHandle, BoxSceneProps>(function BoxScene(
-  { project, command, exportPreset, onSelectInstance = () => undefined },
+  { project, command, exportPreset, onSelectInstance = () => undefined, onPedestalFallback = () => undefined },
   ref,
 ) {
   const lighting = getStudioLighting(project.camera.lightingIntensity)
@@ -69,12 +72,16 @@ export const BoxScene = forwardRef<BoxSceneHandle, BoxSceneProps>(function BoxSc
   const handleBounds = useCallback((id: string, bounds: LayoutBounds) => {
     setMeasuredBounds((current) => current[id] === bounds ? current : { ...current, [id]: bounds })
   }, [])
-  const layout = useMemo(() => calculateCompositionLayout(
+  const layout = useMemo(() => calculatePedestalLayout(
     project.instances.filter((instance) => !failedIds.has(instance.id)).map((instance) => measuredBounds[instance.id] ?? approximateBounds(instance)),
     project.layout,
     project.heroInstanceId,
-  ), [failedIds, measuredBounds, project.heroInstanceId, project.instances, project.layout])
+    project.pedestal.preset,
+  ), [failedIds, measuredBounds, project.heroInstanceId, project.instances, project.layout, project.pedestal.preset])
   const positions = new Map(layout.items.map((item) => [item.id, item]))
+  useEffect(() => {
+    onPedestalFallback(layout.fallbackReason)
+  }, [layout.fallbackReason, onPedestalFallback])
   const span = Math.max(8, layout.bounds.max[0] - layout.bounds.min[0] + 2, layout.bounds.max[2] - layout.bounds.min[2] + 2)
   return (
     <Canvas
@@ -93,6 +100,7 @@ export const BoxScene = forwardRef<BoxSceneHandle, BoxSceneProps>(function BoxSc
       />
       <directionalLight intensity={lighting.fillIntensity} position={lighting.fillPosition} />
       <StudioEnvironment intensityScale={lighting.environmentScale} />
+      <PedestalStage blocks={layout.pedestals} color={project.pedestal.color} />
       {project.instances.map((instance) => {
         const placement = positions.get(instance.id)
         return placement ? (

@@ -10,9 +10,21 @@ describe('project composition state', () => {
   it('starts with one selected box instance', () => {
     const project = createInitialProject()
 
-    expect(project.version).toBe(18)
+    expect(project.version).toBe(19)
+    expect(project.pedestal).toEqual({ preset: 'none', color: 'warm-white' })
     expect(project.instances).toHaveLength(1)
     expect(getSelectedInstance(project).packagingType).toBe('box')
+  })
+
+  it('preserves pedestal settings across composition actions', () => {
+    let project = createInitialProject()
+    project = projectReducer(project, { type: 'pedestal/preset-set', value: 'steps' })
+    project = projectReducer(project, { type: 'pedestal/color-set', value: 'light-pink' })
+    project = projectReducer(project, {
+      type: 'instance/add', packagingType: 'pouch', id: 'pouch-2',
+    })
+
+    expect(project.pedestal).toEqual({ preset: 'steps', color: 'light-pink' })
   })
 
   it('adds and selects a blank instance with the count recommendation', () => {

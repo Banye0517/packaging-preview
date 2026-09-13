@@ -589,7 +589,13 @@ function isVersion17ProjectState(value: unknown): value is Version17ProjectState
 function isProjectState(value: unknown): value is ProjectState {
   if (!value || typeof value !== 'object') return false
   const project = value as Partial<ProjectState>
-  if (project.version !== 18 || typeof project.name !== 'string' || !TABS.has(project.activeTab ?? '')) return false
+  if (project.version !== 19 || typeof project.name !== 'string' || !TABS.has(project.activeTab ?? '')) return false
+  if (!project.pedestal || !['none', 'steps', 'islands', 'horizontal'].includes(project.pedestal.preset) ||
+      !['warm-white', 'light-gray', 'white', 'light-yellow', 'light-pink'].includes(project.pedestal.color)) return false
+  return hasVersion18CompositionFields(project)
+}
+
+function hasVersion18CompositionFields(project: Partial<ProjectState>) {
   if (!Array.isArray(project.instances) || project.instances.length < 1 || project.instances.length > 6) return false
   if (!['hero', 'family', 'cluster', 'grid'].includes(project.layout ?? '')) return false
   if (typeof project.selectedInstanceId !== 'string' || !project.instances.some((item) => item.id === project.selectedInstanceId)) return false
@@ -918,7 +924,7 @@ function migrateVersion17(project: Version17ProjectState): ProjectState {
   const { version: _version, name, activeTab, camera, ...packageFields } = project
   void _version
   return {
-    version: 18,
+    version: 19,
     name,
     activeTab,
     instances: [{
@@ -929,14 +935,28 @@ function migrateVersion17(project: Version17ProjectState): ProjectState {
     selectedInstanceId: 'package-1',
     layout: 'family',
     heroInstanceId: null,
+    pedestal: { preset: 'none', color: 'warm-white' },
     camera,
   }
+}
+
+function isVersion18ProjectState(value: unknown): value is Omit<ProjectState, 'version' | 'pedestal'> & { version: 18 } {
+  if (!value || typeof value !== 'object') return false
+  const project = value as Partial<Omit<ProjectState, 'version' | 'pedestal'>> & { version?: number }
+  return project.version === 18 && hasVersion18CompositionFields(project as Partial<ProjectState>)
 }
 
 export function decodeProject(source: string): ProjectState {
   try {
     const value: unknown = JSON.parse(source)
     if (isProjectState(value)) return value
+    if (isVersion18ProjectState(value)) {
+      return {
+        ...value,
+        version: 19,
+        pedestal: { preset: 'none', color: 'warm-white' },
+      }
+    }
     const legacy = decodeLegacyProjectValue(value)
     if (legacy) return migrateVersion17(legacy)
   } catch {

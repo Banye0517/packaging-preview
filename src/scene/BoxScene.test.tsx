@@ -59,6 +59,15 @@ describe('BoxScene', () => {
     expect(screen.getByTestId('product-contact-shadow')).toBeInTheDocument()
   })
 
+  it('renders the selected pedestal geometry in the scene', () => {
+    const project = createInitialProject()
+    project.pedestal.preset = 'steps'
+
+    render(<BoxScene project={project} command={null} exportPreset={defaultExportPreset} />)
+
+    expect(document.querySelector(`mesh[name="pedestal-block-pedestal-${project.instances[0].id}"]`)).toBeInTheDocument()
+  })
+
   it('renders the hanging tissue model for the hanging tissue packaging type', () => {
     const project = createInitialProject()
     getSelectedInstance(project).packagingType = 'hanging-tissue'

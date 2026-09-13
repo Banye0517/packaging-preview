@@ -217,13 +217,14 @@ export function createDefaultWashTissue(): FaceTissueState {
 export function createInitialProject(): ProjectState {
   const instance = createPackageInstance('box', 'package-1')
   return {
-    version: 18,
+    version: 19,
     name: '未命名包装',
     activeTab: 'artwork',
     instances: [instance],
     selectedInstanceId: instance.id,
     layout: 'family',
     heroInstanceId: null,
+    pedestal: { preset: 'none', color: 'warm-white' },
     camera: { autoRotate: false, lightingIntensity: 0 },
   }
 }
@@ -234,6 +235,8 @@ export type ProjectAction =
   | { type: 'instance/select'; id: string }
   | { type: 'instance/remove'; id: string }
   | { type: 'layout/set'; value: CompositionLayout }
+  | { type: 'pedestal/preset-set'; value: import('./types').PedestalPreset }
+  | { type: 'pedestal/color-set'; value: import('./types').PedestalColor }
   | { type: 'package/edit'; action: PackageAction }
   | { type: 'camera/autoRotate'; value: boolean }
   | { type: 'camera/lightingIntensity'; value: number }
@@ -292,6 +295,10 @@ export function projectReducer(state: ProjectState, action: ProjectAction): Proj
         layout: action.value,
         heroInstanceId: action.value === 'hero' ? state.selectedInstanceId : state.heroInstanceId,
       }
+    case 'pedestal/preset-set':
+      return { ...state, pedestal: { ...state.pedestal, preset: action.value } }
+    case 'pedestal/color-set':
+      return { ...state, pedestal: { ...state.pedestal, color: action.value } }
     case 'package/edit': {
       const selectedIndex = state.instances.findIndex((item) => item.id === state.selectedInstanceId)
       if (selectedIndex < 0) return state

@@ -79,6 +79,7 @@ export function App() {
   } | null>(null)
   const [showHelp, setShowHelp] = useState(false)
   const [exportPresetId, setExportPresetId] = useState<ExportPresetId>(DEFAULT_EXPORT_PRESET_ID)
+  const [pedestalNotice, setPedestalNotice] = useState<string | null>(null)
   const openInputRef = useRef<HTMLInputElement>(null)
   const boxSceneRef = useRef<BoxSceneHandle>(null)
   const rootProject = history.present
@@ -477,12 +478,20 @@ export function App() {
             command={cameraCommand}
             exportPreset={exportPreset}
             onSelectInstance={(id) => commit({ type: 'commit', action: { type: 'instance/select', id } })}
+            onPedestalFallback={setPedestalNotice}
           />
-          <ExportFrameOverlay presetId={exportPresetId} onChange={setExportPresetId} />
+          <ExportFrameOverlay
+            presetId={exportPresetId}
+            onChange={setExportPresetId}
+            pedestal={rootProject.pedestal}
+            onPedestalPresetChange={(value) => commit({ type: 'commit', action: { type: 'pedestal/preset-set', value } })}
+            onPedestalColorChange={(value) => commit({ type: 'commit', action: { type: 'pedestal/color-set', value } })}
+          />
           <div className="preview-copy preview-copy--overlay">
             <span>3D PREVIEW</span>
             <p>所有图片仅在当前浏览器本地处理</p>
           </div>
+          {pedestalNotice ? <div className="pedestal-notice" role="status">{pedestalNotice}</div> : null}
           <PreviewControls onCommand={handleCameraCommand} />
         </section>
         <SettingsPanel activeTab={activeTab} onTabChange={setActiveTab}>

@@ -13,6 +13,12 @@ export const HANGING_TISSUE_FACES = ['front', 'back', 'left', 'right'] as const
 export type HangingTissueFace = (typeof HANGING_TISSUE_FACES)[number]
 export type PackagingType = 'box' | 'pouch' | 'inner-packaging-1' | 'inner-packaging-2' | 'hanging-tissue' | 'face-tissue' | 'wet-tissue' | 'wash-tissue'
 export type CompositionLayout = 'hero' | 'family' | 'cluster' | 'grid'
+export type PedestalPreset = 'none' | 'steps' | 'islands' | 'horizontal'
+export type PedestalColor = 'warm-white' | 'light-gray' | 'white' | 'light-yellow' | 'light-pink'
+export interface PedestalState {
+  preset: PedestalPreset
+  color: PedestalColor
+}
 export type PouchClosure = 'none' | 'zipper' | 'spout'
 export type InnerPackagingModelRotation = 0 | 90 | 180
 export type ImageMimeType = 'image/png' | 'image/jpeg' | 'image/webp'
@@ -148,13 +154,14 @@ export interface PackageInstance {
 }
 
 export interface ProjectState {
-  version: 18
+  version: 19
   name: string
   activeTab: 'artwork' | 'finish' | 'box' | 'camera'
   instances: PackageInstance[]
   selectedInstanceId: string
   layout: CompositionLayout
   heroInstanceId: string | null
+  pedestal: PedestalState
   camera: {
     autoRotate: boolean
     lightingIntensity: number
