@@ -16,6 +16,13 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 
 ## Durable Packaging Decisions
 
+### Integrated pedestal refinement
+
+- Built-in pedestal presets must read as one continuous staging system: every raised surface grows from or connects through a shared base instead of giving each package an isolated plinth.
+- Automatic staging uses front and rear rows. Rear supports are always higher and use the default export camera's screen-space projection to keep the rear package's main face and upper silhouette visible; manual camera orbit never triggers live package repositioning.
+- Pedestals have one project-level `0–30 mm` corner-radius control, default `8 mm`; each generated block clamps its effective radius to safe geometry limits while preserving a flat support surface.
+- Export-ratio, resolution, pedestal preset, color, radius, and camera-view controls must stay outside the fixed white export frame in the gray overscan workspace. They may move above, below, or beside the frame as its aspect changes, but never cover the exported area.
+
 ### Multi-package composition
 
 - Support a composition of one to six independent packaging instances. Different packaging types and repeated instances of the same type may coexist; every instance owns independent artwork, finish, dimensions, and model state.
