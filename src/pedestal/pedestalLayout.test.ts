@@ -9,6 +9,7 @@ import {
   hasPedestalIntersections,
   isFullySupported,
 } from './pedestalLayout'
+import { calculateProjectedRects, calculateVisibleFraction, MIN_REAR_VISIBLE_FRACTION } from './projectedVisibility'
 
 const items: LayoutBounds[] = [
   { id: 'hero', min: [-1.2, -0.1, -0.55], max: [1.3, 3.4, 0.65] },
@@ -33,6 +34,9 @@ describe('calculatePedestalLayout', () => {
       expect(hasPackagePedestalIntersections(result.items, result.pedestals)).toBe(false)
       expect(hasPedestalIntersections(result.pedestals)).toBe(false)
       expect(result.items.every((item) => isFullySupported(item, result.pedestals))).toBe(true)
+      expect(result.pedestals.filter((block) => block.role === 'base')).toHaveLength(1)
+      const base = result.pedestals.find((block) => block.role === 'base')!
+      expect(base.center[1] - base.height / 2).toBeCloseTo(0)
     },
   )
 
@@ -60,5 +64,48 @@ describe('calculatePedestalLayout', () => {
       .map((item) => item.position[1] + item.rotatedBounds.min[1])
 
     expect(heroBottom).toBe(Math.max(heroBottom, ...otherBottoms))
+  })
+
+  it('keeps every rear support higher than the front row', () => {
+    const result = calculatePedestalLayout(items, 'grid', 'hero', 'steps')
+    const frontHeights = result.supports.filter((support) => support.row === 'front').map((support) => support.height)
+    const rearHeights = result.supports.filter((support) => support.row === 'rear').map((support) => support.height)
+
+    expect(frontHeights.length).toBeGreaterThan(0)
+    expect(rearHeights.length).toBeGreaterThan(0)
+    expect(Math.min(...rearHeights)).toBeGreaterThan(Math.max(...frontHeights))
+  })
+
+  it('raises short rear packages above tall overlapping front silhouettes', () => {
+    const visibilityItems: LayoutBounds[] = [
+      { id: 'front-tall', min: [-1, 0, -0.5], max: [1, 5, 0.5] },
+      { id: 'front-small', min: [-0.5, 0, -0.5], max: [0.5, 1, 0.5] },
+      { id: 'rear-short', min: [-1, 0, -0.5], max: [1, 1, 0.5] },
+      { id: 'rear-small', min: [-0.5, 0, -0.5], max: [0.5, 1, 0.5] },
+    ]
+    const result = calculatePedestalLayout(visibilityItems, 'grid', null, 'steps')
+    const rear = result.supports.find((support) => support.packageId === 'rear-short')!
+
+    expect(rear.height).toBeGreaterThan(5)
+  })
+
+  it('keeps at least 80 percent of every rear projected bounds visible in the default camera', () => {
+    const result = calculatePedestalLayout(items, 'cluster', 'hero', 'steps')
+    const worldBounds = result.items.map((item) => ({
+      id: item.id,
+      min: item.rotatedBounds.min.map((value, axis) => value + item.position[axis]) as [number, number, number],
+      max: item.rotatedBounds.max.map((value, axis) => value + item.position[axis]) as [number, number, number],
+    }))
+    for (const aspect of [1, 16 / 9, 9 / 16]) {
+      const rectangles = calculateProjectedRects(worldBounds, aspect, result.bounds)
+      const frontRects = result.supports
+        .filter((support) => support.row === 'front')
+        .map((support) => rectangles.get(support.packageId)!)
+
+      for (const support of result.supports.filter((entry) => entry.row === 'rear')) {
+        expect(calculateVisibleFraction(rectangles.get(support.packageId)!, frontRects))
+          .toBeGreaterThanOrEqual(MIN_REAR_VISIBLE_FRACTION - 0.005)
+      }
+    }
   })
 })

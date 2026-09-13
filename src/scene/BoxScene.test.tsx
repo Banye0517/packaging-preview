@@ -17,6 +17,7 @@ vi.mock('@react-three/fiber', () => ({
 vi.mock('@react-three/drei', () => ({
   ContactShadows: () => <div data-testid="product-contact-shadow" />,
   OrbitControls: () => null,
+  RoundedBox: ({ children, name }: { children: React.ReactNode; name: string }) => <mesh name={name}>{children}</mesh>,
 }))
 
 vi.mock('./PrintedBox', () => ({ PrintedBox: () => null }))
@@ -65,7 +66,7 @@ describe('BoxScene', () => {
 
     render(<BoxScene project={project} command={null} exportPreset={defaultExportPreset} />)
 
-    expect(document.querySelector(`mesh[name="pedestal-block-pedestal-${project.instances[0].id}"]`)).toBeInTheDocument()
+    expect(document.querySelector('mesh[name="pedestal-block-pedestal-base"]')).toBeInTheDocument()
   })
 
   it('renders the hanging tissue model for the hanging tissue packaging type', () => {

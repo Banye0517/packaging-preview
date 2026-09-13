@@ -6,6 +6,9 @@ import { dataUrlToBlob, renderTransparentPng } from './transparentPng'
 describe('renderTransparentPng', () => {
   it('renders an 800 by 800 transparent PNG without a contact shadow and restores state', () => {
     const camera = new PerspectiveCamera(38, 1.6)
+    camera.projectionMatrix.elements[8] = 0.24
+    camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert()
+    const previewProjection = camera.projectionMatrix.clone()
     const scene = new Scene()
     scene.background = new Color('#ffffff')
     const shadowGroup = new Group()
@@ -42,6 +45,7 @@ describe('renderTransparentPng', () => {
     expect(scene.background).toBeInstanceOf(Color)
     expect(shadowGroup.visible).toBe(true)
     expect(shadowVisibilityDuringRender).toEqual([false, true])
+    expect(camera.projectionMatrix.equals(previewProjection)).toBe(true)
   })
 
   it('renders a 3000 by 3000 transparent PNG with the contact shadow visible', () => {

@@ -232,6 +232,43 @@ input:focus-visible {
   backdrop-filter: blur(10px);
 }
 
+.preview-primary-toolbar {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.preview-primary-toolbar--portrait-side-rail {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  overflow-y: auto;
+}
+
+.preview-primary-toolbar .export-ratio-controls,
+.preview-primary-toolbar .pedestal-controls {
+  position: static;
+  transform: none;
+}
+
+.preview-primary-toolbar--portrait-side-rail .export-ratio-controls,
+.preview-primary-toolbar--portrait-side-rail .pedestal-controls {
+  width: 100%;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.preview-primary-toolbar--portrait-side-rail .export-resolution-controls,
+.preview-primary-toolbar--portrait-side-rail .pedestal-preset-controls,
+.preview-primary-toolbar--portrait-side-rail .pedestal-color-controls {
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
 .export-ratio-controls button {
   min-height: 30px;
   padding: 0 10px;
@@ -318,17 +355,29 @@ input:focus-visible {
   content: '';
 }
 
+.pedestal-radius-control {
+  display: grid;
+  min-width: 112px;
+  gap: 2px;
+  padding: 0 6px;
+  color: rgb(255 255 255 / 78%);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.pedestal-radius-control input {
+  width: 100%;
+  accent-color: #fff;
+}
+
 .pedestal-notice {
-  position: absolute;
-  z-index: 3;
-  top: 98px;
-  left: 50%;
+  flex: 0 1 auto;
   padding: 7px 10px;
   border-radius: 8px;
   background: rgb(126 66 20 / 88%);
   color: #fff;
   font-size: 11px;
-  transform: translateX(-50%);
+  text-align: center;
 }
 
 .export-frame-overlay--pass-through,
@@ -430,7 +479,7 @@ input:focus-visible {
 .preview-controls {
   position: absolute;
   z-index: 1;
-  bottom: 24px;
+  bottom: 10px;
   display: flex;
   gap: 8px;
 }
@@ -1201,7 +1250,7 @@ input:focus-visible {
   }
 
   .preview-stage {
-    min-height: 43vh;
+    min-height: 70vh;
   }
 
   .preview-copy {
@@ -1213,7 +1262,7 @@ input:focus-visible {
   }
 
   .preview-controls {
-    bottom: 14px;
+    bottom: 10px;
   }
 
   .export-ratio-controls {
@@ -1233,9 +1282,16 @@ input:focus-visible {
     font-size: 9px;
   }
 
-  .pedestal-controls {
-    top: 51px;
-    width: calc(100% - 20px);
+  .preview-primary-toolbar {
+    flex-wrap: wrap;
+    align-content: center;
+    overflow: visible;
+  }
+
+  .preview-primary-toolbar .export-ratio-controls,
+  .preview-primary-toolbar .pedestal-controls {
+    width: auto;
+    max-width: 100%;
     flex-wrap: wrap;
     justify-content: center;
   }
@@ -1250,7 +1306,6 @@ input:focus-visible {
   }
 
   .pedestal-notice {
-    top: 151px;
     max-width: calc(100% - 24px);
   }
 

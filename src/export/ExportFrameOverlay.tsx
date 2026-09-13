@@ -4,6 +4,7 @@ import type { PedestalColor, PedestalPreset, PedestalState } from '../app/types'
 
 import {
   calculateExportFrameRect,
+  calculatePreviewStageLayout,
   getExportFramePadding,
   getExportPreset,
   type ExportPresetId,
@@ -14,8 +15,10 @@ interface ExportFrameOverlayProps {
   presetId: ExportPresetId
   onChange: (presetId: ExportPresetId) => void
   pedestal: PedestalState
+  pedestalNotice?: string | null
   onPedestalPresetChange: (preset: PedestalPreset) => void
   onPedestalColorChange: (color: PedestalColor) => void
+  onPedestalRadiusChange: (radius: number) => void
 }
 
 const PEDESTAL_PRESETS: Array<{ id: PedestalPreset; label: string }> = [
@@ -37,14 +40,21 @@ export function ExportFrameOverlay({
   presetId,
   onChange,
   pedestal,
+  pedestalNotice,
   onPedestalPresetChange,
   onPedestalColorChange,
+  onPedestalRadiusChange,
 }: ExportFrameOverlayProps) {
   const rootRef = useRef<HTMLDivElement>(null)
   const [viewport, setViewport] = useState({ width: 0, height: 0 })
   const preset = getExportPreset(presetId)
   const padding = getExportFramePadding(viewport.width)
-  const frame = calculateExportFrameRect(viewport.width, viewport.height, preset, padding)
+  const stageLayout = viewport.width > 0 && viewport.height > 0
+    ? calculatePreviewStageLayout(viewport.width, viewport.height, preset)
+    : null
+  const frame = stageLayout
+    ? stageLayout.frame
+    : calculateExportFrameRect(viewport.width, viewport.height, preset, padding)
 
   useLayoutEffect(() => {
     const element = rootRef.current
@@ -65,7 +75,11 @@ export function ExportFrameOverlay({
 
   return (
     <div ref={rootRef} className="export-frame-ui">
-      <div className="export-ratio-controls" aria-label="导出画幅">
+      <div
+        className={`preview-primary-toolbar preview-primary-toolbar--${stageLayout?.placement ?? 'horizontal-rails'}`}
+        style={stageLayout ? stageLayout.primaryToolbar : undefined}
+      >
+        <div className="export-ratio-controls" aria-label="导出画幅">
         {(['1:1', '16:9', '9:16'] as const).map((ratio) => (
           <button
             key={ratio}
@@ -94,8 +108,8 @@ export function ExportFrameOverlay({
             })}
           </div>
         ) : null}
-      </div>
-      <div className="pedestal-controls" aria-label="展台设置">
+        </div>
+        <div className="pedestal-controls" aria-label="展台设置">
         <div className="pedestal-preset-controls">
           {PEDESTAL_PRESETS.map((option) => (
             <button
@@ -109,8 +123,8 @@ export function ExportFrameOverlay({
             </button>
           ))}
         </div>
-        {pedestal.preset !== 'none' ? (
-          <div className="pedestal-color-controls" aria-label="展台颜色">
+          {pedestal.preset !== 'none' ? (
+            <div className="pedestal-color-controls" aria-label="展台颜色">
             {PEDESTAL_COLORS.map((option) => (
               <button
                 key={option.id}
@@ -121,8 +135,24 @@ export function ExportFrameOverlay({
                 style={{ '--pedestal-swatch': option.value } as CSSProperties}
               />
             ))}
-          </div>
-        ) : null}
+            </div>
+          ) : null}
+          {pedestal.preset !== 'none' ? (
+            <label className="pedestal-radius-control">
+              <span>圆角 {pedestal.cornerRadiusMm} mm</span>
+              <input
+                aria-label="展台圆角"
+                type="range"
+                min={0}
+                max={30}
+                step={1}
+                value={pedestal.cornerRadiusMm}
+                onChange={(event) => onPedestalRadiusChange(Number(event.currentTarget.value))}
+              />
+            </label>
+          ) : null}
+        </div>
+        {pedestalNotice ? <div className="pedestal-notice" role="status">{pedestalNotice}</div> : null}
       </div>
       <div
         data-testid="export-frame-mask"

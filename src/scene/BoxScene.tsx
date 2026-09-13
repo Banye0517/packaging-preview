@@ -100,7 +100,7 @@ export const BoxScene = forwardRef<BoxSceneHandle, BoxSceneProps>(function BoxSc
       />
       <directionalLight intensity={lighting.fillIntensity} position={lighting.fillPosition} />
       <StudioEnvironment intensityScale={lighting.environmentScale} />
-      <PedestalStage blocks={layout.pedestals} color={project.pedestal.color} />
+      <PedestalStage blocks={layout.pedestals} color={project.pedestal.color} cornerRadiusMm={project.pedestal.cornerRadiusMm} />
       {project.instances.map((instance) => {
         const placement = positions.get(instance.id)
         return placement ? (

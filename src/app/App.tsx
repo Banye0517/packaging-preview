@@ -484,14 +484,15 @@ export function App() {
             presetId={exportPresetId}
             onChange={setExportPresetId}
             pedestal={rootProject.pedestal}
+            pedestalNotice={pedestalNotice}
             onPedestalPresetChange={(value) => commit({ type: 'commit', action: { type: 'pedestal/preset-set', value } })}
             onPedestalColorChange={(value) => commit({ type: 'commit', action: { type: 'pedestal/color-set', value } })}
+            onPedestalRadiusChange={(value) => commit({ type: 'commit', action: { type: 'pedestal/radius-set', value } })}
           />
           <div className="preview-copy preview-copy--overlay">
             <span>3D PREVIEW</span>
             <p>所有图片仅在当前浏览器本地处理</p>
           </div>
-          {pedestalNotice ? <div className="pedestal-notice" role="status">{pedestalNotice}</div> : null}
           <PreviewControls onCommand={handleCameraCommand} />
         </section>
         <SettingsPanel activeTab={activeTab} onTabChange={setActiveTab}>

@@ -3,9 +3,11 @@ import { describe, expect, it } from 'vitest'
 import {
   calculateExportFrameRect,
   calculatePreviewFov,
+  calculatePreviewStageLayout,
   EXPORT_PRESETS,
   getExportFramePadding,
   getExportPreset,
+  rectsOverlap,
 } from './exportFrame'
 
 describe('exportFrame', () => {
@@ -41,5 +43,20 @@ describe('exportFrame', () => {
   it('uses the same responsive padding source for desktop and mobile', () => {
     expect(getExportFramePadding(1200)).toBe(56)
     expect(getExportFramePadding(390)).toBe(34)
+  })
+
+  it.each([
+    [1120, 820, 'square-standard'],
+    [1120, 820, 'landscape-2k'],
+    [1120, 820, 'portrait-2k'],
+    [390, 430, 'portrait-2k'],
+  ] as const)('keeps tool rails outside the export frame at %sx%s %s', (width, height, presetId) => {
+    const layout = calculatePreviewStageLayout(width, height, getExportPreset(presetId))
+
+    expect(rectsOverlap(layout.frame, layout.primaryToolbar)).toBe(false)
+    expect(rectsOverlap(layout.frame, layout.cameraToolbar)).toBe(false)
+    expect(layout.frame.width / layout.frame.height).toBeCloseTo(
+      getExportPreset(presetId).width / getExportPreset(presetId).height,
+    )
   })
 })

@@ -43,6 +43,8 @@ export function renderTransparentPng(
   const previousBackground = scene.background
   const previousAspect = camera.aspect
   const previousFov = camera.fov
+  const previousProjection = camera.projectionMatrix.clone()
+  const previousProjectionInverse = camera.projectionMatrixInverse.clone()
   const previousShadowVisible = shadowGroup?.visible
 
   renderer.setPixelRatio(1)
@@ -63,7 +65,8 @@ export function renderTransparentPng(
     }
     camera.aspect = previousAspect
     camera.fov = previousFov
-    camera.updateProjectionMatrix()
+    camera.projectionMatrix.copy(previousProjection)
+    camera.projectionMatrixInverse.copy(previousProjectionInverse)
     renderer.setClearColor(previousClearColor, previousClearAlpha)
     renderer.setPixelRatio(previousPixelRatio)
     renderer.setSize(previousSize.x, previousSize.y, false)
