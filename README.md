@@ -11,16 +11,29 @@
 - 烫金、银色、镭射、局部 UV、压凹凸等工艺蒙版的位置是否准确
 - 是否需要在进入正式 3D 渲染或实物打样前先发现问题
 
-## 产品演示
+## 大版本预览
 
-[![包装预览产品演示](assets/packaging-preview-demo-poster.jpg)](https://packaging-preview.winstedlason269.chatgpt.site/media/packaging-preview-demo.mp4)
+本版本重点升级了多包装组合、真实尺寸安全排布、整体展台和可视化导出画幅。以下截图均来自本地运行中的真实界面，展示的是当前版本实际可用的状态。
 
-点击上方封面播放 35 秒产品演示，也可以[直接打开演示视频](https://packaging-preview.winstedlason269.chatgpt.site/media/packaging-preview-demo.mp4)。
+![多包装组合主视觉](docs/images/01-composition-hero.webp)
+
+![组合列表、排列方式与展台设置](docs/images/02-multi-package-pedestal.webp)
+
+![六面贴图上传与 3D 联动](docs/images/03-artwork-dimensions.webp)
+
+![9:16 导出取景框](docs/images/04-export-frame.webp)
 
 在线预览：<https://packaging-preview.winstedlason269.chatgpt.site>
 
 ## 功能
 
+- 支持 1–6 个独立包装实例；不同盒型、同一盒型的重复实例可以混合，每个实例拥有独立贴图、工艺、尺寸和模型状态
+- 提供 A 主次、B 横排、C 错落、D 阵列四种组合排列；2 个默认 B，3–4 个默认 C，5–6 个默认 D，也可以随时手动切换
+- 按真实宽度、深度和高度计算安全间距，避免模型穿插；新增或修改尺寸后自动重新排布、整体居中并调整相机
+- 所有包装和展台共享落地平面，自动对齐最低点，组合中不会出现悬空包装
+- 展台可关闭，也可选择阶梯、岛屿或横向形态；提供暖白、浅灰、白色、浅黄、浅粉五种颜色和 0–30 mm 圆角
+- 导出画幅支持 1:1、16:9、9:16；预览中的白色取景框固定显示最终导出范围，工具栏位于灰色工作区，不遮挡画幅
+- PNG 导出提供 800 px、3000 px 正方形和 2K 横竖画幅（2560 × 1440、1440 × 2560）
 - 盒装支持前、后、左、右、上、下六面独立上传贴图
 - 自立袋和内包装 2 支持正面、背面贴图；内包装 1 支持完整 UV 图稿
 - 悬挂抽纸支持正、背、左、右四面贴图
