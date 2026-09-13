@@ -589,9 +589,11 @@ function isVersion17ProjectState(value: unknown): value is Version17ProjectState
 function isProjectState(value: unknown): value is ProjectState {
   if (!value || typeof value !== 'object') return false
   const project = value as Partial<ProjectState>
-  if (project.version !== 19 || typeof project.name !== 'string' || !TABS.has(project.activeTab ?? '')) return false
+  if (project.version !== 20 || typeof project.name !== 'string' || !TABS.has(project.activeTab ?? '')) return false
   if (!project.pedestal || !['none', 'steps', 'islands', 'horizontal'].includes(project.pedestal.preset) ||
-      !['warm-white', 'light-gray', 'white', 'light-yellow', 'light-pink'].includes(project.pedestal.color)) return false
+      !['warm-white', 'light-gray', 'white', 'light-yellow', 'light-pink'].includes(project.pedestal.color) ||
+      typeof project.pedestal.cornerRadiusMm !== 'number' || !Number.isFinite(project.pedestal.cornerRadiusMm) ||
+      project.pedestal.cornerRadiusMm < 0 || project.pedestal.cornerRadiusMm > 30) return false
   return hasVersion18CompositionFields(project)
 }
 
@@ -924,7 +926,7 @@ function migrateVersion17(project: Version17ProjectState): ProjectState {
   const { version: _version, name, activeTab, camera, ...packageFields } = project
   void _version
   return {
-    version: 19,
+    version: 20,
     name,
     activeTab,
     instances: [{
@@ -935,7 +937,7 @@ function migrateVersion17(project: Version17ProjectState): ProjectState {
     selectedInstanceId: 'package-1',
     layout: 'family',
     heroInstanceId: null,
-    pedestal: { preset: 'none', color: 'warm-white' },
+    pedestal: { preset: 'none', color: 'warm-white', cornerRadiusMm: 8 },
     camera,
   }
 }
@@ -946,15 +948,37 @@ function isVersion18ProjectState(value: unknown): value is Omit<ProjectState, 'v
   return project.version === 18 && hasVersion18CompositionFields(project as Partial<ProjectState>)
 }
 
+type Version19ProjectState = Omit<ProjectState, 'version' | 'pedestal'> & {
+  version: 19
+  pedestal: Omit<ProjectState['pedestal'], 'cornerRadiusMm'>
+}
+
+function isVersion19ProjectState(value: unknown): value is Version19ProjectState {
+  if (!value || typeof value !== 'object') return false
+  const project = value as Partial<Version19ProjectState>
+  return project.version === 19 &&
+    !!project.pedestal &&
+    ['none', 'steps', 'islands', 'horizontal'].includes(project.pedestal.preset) &&
+    ['warm-white', 'light-gray', 'white', 'light-yellow', 'light-pink'].includes(project.pedestal.color) &&
+    hasVersion18CompositionFields(project as unknown as Partial<ProjectState>)
+}
+
 export function decodeProject(source: string): ProjectState {
   try {
     const value: unknown = JSON.parse(source)
     if (isProjectState(value)) return value
+    if (isVersion19ProjectState(value)) {
+      return {
+        ...value,
+        version: 20,
+        pedestal: { ...value.pedestal, cornerRadiusMm: 8 },
+      }
+    }
     if (isVersion18ProjectState(value)) {
       return {
         ...value,
-        version: 19,
-        pedestal: { preset: 'none', color: 'warm-white' },
+        version: 20,
+        pedestal: { preset: 'none', color: 'warm-white', cornerRadiusMm: 8 },
       }
     }
     const legacy = decodeLegacyProjectValue(value)

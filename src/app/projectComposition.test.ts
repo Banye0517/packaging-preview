@@ -10,8 +10,8 @@ describe('project composition state', () => {
   it('starts with one selected box instance', () => {
     const project = createInitialProject()
 
-    expect(project.version).toBe(19)
-    expect(project.pedestal).toEqual({ preset: 'none', color: 'warm-white' })
+    expect(project.version).toBe(20)
+    expect(project.pedestal).toEqual({ preset: 'none', color: 'warm-white', cornerRadiusMm: 8 })
     expect(project.instances).toHaveLength(1)
     expect(getSelectedInstance(project).packagingType).toBe('box')
   })
@@ -24,7 +24,18 @@ describe('project composition state', () => {
       type: 'instance/add', packagingType: 'pouch', id: 'pouch-2',
     })
 
-    expect(project.pedestal).toEqual({ preset: 'steps', color: 'light-pink' })
+    expect(project.pedestal).toEqual({ preset: 'steps', color: 'light-pink', cornerRadiusMm: 8 })
+  })
+
+  it('stores a clamped project-level pedestal radius', () => {
+    let project = createInitialProject()
+    expect(project.pedestal.cornerRadiusMm).toBe(8)
+
+    project = projectReducer(project, { type: 'pedestal/radius-set', value: 24 })
+    expect(project.pedestal.cornerRadiusMm).toBe(24)
+
+    project = projectReducer(project, { type: 'pedestal/radius-set', value: 80 })
+    expect(project.pedestal.cornerRadiusMm).toBe(30)
   })
 
   it('adds and selects a blank instance with the count recommendation', () => {

@@ -18,6 +18,7 @@ export type PedestalColor = 'warm-white' | 'light-gray' | 'white' | 'light-yello
 export interface PedestalState {
   preset: PedestalPreset
   color: PedestalColor
+  cornerRadiusMm: number
 }
 export type PouchClosure = 'none' | 'zipper' | 'spout'
 export type InnerPackagingModelRotation = 0 | 90 | 180
@@ -154,7 +155,7 @@ export interface PackageInstance {
 }
 
 export interface ProjectState {
-  version: 19
+  version: 20
   name: string
   activeTab: 'artwork' | 'finish' | 'box' | 'camera'
   instances: PackageInstance[]

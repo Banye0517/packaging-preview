@@ -217,14 +217,14 @@ export function createDefaultWashTissue(): FaceTissueState {
 export function createInitialProject(): ProjectState {
   const instance = createPackageInstance('box', 'package-1')
   return {
-    version: 19,
+    version: 20,
     name: '未命名包装',
     activeTab: 'artwork',
     instances: [instance],
     selectedInstanceId: instance.id,
     layout: 'family',
     heroInstanceId: null,
-    pedestal: { preset: 'none', color: 'warm-white' },
+    pedestal: { preset: 'none', color: 'warm-white', cornerRadiusMm: 8 },
     camera: { autoRotate: false, lightingIntensity: 0 },
   }
 }
@@ -237,6 +237,7 @@ export type ProjectAction =
   | { type: 'layout/set'; value: CompositionLayout }
   | { type: 'pedestal/preset-set'; value: import('./types').PedestalPreset }
   | { type: 'pedestal/color-set'; value: import('./types').PedestalColor }
+  | { type: 'pedestal/radius-set'; value: number }
   | { type: 'package/edit'; action: PackageAction }
   | { type: 'camera/autoRotate'; value: boolean }
   | { type: 'camera/lightingIntensity'; value: number }
@@ -299,6 +300,14 @@ export function projectReducer(state: ProjectState, action: ProjectAction): Proj
       return { ...state, pedestal: { ...state.pedestal, preset: action.value } }
     case 'pedestal/color-set':
       return { ...state, pedestal: { ...state.pedestal, color: action.value } }
+    case 'pedestal/radius-set':
+      return {
+        ...state,
+        pedestal: {
+          ...state.pedestal,
+          cornerRadiusMm: Math.min(30, Math.max(0, Number.isFinite(action.value) ? action.value : 8)),
+        },
+      }
     case 'package/edit': {
       const selectedIndex = state.instances.findIndex((item) => item.id === state.selectedInstanceId)
       if (selectedIndex < 0) return state
