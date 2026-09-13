@@ -27,8 +27,10 @@ describe('renderTransparentPng', () => {
     } as unknown as WebGLRenderer
 
     const result = renderTransparentPng(renderer, scene, camera, {
-      size: 800,
+      width: 800,
+      height: 800,
       includeShadow: false,
+      exportFov: 38,
       shadowGroup,
     })
 
@@ -60,14 +62,48 @@ describe('renderTransparentPng', () => {
     } as unknown as WebGLRenderer
 
     renderTransparentPng(renderer, scene, camera, {
-      size: 3000,
+      width: 3000,
+      height: 3000,
       includeShadow: true,
+      exportFov: 38,
       shadowGroup,
     })
 
     expect(renderer.setSize).toHaveBeenNthCalledWith(1, 3000, 3000, false)
     expect(shadowGroup.visible).toBe(true)
     expect(shadowVisibilityDuringRender).toEqual([true, true])
+  })
+
+  it.each([
+    [800, 800],
+    [3000, 3000],
+    [2560, 1440],
+    [1440, 2560],
+  ])('renders at %i by %i pixels', (width, height) => {
+    const camera = new PerspectiveCamera(52, 1.6)
+    const scene = new Scene()
+    const renderer = {
+      domElement: { toDataURL: vi.fn(() => 'data:image/png;base64,exported') },
+      getSize: vi.fn((target: Vector2) => target.set(1200, 800)),
+      getPixelRatio: vi.fn(() => 2),
+      getClearColor: vi.fn((target: Color) => target.set('#eef3f9')),
+      getClearAlpha: vi.fn(() => 1),
+      setPixelRatio: vi.fn(),
+      setSize: vi.fn(),
+      setClearColor: vi.fn(),
+      render: vi.fn(),
+    } as unknown as WebGLRenderer
+
+    renderTransparentPng(renderer, scene, camera, {
+      width,
+      height,
+      includeShadow: false,
+      exportFov: 38,
+    })
+
+    expect(renderer.setSize).toHaveBeenNthCalledWith(1, width, height, false)
+    expect(camera.aspect).toBe(1.6)
+    expect(camera.fov).toBe(52)
   })
 
   it('converts the PNG data URL into a downloadable Blob', async () => {

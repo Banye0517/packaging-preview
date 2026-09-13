@@ -206,6 +206,106 @@ input:focus-visible {
   height: 100% !important;
 }
 
+.export-frame-ui,
+.export-frame-overlay {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+}
+
+.export-ratio-controls {
+  position: absolute;
+  z-index: 1;
+  top: 16px;
+  left: 50%;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  padding: 5px;
+  border: 1px solid rgb(255 255 255 / 70%);
+  border-radius: 10px;
+  background: rgb(30 40 54 / 78%);
+  box-shadow: 0 8px 24px rgb(24 39 61 / 18%);
+  transform: translateX(-50%);
+  pointer-events: auto;
+  backdrop-filter: blur(10px);
+}
+
+.export-ratio-controls button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: rgb(255 255 255 / 72%);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.export-ratio-controls button[aria-pressed="true"] {
+  background: #fff;
+  color: #205daf;
+}
+
+.export-resolution-controls {
+  display: flex;
+  gap: 3px;
+  padding-left: 5px;
+  border-left: 1px solid rgb(255 255 255 / 24%);
+}
+
+.export-frame-overlay--pass-through,
+.export-frame-overlay--pass-through * {
+  pointer-events: none;
+}
+
+.export-frame-shade {
+  position: absolute;
+  background: rgb(20 29 41 / 28%);
+}
+
+.export-frame-shade--top {
+  top: 0;
+  right: 0;
+  left: 0;
+}
+
+.export-frame-shade--bottom {
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.export-frame-shade--left {
+  left: 0;
+}
+
+.export-frame-shade--right {
+  right: 0;
+}
+
+.export-frame {
+  position: absolute;
+  border: 1px solid rgb(255 255 255 / 94%);
+  box-shadow: inset 0 0 0 1px rgb(28 43 61 / 12%);
+}
+
+.export-frame > span {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 5px 7px;
+  border-radius: 5px;
+  background: rgb(24 34 47 / 76%);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+
 .preview-copy {
   position: relative;
   z-index: 1;
@@ -1039,6 +1139,23 @@ input:focus-visible {
 
   .preview-controls {
     bottom: 14px;
+  }
+
+  .export-ratio-controls {
+    top: 10px;
+    padding: 4px;
+  }
+
+  .export-ratio-controls button {
+    min-height: 28px;
+    padding-inline: 7px;
+    font-size: 10px;
+  }
+
+  .export-frame > span {
+    top: 5px;
+    left: 5px;
+    font-size: 9px;
   }
 
   .preview-controls button {

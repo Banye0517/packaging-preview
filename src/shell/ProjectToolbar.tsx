@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
-import { PNG_EXPORT_OPTIONS, type PngExportSelection } from '../export/transparentPng'
+import type { ExportPreset } from '../export/exportFrame'
+import type { PngExportSelection } from '../export/transparentPng'
 
 interface ProjectToolbarProps {
   name: string
@@ -13,6 +14,7 @@ interface ProjectToolbarProps {
   onOpen: () => void
   onSave: () => void
   onHelp: () => void
+  exportPreset: ExportPreset
   onExport: (selection: PngExportSelection) => void
 }
 
@@ -27,6 +29,7 @@ export function ProjectToolbar({
   onOpen,
   onSave,
   onHelp,
+  exportPreset,
   onExport,
 }: ProjectToolbarProps) {
   const [moreOpen, setMoreOpen] = useState(false)
@@ -95,17 +98,21 @@ export function ProjectToolbar({
           </button>
           {exportOpen ? (
             <div id="png-export-menu" className="export-menu" role="menu" aria-label="PNG 导出选项">
-              {PNG_EXPORT_OPTIONS.map((option) => (
+              {[false, true].map((includeShadow) => (
                 <button
-                  key={option.label}
+                  key={includeShadow ? 'shadow' : 'transparent'}
                   type="button"
                   role="menuitem"
                   onClick={() => {
                     setExportOpen(false)
-                    onExport({ size: option.size, includeShadow: option.includeShadow })
+                    onExport({
+                      width: exportPreset.width,
+                      height: exportPreset.height,
+                      includeShadow,
+                    })
                   }}
                 >
-                  {option.label}
+                  导出 PNG（{includeShadow ? '有投影' : '无投影'}）· {exportPreset.width} × {exportPreset.height}
                 </button>
               ))}
             </div>

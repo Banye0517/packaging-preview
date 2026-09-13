@@ -5,7 +5,11 @@ import type { PerspectiveCamera } from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 
 import type { PackageInstance, ProjectState } from '../app/types'
-import { renderTransparentPng, type PngExportSize } from '../export/transparentPng'
+import {
+  applyExportFrameProjection,
+  type ExportPreset,
+} from '../export/exportFrame'
+import { renderTransparentPng, type PngExportSelection } from '../export/transparentPng'
 import { PackageInstanceView } from '../composition/PackageInstanceView'
 import { PackageModelErrorBoundary } from '../composition/PackageModelErrorBoundary'
 import { calculateCompositionLayout, type LayoutBounds } from '../composition/layout'
@@ -23,6 +27,7 @@ export interface CameraCommandRequest {
 interface BoxSceneProps {
   project: ProjectState
   command: CameraCommandRequest | null
+  exportPreset: ExportPreset
   onSelectInstance?: (id: string) => void
 }
 
@@ -30,10 +35,9 @@ export interface BoxSceneHandle {
   exportTransparentPng: (options?: PngExportRequest) => string | null
 }
 
-export interface PngExportRequest {
-  size: PngExportSize
-  includeShadow: boolean
-}
+export type PngExportRequest = PngExportSelection
+
+const EXPORT_CAMERA_FOV = 38
 
 function approximateBounds(instance: PackageInstance): LayoutBounds {
   let width: number
@@ -56,7 +60,7 @@ function approximateBounds(instance: PackageInstance): LayoutBounds {
 }
 
 export const BoxScene = forwardRef<BoxSceneHandle, BoxSceneProps>(function BoxScene(
-  { project, command, onSelectInstance = () => undefined },
+  { project, command, exportPreset, onSelectInstance = () => undefined },
   ref,
 ) {
   const lighting = getStudioLighting(project.camera.lightingIntensity)
@@ -117,7 +121,12 @@ export const BoxScene = forwardRef<BoxSceneHandle, BoxSceneProps>(function BoxSc
           far={4}
         />
       </group>
-      <CameraControls autoRotate={project.camera.autoRotate} command={command} bounds={layout.bounds} />
+      <CameraControls
+        autoRotate={project.camera.autoRotate}
+        command={command}
+        bounds={layout.bounds}
+        exportPreset={exportPreset}
+      />
       <ExportController ref={ref} />
     </Canvas>
   )
@@ -129,10 +138,11 @@ const ExportController = forwardRef<BoxSceneHandle>(function ExportController(_,
   const camera = useThree((state) => state.camera)
 
   useImperativeHandle(ref, () => ({
-    exportTransparentPng: (options = { size: 3000, includeShadow: false }) => {
+    exportTransparentPng: (options = { width: 800, height: 800, includeShadow: false }) => {
       if (!('isPerspectiveCamera' in camera)) return null
       return renderTransparentPng(renderer, scene, camera as PerspectiveCamera, {
         ...options,
+        exportFov: EXPORT_CAMERA_FOV,
         shadowGroup: scene.getObjectByName('product-contact-shadow'),
       })
     },
@@ -145,14 +155,34 @@ function CameraControls({
   autoRotate,
   command,
   bounds,
+  exportPreset,
 }: {
   autoRotate: boolean
   command: CameraCommandRequest | null
   bounds: { min: [number, number, number]; max: [number, number, number] }
+  exportPreset: ExportPreset
 }) {
   const controls = useRef<OrbitControlsImpl>(null)
   const camera = useThree((state) => state.camera)
   const size = useThree((state) => state.size)
+  const exportPresetRef = useRef(exportPreset)
+
+  useEffect(() => {
+    exportPresetRef.current = exportPreset
+  }, [exportPreset])
+
+  // The preview renders overscan around the fixed export frame. Changing the
+  // frame updates projection only; it must never reset the user's orbit view.
+  useEffect(() => {
+    if (!('isPerspectiveCamera' in camera)) return
+    applyExportFrameProjection(
+      camera as PerspectiveCamera,
+      size.width,
+      size.height,
+      exportPreset,
+      EXPORT_CAMERA_FOV,
+    )
+  }, [camera, exportPreset, size.height, size.width])
 
   // Three.js camera objects are intentionally mutated by the scene controller.
   // eslint-disable-next-line react-hooks/immutability
@@ -166,8 +196,8 @@ function CameraControls({
     ]
     const fit = fitCompositionCamera({
       bounds,
-      fov: (camera as PerspectiveCamera).fov,
-      aspect: Math.max(size.width / Math.max(size.height, 1), 0.1),
+      fov: EXPORT_CAMERA_FOV,
+      aspect: exportPresetRef.current.width / exportPresetRef.current.height,
       viewDirection: direction,
     })
     camera.position.set(...fit.position)
@@ -190,8 +220,8 @@ function CameraControls({
       : [-preset[0], -preset[1], -preset[2]]
     const fit = fitCompositionCamera({
       bounds,
-      fov: (camera as PerspectiveCamera).fov,
-      aspect: Math.max(size.width / Math.max(size.height, 1), 0.1),
+      fov: EXPORT_CAMERA_FOV,
+      aspect: exportPresetRef.current.width / exportPresetRef.current.height,
       viewDirection,
     })
     camera.position.set(...fit.position)

@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { createInitialProject, getSelectedInstance } from '../app/projectReducer'
+import { getExportPreset } from '../export/exportFrame'
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -49,9 +50,11 @@ vi.mock('./StudioEnvironment', () => ({ StudioEnvironment: () => null }))
 
 import { BoxScene } from './BoxScene'
 
+const defaultExportPreset = getExportPreset('square-standard')
+
 describe('BoxScene', () => {
   it('renders a contact shadow directly below the packaging model', () => {
-    render(<BoxScene project={createInitialProject()} command={null} />)
+    render(<BoxScene project={createInitialProject()} command={null} exportPreset={defaultExportPreset} />)
 
     expect(screen.getByTestId('product-contact-shadow')).toBeInTheDocument()
   })
@@ -60,7 +63,7 @@ describe('BoxScene', () => {
     const project = createInitialProject()
     getSelectedInstance(project).packagingType = 'hanging-tissue'
 
-    render(<BoxScene project={project} command={null} />)
+    render(<BoxScene project={project} command={null} exportPreset={defaultExportPreset} />)
 
     expect(screen.getByTestId('printed-hanging-tissue')).toBeInTheDocument()
   })
@@ -69,7 +72,7 @@ describe('BoxScene', () => {
     const project = createInitialProject()
     getSelectedInstance(project).packagingType = 'face-tissue'
 
-    render(<BoxScene project={project} command={null} />)
+    render(<BoxScene project={project} command={null} exportPreset={defaultExportPreset} />)
 
     expect(screen.getByTestId('printed-face-tissue')).toBeInTheDocument()
   })
@@ -78,7 +81,7 @@ describe('BoxScene', () => {
     const project = createInitialProject()
     getSelectedInstance(project).packagingType = 'wet-tissue'
 
-    render(<BoxScene project={project} command={null} />)
+    render(<BoxScene project={project} command={null} exportPreset={defaultExportPreset} />)
 
     expect(screen.getByTestId('printed-wet-tissue')).toBeInTheDocument()
   })
@@ -87,7 +90,7 @@ describe('BoxScene', () => {
     const project = createInitialProject()
     getSelectedInstance(project).packagingType = 'wash-tissue'
 
-    render(<BoxScene project={project} command={null} />)
+    render(<BoxScene project={project} command={null} exportPreset={defaultExportPreset} />)
 
     expect(screen.getByTestId('printed-wash-tissue')).toBeInTheDocument()
   })

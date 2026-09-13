@@ -1,24 +1,18 @@
 import { Color, Object3D, PerspectiveCamera, Scene, Vector2, WebGLRenderer } from 'three'
 
-export type PngExportSize = 800 | 3000
-
 export interface TransparentPngOptions {
-  size: PngExportSize
+  width: number
+  height: number
   includeShadow: boolean
+  exportFov: number
   shadowGroup?: Object3D | null
 }
 
 export interface PngExportSelection {
-  size: PngExportSize
+  width: number
+  height: number
   includeShadow: boolean
 }
-
-export const PNG_EXPORT_OPTIONS: ReadonlyArray<PngExportSelection & { label: string; quality: '普通' | '高清' }> = [
-  { label: '普通 PNG（无投影）', quality: '普通', size: 800, includeShadow: false },
-  { label: '普通 PNG（有投影）', quality: '普通', size: 800, includeShadow: true },
-  { label: '高清 PNG（无投影）', quality: '高清', size: 3000, includeShadow: false },
-  { label: '高清 PNG（有投影）', quality: '高清', size: 3000, includeShadow: true },
-]
 
 export function dataUrlToBlob(dataUrl: string) {
   const [header, encoded = ''] = dataUrl.split(',')
@@ -35,9 +29,11 @@ export function renderTransparentPng(
   renderer: WebGLRenderer,
   scene: Scene,
   camera: PerspectiveCamera,
-  { size, includeShadow, shadowGroup }: TransparentPngOptions = {
-    size: 3000,
+  { width, height, includeShadow, exportFov, shadowGroup }: TransparentPngOptions = {
+    width: 3000,
+    height: 3000,
     includeShadow: false,
+    exportFov: 38,
   },
 ) {
   const previousSize = renderer.getSize(new Vector2())
@@ -46,14 +42,16 @@ export function renderTransparentPng(
   const previousClearAlpha = renderer.getClearAlpha()
   const previousBackground = scene.background
   const previousAspect = camera.aspect
+  const previousFov = camera.fov
   const previousShadowVisible = shadowGroup?.visible
 
   renderer.setPixelRatio(1)
-  renderer.setSize(size, size, false)
+  renderer.setSize(width, height, false)
   renderer.setClearColor(0x000000, 0)
   scene.background = null
   if (shadowGroup) shadowGroup.visible = includeShadow
-  camera.aspect = 1
+  camera.aspect = width / height
+  camera.fov = exportFov
   camera.updateProjectionMatrix()
   try {
     renderer.render(scene, camera)
@@ -64,6 +62,7 @@ export function renderTransparentPng(
       shadowGroup.visible = previousShadowVisible
     }
     camera.aspect = previousAspect
+    camera.fov = previousFov
     camera.updateProjectionMatrix()
     renderer.setClearColor(previousClearColor, previousClearAlpha)
     renderer.setPixelRatio(previousPixelRatio)

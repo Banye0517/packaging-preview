@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
+import { getExportPreset } from '../export/exportFrame'
 import { ProjectToolbar } from './ProjectToolbar'
 
 describe('ProjectToolbar', () => {
@@ -22,6 +23,7 @@ describe('ProjectToolbar', () => {
         onNameChange={vi.fn()}
         canUndo
         canRedo
+        exportPreset={getExportPreset('landscape-2k')}
         {...handlers}
       />,
     )
@@ -40,16 +42,14 @@ describe('ProjectToolbar', () => {
 
     await user.click(screen.getByRole('button', { name: '导出' }))
     for (const label of [
-      '普通 PNG（无投影）',
-      '普通 PNG（有投影）',
-      '高清 PNG（无投影）',
-      '高清 PNG（有投影）',
+      '导出 PNG（无投影）· 2560 × 1440',
+      '导出 PNG（有投影）· 2560 × 1440',
     ]) {
       expect(screen.getByRole('menuitem', { name: label })).toBeInTheDocument()
     }
 
-    await user.click(screen.getByRole('menuitem', { name: '普通 PNG（有投影）' }))
-    expect(handlers.onExport).toHaveBeenCalledWith({ size: 800, includeShadow: true })
+    await user.click(screen.getByRole('menuitem', { name: '导出 PNG（有投影）· 2560 × 1440' }))
+    expect(handlers.onExport).toHaveBeenCalledWith({ width: 2560, height: 1440, includeShadow: true })
     expect(screen.queryByRole('menu', { name: 'PNG 导出选项' })).not.toBeInTheDocument()
   })
 
@@ -70,6 +70,7 @@ describe('ProjectToolbar', () => {
         onNameChange={vi.fn()}
         canUndo
         canRedo
+        exportPreset={getExportPreset('square-standard')}
         {...handlers}
       />,
     )

@@ -18,6 +18,12 @@ import {
 } from '../shell/SettingsPanel'
 import { decodeProject, encodeProject } from '../project/codec'
 import { dataUrlToBlob, type PngExportSelection } from '../export/transparentPng'
+import { ExportFrameOverlay } from '../export/ExportFrameOverlay'
+import {
+  DEFAULT_EXPORT_PRESET_ID,
+  getExportPreset,
+  type ExportPresetId,
+} from '../export/exportFrame'
 import { InnerPackagingArtworkUploader } from '../innerPackaging/InnerPackagingArtworkUploader'
 import { InnerPackaging1Panel } from '../innerPackaging/InnerPackaging1Panel'
 import { InnerPackaging2ArtworkUploader } from '../innerPackaging/InnerPackaging2ArtworkUploader'
@@ -72,11 +78,13 @@ export function App() {
     nonce: number
   } | null>(null)
   const [showHelp, setShowHelp] = useState(false)
+  const [exportPresetId, setExportPresetId] = useState<ExportPresetId>(DEFAULT_EXPORT_PRESET_ID)
   const openInputRef = useRef<HTMLInputElement>(null)
   const boxSceneRef = useRef<BoxSceneHandle>(null)
   const rootProject = history.present
   const selectedInstance = getSelectedInstance(rootProject)
   const project = { ...rootProject, ...selectedInstance }
+  const exportPreset = getExportPreset(exportPresetId)
 
   function commit(action: Parameters<typeof projectHistoryReducer>[1] & { type: 'commit' }) {
     historyDispatch(action)
@@ -402,6 +410,7 @@ export function App() {
       setWetTissueErrors({})
       setFinishErrors({})
       setPouchFinishErrors({})
+      setExportPresetId(DEFAULT_EXPORT_PRESET_ID)
     } catch (error) {
       window.alert(error instanceof Error ? error.message : '项目文件读取失败')
     }
@@ -412,7 +421,7 @@ export function App() {
     if (!png) return
     downloadFile(
       dataUrlToBlob(png),
-      `${name || '未命名包装'}-${selection.size}x${selection.size}-${selection.includeShadow ? '带投影' : '无投影'}.png`,
+      `${name || '未命名包装'}-${selection.width}x${selection.height}-${selection.includeShadow ? '带投影' : '无投影'}.png`,
     )
   }
 
@@ -439,11 +448,13 @@ export function App() {
             setWetTissueErrors({})
             setFinishErrors({})
             setPouchFinishErrors({})
+            setExportPresetId(DEFAULT_EXPORT_PRESET_ID)
           }
         }}
         onOpen={() => openInputRef.current?.click()}
         onSave={handleSave}
         onHelp={() => setShowHelp(true)}
+        exportPreset={exportPreset}
         onExport={handleExport}
       />
       <input
@@ -464,8 +475,10 @@ export function App() {
             ref={boxSceneRef}
             project={rootProject}
             command={cameraCommand}
+            exportPreset={exportPreset}
             onSelectInstance={(id) => commit({ type: 'commit', action: { type: 'instance/select', id } })}
           />
+          <ExportFrameOverlay presetId={exportPresetId} onChange={setExportPresetId} />
           <div className="preview-copy preview-copy--overlay">
             <span>3D PREVIEW</span>
             <p>所有图片仅在当前浏览器本地处理</p>
