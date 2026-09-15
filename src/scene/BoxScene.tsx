@@ -240,7 +240,7 @@ function CameraControls({
       exportPreset,
       EXPORT_CAMERA_FOV,
     )
-  }, [camera, command?.nonce, exportPreset, size.height, size.width])
+  }, [bounds, camera, command?.nonce, exportPreset, size.height, size.width])
 
   return (
     <OrbitControls

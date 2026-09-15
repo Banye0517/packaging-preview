@@ -1,8 +1,12 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import { forwardRef, useImperativeHandle } from 'react'
+import { PerspectiveCamera, Vector3 } from 'three'
 
 import { createInitialProject, getSelectedInstance } from '../app/projectReducer'
-import { getExportPreset } from '../export/exportFrame'
+import { applyExportFrameProjection, getExportPreset } from '../export/exportFrame'
+
+let testCamera: PerspectiveCamera
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -11,12 +15,15 @@ vi.mock('@react-three/fiber', () => ({
     scene: object
     camera: object
     size: { width: number; height: number }
-  }) => unknown) => selector({ gl: {}, scene: {}, camera: {}, size: { width: 1000, height: 1000 } }),
+  }) => unknown) => selector({ gl: {}, scene: {}, camera: testCamera, size: { width: 1000, height: 1000 } }),
 }))
 
 vi.mock('@react-three/drei', () => ({
   ContactShadows: () => <div data-testid="product-contact-shadow" />,
-  OrbitControls: () => null,
+  OrbitControls: forwardRef((_, ref) => {
+    useImperativeHandle(ref, () => ({ target: new Vector3(), update: vi.fn() }))
+    return null
+  }),
   RoundedBox: ({ children, name }: { children: React.ReactNode; name: string }) => <mesh name={name}>{children}</mesh>,
 }))
 
@@ -54,10 +61,26 @@ import { BoxScene } from './BoxScene'
 const defaultExportPreset = getExportPreset('square-standard')
 
 describe('BoxScene', () => {
+  testCamera = new PerspectiveCamera(38, 1)
   it('renders a contact shadow directly below the packaging model', () => {
     render(<BoxScene project={createInitialProject()} command={null} exportPreset={defaultExportPreset} />)
 
     expect(screen.getByTestId('product-contact-shadow')).toBeInTheDocument()
+  })
+
+  it('reapplies the fixed export frame after a new package changes composition bounds', () => {
+    const project = createInitialProject()
+    const view = render(<BoxScene project={project} command={null} exportPreset={defaultExportPreset} />)
+    const nextProject = structuredClone(project)
+    nextProject.instances.push({ ...structuredClone(project.instances[0]), id: 'instance-2' })
+
+    view.rerender(<BoxScene project={nextProject} command={null} exportPreset={defaultExportPreset} />)
+
+    const expected = new PerspectiveCamera(38, 1)
+    applyExportFrameProjection(expected, 1000, 1000, defaultExportPreset)
+    for (const index of [0, 5, 8, 9]) {
+      expect(testCamera.projectionMatrix.elements[index]).toBeCloseTo(expected.projectionMatrix.elements[index])
+    }
   })
 
   it('renders the selected pedestal geometry in the scene', () => {

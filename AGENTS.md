@@ -73,6 +73,7 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 ### Camera framing invariants
 
 - Changing the export ratio must not alter model geometry or pixel proportions. Fit the camera first, then apply the fixed export-frame projection so 1:1 remains square inside the overscan preview.
+- When adding, removing, or resizing instances changes the composition bounds, reapply the export-frame projection after the new camera fit; layout updates must never reset the fixed frame transform.
 - The perspective camera far clipping plane must remain beyond the maximum OrbitControls distance plus the composition bounds margin, so zooming out never clips the packaging.
 
 ## Box Finish Rules
