@@ -80,7 +80,7 @@ export function fitCompositionCamera(options: FitCompositionCameraOptions): FitC
     target,
     distance,
     near: 0.01,
-    far: Math.max(distance + radius * 2, distance + 1),
+    far: Math.max(distance + radius * 2, limits.max + radius * 2),
   }
 }
 

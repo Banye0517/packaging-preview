@@ -48,4 +48,11 @@ describe('fitCompositionCamera', () => {
     expect(result.far).toBeGreaterThanOrEqual(result.distance + radius * 2)
     expect(result.distance).toBeGreaterThanOrEqual(orbitSafeDistance)
   })
+
+  it('keeps the far plane beyond the maximum orbit distance', () => {
+    const result = fitCompositionCamera({ bounds: [-2, 0, -1, 2, 4, 1], fov: 38, aspect: 1 })
+    const radius = Math.hypot(2, 2, 1)
+
+    expect(result.far).toBeGreaterThanOrEqual(CAMERA_DISTANCE_LIMITS.max + radius * 2)
+  })
 })

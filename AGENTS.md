@@ -70,6 +70,11 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Disabling pedestals restores the existing same-ground A/B/C/D layout. Save pedestal preset and color; legacy projects migrate to no pedestal.
 - The first version has no manual pedestal transforms or package XYZ/rotation/scale controls. Preserve a path for later C4D-style manual transforms.
 
+### Camera framing invariants
+
+- Changing the export ratio must not alter model geometry or pixel proportions. Fit the camera first, then apply the fixed export-frame projection so 1:1 remains square inside the overscan preview.
+- The perspective camera far clipping plane must remain beyond the maximum OrbitControls distance plus the composition bounds margin, so zooming out never clips the packaging.
+
 ## Box Finish Rules
 
 - Surface finishes apply to all six faces of `box` and only the printable `front`/`back` panels of `pouch`; `inner-packaging-1` and `inner-packaging-2` remain unsupported.

@@ -179,19 +179,6 @@ function CameraControls({
     exportPresetRef.current = exportPreset
   }, [exportPreset])
 
-  // The preview renders overscan around the fixed export frame. Changing the
-  // frame updates projection only; it must never reset the user's orbit view.
-  useEffect(() => {
-    if (!('isPerspectiveCamera' in camera)) return
-    applyExportFrameProjection(
-      camera as PerspectiveCamera,
-      size.width,
-      size.height,
-      exportPreset,
-      EXPORT_CAMERA_FOV,
-    )
-  }, [camera, exportPreset, size.height, size.width])
-
   // Three.js camera objects are intentionally mutated by the scene controller.
   // eslint-disable-next-line react-hooks/immutability
   useEffect(() => {
@@ -240,6 +227,20 @@ function CameraControls({
     target.set(...fit.target)
     controls.current.update()
   }, [bounds, camera, command, size.height, size.width])
+
+  // The preview renders overscan around the fixed export frame. Apply the
+  // frame projection after every camera fit/update so the square frame keeps
+  // square pixels instead of being reset to the canvas aspect ratio.
+  useEffect(() => {
+    if (!('isPerspectiveCamera' in camera)) return
+    applyExportFrameProjection(
+      camera as PerspectiveCamera,
+      size.width,
+      size.height,
+      exportPreset,
+      EXPORT_CAMERA_FOV,
+    )
+  }, [camera, command?.nonce, exportPreset, size.height, size.width])
 
   return (
     <OrbitControls
