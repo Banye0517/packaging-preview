@@ -7,11 +7,17 @@ import { validateImage } from '../artwork/validateImage'
 import { BoxPanel } from '../box/BoxPanel'
 import { CameraPanel } from '../camera/CameraPanel'
 import { ProjectToolbar } from '../shell/ProjectToolbar'
-import { BoxScene, type BoxSceneHandle } from '../scene/BoxScene'
+import {
+  BoxScene,
+  STAGE_BG_HEX,
+  type BoxSceneHandle,
+  type ExtendedCameraCommand,
+} from '../scene/BoxScene'
 import {
   PreviewControls,
   type CameraCommand,
 } from '../scene/PreviewControls'
+import { DEMO_PRESETS, type DemoPresetBundle } from '../presets/demoPresets'
 import {
   SettingsPanel,
   type SettingsTabId,
@@ -46,6 +52,7 @@ import type {
   PouchClosure,
   PouchFace,
   PouchState,
+  StageBackground,
   WetTissueArtworkSlot,
 } from './types'
 
@@ -74,11 +81,14 @@ export function App() {
   const [finishErrors, setFinishErrors] = useState<Partial<Record<FinishKind, Partial<Record<BoxFace, string>>>>>({})
   const [pouchFinishErrors, setPouchFinishErrors] = useState<Partial<Record<FinishKind, Partial<Record<PouchFace, string>>>>>({})
   const [cameraCommand, setCameraCommand] = useState<{
-    type: CameraCommand
+    type: ExtendedCameraCommand
     nonce: number
   } | null>(null)
   const [showHelp, setShowHelp] = useState(false)
   const [exportPresetId, setExportPresetId] = useState<ExportPresetId>(DEFAULT_EXPORT_PRESET_ID)
+  const [stageBg, setStageBg] = useState<StageBackground>('studio')
+  const [presetLoading, setPresetLoading] = useState(false)
+  const [videoExporting, setVideoExporting] = useState(false)
   const [pedestalNotice, setPedestalNotice] = useState<string | null>(null)
   const openInputRef = useRef<HTMLInputElement>(null)
   const boxSceneRef = useRef<BoxSceneHandle>(null)
@@ -426,6 +436,69 @@ export function App() {
     )
   }
 
+  function handleExportPoster() {
+    const png = boxSceneRef.current?.exportPosterPng({
+      width: exportPreset.width,
+      height: exportPreset.height,
+      bgHex: STAGE_BG_HEX[stageBg],
+    })
+    if (!png) return
+    downloadFile(
+      dataUrlToBlob(png),
+      `${name || '未命名包装'}-${exportPreset.width}x${exportPreset.height}-场景海报.png`,
+    )
+  }
+
+  async function handleExportVideo() {
+    if (videoExporting) return
+    setVideoExporting(true)
+    try {
+      const result = await boxSceneRef.current?.exportTurntableVideo({
+        width: exportPreset.width,
+        height: exportPreset.height,
+        bgHex: STAGE_BG_HEX[stageBg],
+      })
+      if (result) {
+        downloadFile(result.blob, `${name || '未命名包装'}-360旋转演示.${result.ext}`)
+      }
+    } finally {
+      setVideoExporting(false)
+    }
+  }
+
+  async function handleLoadPreset(presetBundle: DemoPresetBundle) {
+    if (presetLoading) return
+    setPresetLoading(true)
+    try {
+      const nextProject = await presetBundle.build()
+      historyDispatch({ type: 'load', project: nextProject })
+      setName(presetBundle.projectName)
+      setExportPresetId(presetBundle.exportPresetId)
+      setStageBg(presetBundle.stageBg)
+      setFaceErrors({})
+      setPouchFaceErrors({})
+      setInnerPackagingArtworkError(undefined)
+      setInnerPackaging2Errors({})
+      setHangingTissueErrors({})
+      setFaceTissueError(undefined)
+      setWashTissueError(undefined)
+      setWetTissueErrors({})
+      setFinishErrors({})
+      setPouchFinishErrors({})
+      window.setTimeout(() => {
+        setCameraCommand((current) => ({ type: presetBundle.cameraView, nonce: (current?.nonce ?? 0) + 1 }))
+      }, 120)
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : '示例模板加载失败')
+    } finally {
+      setPresetLoading(false)
+    }
+  }
+
+  const isBlankStarter = rootProject.instances.length === 1 &&
+    rootProject.instances[0].packagingType === 'box' &&
+    Object.values(rootProject.instances[0].faces).every((f) => f === null)
+
   return (
     <div className="app-shell">
       <ProjectToolbar
@@ -455,8 +528,13 @@ export function App() {
         onOpen={() => openInputRef.current?.click()}
         onSave={handleSave}
         onHelp={() => setShowHelp(true)}
+        onLoadPreset={handleLoadPreset}
+        presetLoading={presetLoading}
+        videoExporting={videoExporting}
         exportPreset={exportPreset}
         onExport={handleExport}
+        onExportPoster={handleExportPoster}
+        onExportVideo={handleExportVideo}
       />
       <input
         ref={openInputRef}
@@ -471,12 +549,13 @@ export function App() {
         }}
       />
       <main className="workspace">
-        <section className="preview-stage" aria-label="包装盒三维预览区">
+        <section className="preview-stage" data-bg={stageBg} aria-label="包装盒三维预览区">
           <BoxScene
             ref={boxSceneRef}
             project={rootProject}
             command={cameraCommand}
             exportPreset={exportPreset}
+            stageBg={stageBg}
             onSelectInstance={(id) => commit({ type: 'commit', action: { type: 'instance/select', id } })}
             onPedestalFallback={setPedestalNotice}
           />
@@ -485,14 +564,31 @@ export function App() {
             onChange={setExportPresetId}
             pedestal={rootProject.pedestal}
             pedestalNotice={pedestalNotice}
+            stageBg={stageBg}
+            onStageBgChange={setStageBg}
             onPedestalPresetChange={(value) => commit({ type: 'commit', action: { type: 'pedestal/preset-set', value } })}
             onPedestalColorChange={(value) => commit({ type: 'commit', action: { type: 'pedestal/color-set', value } })}
             onPedestalRadiusChange={(value) => commit({ type: 'commit', action: { type: 'pedestal/radius-set', value } })}
           />
           <div className="preview-copy preview-copy--overlay">
-            <span>3D PREVIEW</span>
-            <p>所有图片仅在当前浏览器本地处理</p>
+            <span>3D STUDIO · BANYE</span>
+            <p>支持多品积木舞台与无损 PNG / 360° 视频导出</p>
           </div>
+          {isBlankStarter ? (
+            <div className="quick-preset-bar" aria-label="快速体验示例">
+              <span>快速体验：</span>
+              {DEMO_PRESETS.slice(0, 2).map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  disabled={presetLoading}
+                  onClick={() => void handleLoadPreset(p)}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
           <PreviewControls onCommand={handleCameraCommand} />
         </section>
         <SettingsPanel activeTab={activeTab} onTabChange={setActiveTab}>

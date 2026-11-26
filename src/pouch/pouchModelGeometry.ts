@@ -126,8 +126,8 @@ export function partitionPouchGeometry(
       if (normalComponent === 2) facing += normals.getZ(index)
     }
     facing /= 3
-    if (facing > 0.68) groups.front.push(triangle)
-    else if (facing < -0.68) groups.back.push(triangle)
+    if (facing > 0.44) groups.front.push(triangle)
+    else if (facing < -0.44) groups.back.push(triangle)
     else groups.structure.push(triangle)
   }
 

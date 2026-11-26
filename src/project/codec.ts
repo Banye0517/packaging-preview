@@ -590,8 +590,8 @@ function isProjectState(value: unknown): value is ProjectState {
   if (!value || typeof value !== 'object') return false
   const project = value as Partial<ProjectState>
   if (project.version !== 20 || typeof project.name !== 'string' || !TABS.has(project.activeTab ?? '')) return false
-  if (!project.pedestal || !['none', 'steps', 'islands', 'horizontal'].includes(project.pedestal.preset) ||
-      !['warm-white', 'light-gray', 'white', 'light-yellow', 'light-pink'].includes(project.pedestal.color) ||
+  if (!project.pedestal || !['none', 'gallery', 'steps', 'islands', 'horizontal'].includes(project.pedestal.preset) ||
+      !['morandi', 'oatmeal', 'glacier', 'warm-white', 'light-gray', 'white', 'light-yellow', 'light-pink'].includes(project.pedestal.color) ||
       typeof project.pedestal.cornerRadiusMm !== 'number' || !Number.isFinite(project.pedestal.cornerRadiusMm) ||
       project.pedestal.cornerRadiusMm < 0 || project.pedestal.cornerRadiusMm > 30) return false
   return hasVersion18CompositionFields(project)
@@ -958,8 +958,8 @@ function isVersion19ProjectState(value: unknown): value is Version19ProjectState
   const project = value as Partial<Version19ProjectState>
   return project.version === 19 &&
     !!project.pedestal &&
-    ['none', 'steps', 'islands', 'horizontal'].includes(project.pedestal.preset) &&
-    ['warm-white', 'light-gray', 'white', 'light-yellow', 'light-pink'].includes(project.pedestal.color) &&
+    ['none', 'gallery', 'steps', 'islands', 'horizontal'].includes(project.pedestal.preset) &&
+    ['morandi', 'oatmeal', 'glacier', 'warm-white', 'light-gray', 'white', 'light-yellow', 'light-pink'].includes(project.pedestal.color) &&
     hasVersion18CompositionFields(project as unknown as Partial<ProjectState>)
 }
 

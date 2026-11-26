@@ -1342,3 +1342,223 @@ input:focus-visible {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+
+/* ==========================================================================
+   BoxLab Studio Upgrade — BanYe Modern Aesthetic, Stage Backgrounds & Presets
+   ========================================================================== */
+.brand-mark {
+  background: #111311;
+  color: #d6e63b;
+  font-weight: 800;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 16%);
+}
+
+.brand-text {
+  display: grid;
+  gap: 1px;
+}
+
+.brand-text strong {
+  font-size: 16px;
+  line-height: 1.1;
+  color: #111311;
+}
+
+.brand-text small {
+  font-size: 10px;
+  color: #747d8c;
+  font-weight: 500;
+}
+
+.toolbar-actions .preset-trigger-btn {
+  border-color: #161816;
+  background: #161816;
+  color: #f4f4ef;
+  font-weight: 600;
+  font-size: 12.5px;
+}
+
+.toolbar-actions .preset-trigger-btn:hover {
+  background: #272a27;
+}
+
+.toolbar-actions .export-button {
+  background: #d6e63b;
+  border-color: #c5d62b;
+  color: #0e100d;
+  font-weight: 700;
+}
+
+.toolbar-actions .export-button:hover {
+  background: #cbe028;
+}
+
+.preset-menu {
+  min-width: 268px;
+}
+
+.preset-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+}
+
+.preset-badge {
+  flex: none;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #eef2d0;
+  color: #3a4405;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.export-menu .export-video-item {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid #e6ebf2;
+  color: #111311;
+  font-weight: 650;
+}
+
+/* Stage Background Modes */
+.preview-stage[data-bg="studio"] {
+  background: linear-gradient(180deg, #eceef2 0%, #e4e7ed 62%, #dadfe7 100%);
+}
+
+.preview-stage[data-bg="pure-white"] {
+  background: #ffffff;
+}
+
+.preview-stage[data-bg="warm-sand"] {
+  background: linear-gradient(180deg, #f5f1e9 0%, #ece6da 100%);
+}
+
+.preview-stage[data-bg="dark-noir"] {
+  background: radial-gradient(circle at 50% 42%, #23262b 0%, #121417 75%);
+}
+
+.preview-stage[data-bg="dark-noir"] .preview-copy--overlay span {
+  color: #d6e63b;
+}
+
+.preview-stage[data-bg="dark-noir"] .preview-copy--overlay p {
+  color: rgb(255 255 255 / 62%);
+}
+
+.stage-bg-controls {
+  display: flex;
+  gap: 3px;
+  padding-left: 6px;
+  margin-left: 3px;
+  border-left: 1px solid rgb(255 255 255 / 24%);
+}
+
+.stage-bg-controls button {
+  position: relative;
+  width: 24px;
+  min-height: 24px;
+  padding: 0;
+}
+
+.stage-bg-controls button::after {
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  border: 1px solid rgb(255 255 255 / 45%);
+  background: var(--pedestal-swatch);
+  content: '';
+}
+
+.stage-bg-controls button[aria-pressed="true"] {
+  background: rgb(255 255 255 / 22%);
+}
+
+.pedestal-color-controls button[aria-pressed="true"] {
+  background: rgb(255 255 255 / 92%);
+}
+
+/* Quick Starter Floating Bar on Blank Canvas */
+.quick-preset-bar {
+  position: absolute;
+  z-index: 3;
+  bottom: 58px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgb(18 20 18 / 84%);
+  color: #f3f2eb;
+  font-size: 12px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 28px rgb(0 0 0 / 18%);
+}
+
+.quick-preset-bar span {
+  color: #d6e63b;
+  font-weight: 700;
+  padding-left: 4px;
+}
+
+.quick-preset-bar button {
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 22%);
+  background: rgb(255 255 255 / 10%);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .2s, color .2s, border-color .2s;
+}
+
+.quick-preset-bar button:hover {
+  background: #d6e63b;
+  border-color: #d6e63b;
+  color: #111311;
+}
+
+
+/* Fix header button nowrap, dropdown z-index above stage controls, and responsive stage toolbar wrap */
+.project-toolbar {
+  z-index: 40;
+  grid-template-columns: auto minmax(120px, 1fr) auto;
+  gap: 12px;
+  padding: 10px 16px;
+}
+
+.toolbar-actions {
+  flex-wrap: nowrap;
+  gap: 5px;
+}
+
+.toolbar-actions button {
+  white-space: nowrap;
+  font-size: 12.5px;
+  padding: 0 9px;
+}
+
+.export-menu {
+  z-index: 80;
+}
+
+.preview-primary-toolbar {
+  flex-wrap: wrap;
+  row-gap: 6px;
+  max-width: calc(100% - 16px);
+}
+
+@media (max-width: 1220px) {
+  .preview-copy--overlay {
+    display: none;
+  }
+}

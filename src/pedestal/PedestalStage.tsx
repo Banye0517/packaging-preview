@@ -1,7 +1,7 @@
 import type { PedestalColor } from '../app/types'
 
 import type { PedestalBlock } from './pedestalLayout'
-import { PEDESTAL_COLORS } from './pedestalColors'
+import { STAGE_PALETTES } from './pedestalColors'
 import { RoundedPedestalBlock } from './RoundedPedestalBlock'
 
 interface PedestalStageProps {
@@ -11,18 +11,23 @@ interface PedestalStageProps {
 }
 
 export function PedestalStage({ blocks, color, cornerRadiusMm }: PedestalStageProps) {
-  const materialColor = PEDESTAL_COLORS[color]
+  const palette = STAGE_PALETTES[color] ?? STAGE_PALETTES.morandi
 
   return (
     <group name="pedestal-stage">
-      {blocks.map((block) => (
-        <RoundedPedestalBlock
-          key={block.id}
-          block={block}
-          color={materialColor}
-          cornerRadiusMm={cornerRadiusMm}
-        />
-      ))}
+      {blocks.map((block, index) => {
+        const blockColor = block.role === 'plinth'
+          ? palette.plinth
+          : palette.risers[(block.paletteIndex ?? index) % palette.risers.length]
+        return (
+          <RoundedPedestalBlock
+            key={block.id}
+            block={block}
+            color={blockColor}
+            cornerRadiusMm={cornerRadiusMm}
+          />
+        )
+      })}
     </group>
   )
 }

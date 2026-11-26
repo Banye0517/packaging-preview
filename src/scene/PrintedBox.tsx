@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import {
   SRGBColorSpace,
-  Texture,
   TextureLoader,
 } from 'three'
 
@@ -31,7 +30,7 @@ export function PrintedBox({ faces, box, finish }: PrintedBoxProps) {
       <mesh castShadow receiveShadow>
         <primitive attach="geometry" object={geometry} />
         {BOX_MATERIAL_FACE_ORDER.map((face, index) => (
-          <FaceMaterial key={face} index={index} source={faces[face]?.previewUrl ?? null} />
+          <FaceMaterial key={`${face}-${faces[face]?.id ?? 'empty'}`} index={index} source={faces[face]?.previewUrl ?? null} />
         ))}
       </mesh>
       <FinishOverlay box={box} finish={finish} faces={faces} />
@@ -42,11 +41,13 @@ export function PrintedBox({ faces, box, finish }: PrintedBoxProps) {
 function FaceMaterial({ index, source }: { index: number; source: string | null }) {
   if (!source) {
     return (
-      <meshStandardMaterial
+      <meshPhysicalMaterial
         attach={`material-${index}`}
-        color="#f7f9fc"
+        color="#f6f7fa"
         roughness={0.58}
-        metalness={0.02}
+        metalness={0}
+        clearcoat={0.04}
+        envMapIntensity={0.4}
       />
     )
   }
@@ -55,20 +56,14 @@ function FaceMaterial({ index, source }: { index: number; source: string | null 
 }
 
 function LoadedFaceMaterial({ index, source }: { index: number; source: string }) {
-  const [texture, setTexture] = useState<Texture | null>(null)
-
-  useEffect(() => {
-    let active = true
-    const loaded = new TextureLoader().load(source, (nextTexture) => {
-      nextTexture.colorSpace = SRGBColorSpace
-      if (active) setTexture(nextTexture)
-    })
-
-    return () => {
-      active = false
-      loaded.dispose()
-    }
+  const texture = useMemo(() => {
+    const loaded = new TextureLoader().load(source)
+    loaded.colorSpace = SRGBColorSpace
+    loaded.anisotropy = 16
+    return loaded
   }, [source])
+
+  useEffect(() => () => texture.dispose(), [texture])
 
   return <ArtworkMaterial attach={`material-${index}`} texture={texture} />
 }

@@ -1,6 +1,7 @@
 import type { Mesh, Object3D } from 'three'
 
-export const FACE_TISSUE_MODEL_URL = '/models/face-tissue.gltf'
+import { assetUrl } from '../scene/assetUrl'
+export const FACE_TISSUE_MODEL_URL = assetUrl('models/face-tissue.gltf')
 export const FACE_TISSUE_BODY_ROOT_NAME = '面纸打开'
 export const FACE_TISSUE_PRINTABLE_MESH_NAME = 'Default'
 export const FACE_TISSUE_SIDE_MESH_NAME = 'Default-材质.2'

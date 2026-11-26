@@ -1,6 +1,7 @@
 import { BackSide, Box3, Vector3, type Mesh, type Object3D } from 'three'
 
-export const HANGING_TISSUE_MODEL_URL = '/models/hanging-tissue.gltf'
+import { assetUrl } from '../scene/assetUrl'
+export const HANGING_TISSUE_MODEL_URL = assetUrl('models/hanging-tissue.gltf')
 export const HANGING_TISSUE_BODY_ROOT_NAME = '悬挂抽纸155'
 export const HANGING_TISSUE_PULLED_SHEET_NAME = '纸.1'
 export const HANGING_TISSUE_PRINTABLE_MESH_NAMES = ['悬挂抽纸155'] as const

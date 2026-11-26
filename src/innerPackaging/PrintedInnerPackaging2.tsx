@@ -17,7 +17,8 @@ import {
   type InnerPackaging2UvRegions,
 } from './innerPackaging2Texture'
 
-export const INNER_PACKAGING_2_MODEL_URL = '/models/inner-packaging-2.gltf'
+import { assetUrl } from '../scene/assetUrl'
+export const INNER_PACKAGING_2_MODEL_URL = assetUrl('models/inner-packaging-2.gltf')
 
 function useLoadedImage(source: string | undefined) {
   const [loadedState, setLoadedState] = useState<{

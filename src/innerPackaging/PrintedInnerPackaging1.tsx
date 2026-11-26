@@ -12,7 +12,8 @@ import type { ArtworkAsset, InnerPackaging1State } from '../app/types'
 import { fitPouchGeometry } from '../pouch/pouchModelGeometry'
 import { ArtworkMaterial } from '../scene/artworkLighting'
 
-const MODEL_URL = '/models/inner-packaging-1.gltf'
+import { assetUrl } from '../scene/assetUrl'
+const MODEL_URL = assetUrl('models/inner-packaging-1.gltf')
 const FILM_COLOR = '#f8fafc'
 
 export function PrintedInnerPackaging1({ value }: { value: InnerPackaging1State }) {

@@ -1,6 +1,7 @@
 import type { Mesh, Object3D } from 'three'
 
-export const WET_TISSUE_MODEL_URL = '/models/wet-tissue.gltf'
+import { assetUrl } from '../scene/assetUrl'
+export const WET_TISSUE_MODEL_URL = assetUrl('models/wet-tissue.gltf')
 export const WET_TISSUE_OPEN_ROOT_NAME = '湿巾纸开'
 export const WET_TISSUE_CLOSED_ROOT_NAME = '湿巾纸'
 export const WET_TISSUE_BODY_MESH_NAME = '袋子'

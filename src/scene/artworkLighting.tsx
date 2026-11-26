@@ -4,8 +4,8 @@ export function ArtworkMaterial({
   texture,
   attach,
   side = FrontSide,
-  roughness = 0.68,
-  clearcoat = 0.12,
+  roughness = 0.56,
+  clearcoat = 0.06,
 }: {
   texture: Texture | null
   attach?: string
@@ -21,9 +21,9 @@ export function ArtworkMaterial({
       roughness={roughness}
       metalness={0}
       clearcoat={clearcoat}
-      clearcoatRoughness={0.58}
+      clearcoatRoughness={0.54}
+      envMapIntensity={0.45}
       side={side}
-      toneMapped={false}
     />
   )
 }

@@ -1,6 +1,7 @@
 import type { Mesh, Object3D } from 'three'
 
-export const WASH_TISSUE_MODEL_URL = '/models/wash-tissue/wash-tissue.gltf'
+import { assetUrl } from '../scene/assetUrl'
+export const WASH_TISSUE_MODEL_URL = assetUrl('models/wash-tissue/wash-tissue.gltf')
 export const WASH_TISSUE_BODY_ROOT_NAME = '洗脸巾1开'
 export const WASH_TISSUE_BODY_MESH_NAME = '洗脸巾'
 export const WASH_TISSUE_TOP_PLANE_NAME = '平面'

@@ -13,8 +13,17 @@ export const HANGING_TISSUE_FACES = ['front', 'back', 'left', 'right'] as const
 export type HangingTissueFace = (typeof HANGING_TISSUE_FACES)[number]
 export type PackagingType = 'box' | 'pouch' | 'inner-packaging-1' | 'inner-packaging-2' | 'hanging-tissue' | 'face-tissue' | 'wet-tissue' | 'wash-tissue'
 export type CompositionLayout = 'hero' | 'family' | 'cluster' | 'grid'
-export type PedestalPreset = 'none' | 'steps' | 'islands' | 'horizontal'
-export type PedestalColor = 'warm-white' | 'light-gray' | 'white' | 'light-yellow' | 'light-pink'
+export type PedestalPreset = 'none' | 'gallery' | 'steps' | 'islands' | 'horizontal'
+export type PedestalColor =
+  | 'morandi'
+  | 'oatmeal'
+  | 'glacier'
+  | 'warm-white'
+  | 'light-gray'
+  | 'white'
+  | 'light-yellow'
+  | 'light-pink'
+export type StageBackground = 'studio' | 'pure-white' | 'warm-sand' | 'dark-noir'
 export interface PedestalState {
   preset: PedestalPreset
   color: PedestalColor
