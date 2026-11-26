@@ -1,0 +1,366 @@
+{
+  "asset": {
+    "generator": "glTF-Transform v4.5.0",
+    "version": "2.0"
+  },
+  "accessors": [
+    {
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 226440,
+      "bufferView": 0,
+      "byteOffset": 0
+    },
+    {
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 9600,
+      "bufferView": 0,
+      "byteOffset": 452880
+    },
+    {
+      "type": "SCALAR",
+      "componentType": 5125,
+      "count": 823104,
+      "bufferView": 0,
+      "byteOffset": 472080
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 38836,
+      "max": [
+        10.427637100219727,
+        7.18656063079834,
+        6.159807205200195
+      ],
+      "min": [
+        -10.335247039794922,
+        0.02002738043665886,
+        -6.174851894378662
+      ],
+      "bufferView": 1,
+      "byteOffset": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 38836,
+      "bufferView": 1,
+      "byteOffset": 12
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5126,
+      "count": 38836,
+      "bufferView": 1,
+      "byteOffset": 24
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 1681,
+      "max": [
+        9.258767127990723,
+        0,
+        5.72962760925293
+      ],
+      "min": [
+        -9.258767127990723,
+        0,
+        -5.72962760925293
+      ],
+      "bufferView": 2,
+      "byteOffset": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 1681,
+      "bufferView": 2,
+      "byteOffset": 12
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5126,
+      "count": 1681,
+      "bufferView": 2,
+      "byteOffset": 24
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 137589,
+      "max": [
+        9.021955490112305,
+        10.254980087280273,
+        0.598892092704773
+      ],
+      "min": [
+        -9.209183692932129,
+        -1.12883460521698,
+        -1.3059808015823364
+      ],
+      "bufferView": 3,
+      "byteOffset": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 137589,
+      "bufferView": 3,
+      "byteOffset": 12
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5126,
+      "count": 137589,
+      "bufferView": 3,
+      "byteOffset": 24
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 3764496,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 3764496,
+      "byteLength": 1242752,
+      "byteStride": 32,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 5007248,
+      "byteLength": 53792,
+      "byteStride": 32,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 5061040,
+      "byteLength": 4402848,
+      "byteStride": 32,
+      "target": 34962
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9729,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "textures": [
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 1,
+      "sampler": 0
+    },
+    {
+      "source": 2,
+      "sampler": 0
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "uri": "baseColor_1.png"
+    },
+    {
+      "mimeType": "image/jpeg",
+      "uri": "baseColor_2.jpg"
+    },
+    {
+      "mimeType": "image/jpeg",
+      "uri": "normal_1.jpg"
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "wash-tissue.bin",
+      "byteLength": 9463888
+    }
+  ],
+  "materials": [
+    {
+      "name": "材质",
+      "alphaMode": "BLEND",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.8,
+          0.8,
+          0.8,
+          1
+        ],
+        "roughnessFactor": 0.5,
+        "metallicFactor": 0,
+        "baseColorTexture": {
+          "index": 0
+        }
+      }
+    },
+    {
+      "name": "纸巾",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.93,
+          0.93,
+          0.93,
+          1
+        ],
+        "roughnessFactor": 0.5,
+        "metallicFactor": 0
+      }
+    },
+    {
+      "name": "材质.1",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.8,
+          0.8,
+          0.8,
+          1
+        ],
+        "roughnessFactor": 0.5,
+        "metallicFactor": 0,
+        "baseColorTexture": {
+          "index": 1
+        }
+      },
+      "emissiveFactor": [
+        0.6230215827338129,
+        0.6230215827338129,
+        0.6230215827338129
+      ],
+      "normalTexture": {
+        "index": 2,
+        "scale": 0.8
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "洗脸巾",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 3,
+            "NORMAL": 4,
+            "TEXCOORD_0": 5
+          },
+          "mode": 4,
+          "material": 0,
+          "indices": 0
+        }
+      ]
+    },
+    {
+      "name": "平面",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 6,
+            "NORMAL": 7,
+            "TEXCOORD_0": 8
+          },
+          "mode": 4,
+          "material": 1,
+          "indices": 1
+        }
+      ]
+    },
+    {
+      "name": "纸",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 9,
+            "NORMAL": 10,
+            "TEXCOORD_0": 11
+          },
+          "mode": 4,
+          "material": 2,
+          "indices": 2
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "洗脸巾1开",
+      "translation": [
+        1.9809281826019287,
+        0.5714024901390076,
+        -0.9775217771530151
+      ],
+      "rotation": [
+        0,
+        0,
+        0,
+        -1
+      ],
+      "children": [
+        1
+      ]
+    },
+    {
+      "name": "洗脸巾",
+      "mesh": 0,
+      "children": [
+        2,
+        3
+      ]
+    },
+    {
+      "name": "平面",
+      "translation": [
+        0,
+        6.311481475830078,
+        -0.024328026920557022
+      ],
+      "rotation": [
+        0,
+        0,
+        0,
+        -1
+      ],
+      "mesh": 1
+    },
+    {
+      "name": "纸",
+      "translation": [
+        -0.5443377494812012,
+        5.888304233551025,
+        0.5762272477149963
+      ],
+      "rotation": [
+        0,
+        0,
+        0,
+        -1
+      ],
+      "scale": [
+        1,
+        0.9200000166893005,
+        1
+      ],
+      "mesh": 2
+    }
+  ],
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ]
+}
